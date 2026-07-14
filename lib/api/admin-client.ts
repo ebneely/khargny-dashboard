@@ -12,6 +12,12 @@ export class AdminApiError extends Error {
   }
 }
 
+function getToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 async function request<T>(method: string, path: string, opts?: { body?: unknown; params?: Record<string, string | number | undefined | null> }): Promise<T> {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (opts?.params) {
@@ -20,10 +26,19 @@ async function request<T>(method: string, path: string, opts?: { body?: unknown;
     }
   }
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url.toString(), {
     method,
     credentials: 'include',
-    headers: opts?.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    headers,
     body: opts?.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
 
