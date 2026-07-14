@@ -10,33 +10,32 @@ import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from '@/components/ui/table';
-import { useAdminCategories } from '@/lib/api/hooks/use-admin-categories';
-import { Badge } from '@/components/ui/badge';
+import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 
-export default function CategoriesPage() {
+export default function TagsPage() {
   const [search, setSearch] = useState('');
-  const { data, isLoading, isError, refetch } = useAdminCategories();
+  const { data, isLoading, isError, refetch } = useAdminTags();
 
   const filtered = useMemo(() => {
     if (!data) return [];
     if (!search) return data;
     const q = search.toLowerCase();
     return data.filter(
-      (c) =>
-        c.nameAr.toLowerCase().includes(q) ||
-        (c.nameEn && c.nameEn.toLowerCase().includes(q)) ||
-        c.slug.toLowerCase().includes(q),
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        (t.nameEn && t.nameEn.toLowerCase().includes(q)) ||
+        t.slug.toLowerCase().includes(q),
     );
   }, [data, search]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Categories</h1>
-        <Link href="/dashboard/categories/new">
+        <h1 className="font-display text-2xl font-semibold text-foreground">Tags</h1>
+        <Link href="/dashboard/tags/new">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
-            Add Category
+            Add Tag
           </Button>
         </Link>
       </div>
@@ -47,7 +46,7 @@ export default function CategoriesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search categories..."
+                placeholder="Search tags..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -64,41 +63,31 @@ export default function CategoriesPage() {
             </div>
           ) : isError ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-3">Failed to load categories</p>
+              <p className="text-muted-foreground mb-3">Failed to load tags</p>
               <Button variant="outline" onClick={() => refetch()}>Retry</Button>
             </div>
           ) : filtered.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Arabic Name</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>English Name</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Icon</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Order</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((cat) => (
-                  <TableRow key={cat.id}>
+                {filtered.map((tag) => (
+                  <TableRow key={tag.id}>
                     <TableCell>
-                      <Link href={`/dashboard/categories/${cat.id}`} className="hover:text-orange-600 font-medium">
-                        {cat.nameAr}
+                      <Link href={`/dashboard/tags/${tag.id}`} className="hover:text-orange-600 font-medium">
+                        {tag.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{cat.nameEn || '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                    <TableCell className="text-muted-foreground">{cat.icon || '—'}</TableCell>
-                    <TableCell>
-                      <Badge variant={cat.status === 'active' ? 'default' : 'secondary'}>
-                        {cat.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">{cat.sortOrder}</TableCell>
+                    <TableCell className="text-muted-foreground">{tag.nameEn || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{tag.slug}</TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/dashboard/categories/${cat.id}`}>
+                      <Link href={`/dashboard/tags/${tag.id}`}>
                         <Button variant="ghost" size="sm">Edit</Button>
                       </Link>
                     </TableCell>
@@ -108,7 +97,7 @@ export default function CategoriesPage() {
             </Table>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">{data ? 'No categories found' : 'No categories found'}</p>
+              <p className="text-muted-foreground">No tags found</p>
             </div>
           )}
         </CardContent>

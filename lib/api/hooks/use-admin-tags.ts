@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '../admin-client';
-import type { AdminPlaceList, AdminPlaceFilters, AdminPlace } from '../types';
+import type { AdminTag } from '../types';
 
-export function useAdminPlaces(filters: AdminPlaceFilters) {
-  const [data, setData] = useState<AdminPlaceList | null>(null);
+export function useAdminTags() {
+  const [data, setData] = useState<AdminTag[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -15,7 +15,7 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminPlaceList>('/v1/admin/places', filters as any);
+      const result = await adminApi.get<AdminTag[]>('/v1/admin/tags');
       setData(result);
     } catch (e) {
       setIsError(true);
@@ -23,15 +23,15 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     } finally {
       setIsLoading(false);
     }
-  }, [JSON.stringify(filters)]);
+  }, []);
 
   useEffect(() => { fetch(); }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }
 
-export function useAdminPlace(id: string) {
-  const [data, setData] = useState<AdminPlace | null>(null);
+export function useAdminTag(id: string) {
+  const [data, setData] = useState<AdminTag | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -42,7 +42,7 @@ export function useAdminPlace(id: string) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminPlace>(`/v1/admin/places/${id}`);
+      const result = await adminApi.get<AdminTag>(`/v1/admin/tags/${id}`);
       setData(result);
     } catch (e) {
       setIsError(true);

@@ -7,6 +7,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/places", label: "Places" },
   { href: "/dashboard/cities", label: "Cities" },
   { href: "/dashboard/categories", label: "Categories" },
+  { href: "/dashboard/amenities", label: "Amenities" },
+  { href: "/dashboard/tags", label: "Tags" },
   { href: "/dashboard/admins", label: "Admins" },
   { href: "/dashboard/settings", label: "Settings" },
 ] as const;

@@ -99,7 +99,7 @@ export default function PlacesPage() {
                   {data.items.map((place) => (
                     <TableRow key={place.id}>
                       <TableCell>
-                        <Link href={`/dashboard/places/${place.id}/edit`} className="hover:text-orange-600 font-medium">
+                        <Link href={`/dashboard/places/${place.id}`} className="hover:text-orange-600 font-medium">
                           {place.name}
                         </Link>
                       </TableCell>
@@ -116,7 +116,7 @@ export default function PlacesPage() {
                         {place._count ? `${place._count.images}i ${place._count.videos}v` : '—'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/dashboard/places/${place.id}/edit`}>
+                        <Link href={`/dashboard/places/${place.id}`}>
                           <Button variant="ghost" size="sm">Edit</Button>
                         </Link>
                       </TableCell>
