@@ -1,7 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { getServerSession } from "@/lib/auth-server";
 
 const NAV_ITEMS = [
   { href: "/dashboard/places", label: "Places" },
@@ -18,12 +16,6 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Server-side auth guard (adapted from khargny-frontend's dashboard guard
-  // shape). All auth decisions happen here, never client-side.
-  const session = await getServerSession();
-  if (!session?.user) {
-    redirect("/login");
-  }
 
   return (
     <div className="flex min-h-full">
