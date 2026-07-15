@@ -1,57 +1,91 @@
-import { NextRequest, NextResponse } from "next/server";
-import { BACKEND_URL } from "@/lib/config";
+import { NextRequest, NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
+
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24,
+};
+
+interface LoginBody {
+  email: string;
+  password: string;
+}
+
+interface TokenPairBody {
+  success?: boolean;
+  data?: {
+    access_token: string;
+    refresh_token: string;
+    expires_in?: string;
+    token_type?: string;
+  };
+  error?: { code?: string; message?: string };
+}
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
-
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+  let body: LoginBody;
+  try {
+    body = (await request.json()) as LoginBody;
+  } catch {
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_BODY', message: 'Invalid request body' } },
+      { status: 400 },
+    );
   }
 
-  let accessToken: string;
-  let user: { id: string; email: string; role: string };
+  const { email, password } = body;
+  if (!email || !password) {
+    return NextResponse.json(
+      { success: false, error: { code: 'MISSING_CREDENTIALS', message: 'Email and password required' } },
+      { status: 400 },
+    );
+  }
 
+  let backendRes: Response;
   try {
-    const res = await fetch(`${BACKEND_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    backendRes = await fetch(`${API_BASE_URL}/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
       signal: AbortSignal.timeout(5000),
     });
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      return NextResponse.json(
-        { error: body?.message || "Invalid credentials" },
-        { status: 401 },
-      );
-    }
-
-    const data = await res.json();
-    accessToken = data.access_token;
-    const payload = JSON.parse(
-      Buffer.from(accessToken.split(".")[1], "base64url").toString(),
-    );
-    user = { id: payload.sub, email: payload.email, role: payload.role };
   } catch {
-    // Dev fallback — when backend isn't running, accept test@khargny.com
-    if (email !== "test@khargny.com" || password !== "admin123") {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-    user = { id: "dev-user", email, role: "super_admin" };
-    accessToken = "dev." + Buffer.from(JSON.stringify({ sub: user.id, email: user.email, role: user.role })).toString("base64url") + ".fake-sig";
+    return NextResponse.json(
+      { success: false, error: { code: 'NETWORK_ERROR', message: 'Connection error. Try again.' } },
+      { status: 503 },
+    );
   }
 
-  const cookieOpts = {
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 60 * 60 * 24,
-  };
+  let payload: TokenPairBody | null = null;
+  try {
+    payload = (await backendRes.json()) as TokenPairBody;
+  } catch {
+    payload = null;
+  }
 
-  const response = NextResponse.json({ user });
-  response.cookies.set("session_token", accessToken, { ...cookieOpts, httpOnly: true });
-  response.cookies.set("token", accessToken, { ...cookieOpts, httpOnly: false });
+  if (!backendRes.ok || !payload?.data) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: payload?.error?.code || 'INVALID_CREDENTIALS',
+          message: payload?.error?.message || 'Invalid email or password',
+        },
+      },
+      { status: backendRes.status },
+    );
+  }
 
+  const { access_token, refresh_token } = payload.data;
+  const response = NextResponse.json({
+    success: true,
+    data: payload.data,
+  });
+  response.cookies.set('session_token', access_token, COOKIE_OPTS);
+  response.cookies.set('refresh_token', refresh_token, COOKIE_OPTS);
+  response.cookies.set('token', access_token, { ...COOKIE_OPTS, httpOnly: false });
   return response;
 }

@@ -153,3 +153,16 @@ export interface UpdateAdminInput {
   role?: AdminRole;
   status?: AdminStatus;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Place amenities assignment (US-admin-AMN-001)
+// Mirrors Modules/amenities/contract.ts `AssignAmenitiesToPlace` response
+// (POST /v1/admin/amenities/place/:placeId/assign). Replace-semantics — the
+// server echoes the full assigned-set so the client can reconcile local state
+// without a second fetch.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PlaceAmenityAssignment {
+  placeId: string;
+  amenityIds: string[];
+}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ProfileHeader } from "@/components/auth/profile-header";
 
 const NAV_ITEMS = [
   { href: "/dashboard/places", label: "Places" },
@@ -11,16 +12,15 @@ const NAV_ITEMS = [
   { href: "/dashboard/settings", label: "Settings" },
 ] as const;
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
   return (
     <div className="flex min-h-full">
-      <aside className="w-60 shrink-0 border-r border-border bg-card px-4 py-6">
-        <Link href="/dashboard" className="mb-8 flex items-center gap-2">
+      <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6">
+        <Link href="/dashboard" className="mb-6 flex items-center gap-2">
           <Image
             src="/khargny-mark.jpg"
             alt="Khargny"
@@ -32,6 +32,7 @@ export default async function DashboardLayout({
             خرجني
           </span>
         </Link>
+        <ProfileHeader />
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
             <Link
