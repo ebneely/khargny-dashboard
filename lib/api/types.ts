@@ -109,3 +109,47 @@ export interface AdminTag {
   updatedAt: string;
   deletedAt: string | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin (US-dev-ADM-001/002/003) — consumed by /dashboard/admins/{list,new,[id]/edit}.
+// Sanitized: passwordHash never serializes. Mirrors Modules/admins/contract.ts
+// (AdminsRoutes + Admin + AdminList + CreateAdmin + UpdateAdmin Zod contracts).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AdminRole = 'super_admin' | 'editor' | 'viewer';
+export type AdminStatus = 'active' | 'disabled';
+
+export const ADMIN_ROLES: readonly AdminRole[] = ['super_admin', 'editor', 'viewer'] as const;
+export const ADMIN_STATUSES: readonly AdminStatus[] = ['active', 'disabled'] as const;
+
+export interface Admin {
+  id: string;
+  email: string;
+  role: AdminRole;
+  status: AdminStatus;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminList {
+  items: Admin[];
+  skip: number;
+  limit: number;
+}
+
+export interface AdminFilters {
+  skip?: number;
+  limit?: number;
+}
+
+export interface CreateAdminInput {
+  email: string;
+  password: string;
+  role?: AdminRole;
+}
+
+export interface UpdateAdminInput {
+  role?: AdminRole;
+  status?: AdminStatus;
+}
