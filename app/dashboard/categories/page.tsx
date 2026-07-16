@@ -104,7 +104,7 @@ export default function CategoriesPage() {
                     <TableRow key={cat.id}>
                       <TableCell>
                         <Link
-                          href={`/dashboard/categories/${cat.id}`}
+                          href={`/dashboard/categories/${cat.id}/edit`}
                           className="hover:text-orange-600 font-medium"
                           data-trace-id={`category-list-name-${cat.id}`}
                         >
@@ -122,7 +122,7 @@ export default function CategoriesPage() {
                       <TableCell className="text-center">{cat.sortOrder}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Link href={`/dashboard/categories/${cat.id}`}>
+                          <Link href={`/dashboard/categories/${cat.id}/edit`}>
                             <Button
                               variant="ghost"
                               size="icon-sm"
