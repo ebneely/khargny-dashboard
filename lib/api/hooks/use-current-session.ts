@@ -32,8 +32,15 @@ export function useCurrentSession() {
         setIsError(true);
         return;
       }
-      const json = (await res.json()) as CurrentSession;
-      setData(json);
+      // /api/auth/session wraps the payload in an envelope:
+      // { success: true, data: { user, session } }. Unwrap to the
+      // CurrentSession shape every consumer expects (session.user.*).
+      const json = (await res.json()) as { success?: boolean; data?: CurrentSession };
+      if (!json?.data?.user) {
+        setIsError(true);
+        return;
+      }
+      setData(json.data);
     } catch {
       setIsError(true);
     } finally {
