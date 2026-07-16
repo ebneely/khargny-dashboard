@@ -53,15 +53,22 @@ function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+// NOTE: renders a plain <div>, NOT Base UI's MenuPrimitive.GroupLabel.
+// GroupLabel requires a <Menu.Group>/<Menu.RadioGroup> ancestor for its
+// MenuGroupContext and THROWS ("MenuGroupContext is missing") when used as a
+// standalone header — which is the common case (a menu heading not tied to a
+// semantic group). A plain div needs no context, so <DropdownMenuLabel> is
+// always safe to drop in anywhere. If you need a true accessible group label,
+// wrap items in <DropdownMenuGroup> and use MenuPrimitive.GroupLabel directly.
 function DropdownMenuLabel({
   className,
   inset,
   ...props
-}: MenuPrimitive.GroupLabel.Props & {
+}: React.ComponentProps<"div"> & {
   inset?: boolean
 }) {
   return (
-    <MenuPrimitive.GroupLabel
+    <div
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
