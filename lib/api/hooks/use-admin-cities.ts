@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { adminApi } from '../admin-client';
+import { adminApi, toList } from '../admin-client';
 import type { AdminCityList, AdminCityFilters, AdminCity } from '../types';
 
 export function useAdminCities(filters: AdminCityFilters) {
@@ -15,8 +15,8 @@ export function useAdminCities(filters: AdminCityFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminCityList>('/v1/admin/cities', filters as any);
-      setData(result);
+      const result = await adminApi.get<unknown>('/v1/admin/cities', filters as any);
+      setData(toList<AdminCity>(result) as AdminCityList);
     } catch (e) {
       setIsError(true);
       setError(e as Error);

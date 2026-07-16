@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { adminApi } from '../admin-client';
+import { adminApi, toList } from '../admin-client';
 import type { Admin, AdminList, AdminFilters } from '../types';
 
 // useAdmins — list view (US-dev-ADM-001 + US-dev-ADM-003 for action refresh).
@@ -18,8 +18,8 @@ export function useAdmins(filters: AdminFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminList>('/v1/admin/admins', filters as Record<string, string | number | null | undefined>);
-      setData(result);
+      const result = await adminApi.get<unknown>('/v1/admin/admins', filters as Record<string, string | number | null | undefined>);
+      setData(toList<Admin>(result) as AdminList);
     } catch (e) {
       setIsError(true);
       setError(e as Error);

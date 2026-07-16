@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { adminApi } from '../admin-client';
+import { adminApi, toList } from '../admin-client';
 import type { AdminPlaceList, AdminPlaceFilters, AdminPlace } from '../types';
 
 export function useAdminPlaces(filters: AdminPlaceFilters) {
@@ -15,8 +15,8 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminPlaceList>('/v1/admin/places', filters as any);
-      setData(result);
+      const result = await adminApi.get<unknown>('/v1/admin/places', filters as any);
+      setData(toList<AdminPlace>(result) as AdminPlaceList);
     } catch (e) {
       setIsError(true);
       setError(e as Error);
