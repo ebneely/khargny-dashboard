@@ -166,3 +166,10 @@ export interface PlaceAmenityAssignment {
   placeId: string;
   amenityIds: string[];
 }
+
+// POST /v1/admin/tags/place/:placeId/assign — body { tagIds }. Replace-semantics:
+// the sent set becomes the place's full tag set (US-admin-TAG-001).
+export interface PlaceTagAssignment {
+  placeId: string;
+  tagIds: string[];
+}

@@ -16,6 +16,8 @@ import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { useAdminPlace } from '@/lib/api/hooks/use-admin-places';
 import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
+import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
+import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
 export default function EditPlacePage() {
@@ -26,10 +28,13 @@ export default function EditPlacePage() {
   const { data: place, isLoading: loadingPlace, isError: loadError } = useAdminPlace(id);
   const { data: allAmenities, isLoading: loadingAmenities, isError: loadAmenitiesError } = useAdminAmenities();
   const amenities = usePlaceAmenities(id, []);
+  const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags();
+  const tags = usePlaceTags(id, []);
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
   const [amenitiesError, setAmenitiesError] = useState('');
+  const [tagsError, setTagsError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const isSoftDeleted = Boolean(place?.deletedAt);
@@ -111,6 +116,19 @@ export default function EditPlacePage() {
           return;
         }
       }
+      if (tags.isDirty && !isSoftDeleted) {
+        try {
+          await tags.save();
+        } catch (tagErr) {
+          if (tagErr instanceof AdminApiError) {
+            setTagsError(tagErr.message);
+          } else {
+            setTagsError('Connection error. Try again.');
+          }
+          setSaving(false);
+          return;
+        }
+      }
       router.push('/dashboard/places');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to update place';
@@ -129,6 +147,19 @@ export default function EditPlacePage() {
         setAmenitiesError(e.message);
       } else {
         setAmenitiesError('Connection error. Try again.');
+      }
+    }
+  };
+
+  const handleTagsSave = async () => {
+    setTagsError('');
+    try {
+      await tags.save();
+    } catch (e) {
+      if (e instanceof AdminApiError) {
+        setTagsError(e.message);
+      } else {
+        setTagsError('Connection error. Try again.');
       }
     }
   };
@@ -384,6 +415,131 @@ export default function EditPlacePage() {
                   onClick={handleAmenitiesSave}
                 >
                   {amenities.isSaving ? 'Saving…' : 'Save amenities'}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-trace-id="place-tags-section" className="mt-6">
+        <CardHeader>
+          <CardTitle>Tags</CardTitle>
+          <CardDescription>
+            Tag this place (family-friendly, outdoor…) so visitors can filter by vibe. Changes are sent to the public detail on save.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSoftDeleted && (
+            <div
+              data-trace-id="place-tags-soft-deleted"
+              role="status"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Place is soft-deleted. Tags are read-only.</span>
+            </div>
+          )}
+
+          {tagsError && (
+            <div
+              data-trace-id="place-tags-error"
+              role="alert"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{tagsError}</span>
+            </div>
+          )}
+
+          {loadingTags ? (
+            <div className="space-y-2" data-trace-id="place-tags-picker">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-9 bg-muted animate-pulse rounded-(--radius-ds-md)" />
+              ))}
+            </div>
+          ) : loadTagsError ? (
+            <p data-trace-id="place-tags-error" className="text-sm text-[var(--error)]">
+              Failed to load tags catalog.
+            </p>
+          ) : !allTags || allTags.length === 0 ? (
+            <div
+              data-trace-id="place-tags-empty"
+              className="rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground"
+            >
+              <p className="mb-2">No tags exist in the catalog yet.</p>
+              <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
+                Create tags in catalog →
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div
+                data-trace-id="place-tags-picker"
+                className="grid grid-cols-1 gap-2 md:grid-cols-2"
+                role="group"
+                aria-label="Tags"
+              >
+                {allTags.map((t) => {
+                  const checked = tags.tagIds.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={checked}
+                      data-trace-id={`place-tags-chip-${t.id}`}
+                      disabled={isSoftDeleted}
+                      onClick={() => tags.toggleTag(t.id)}
+                      className={
+                        'flex items-center gap-2 rounded-(--radius-ds-md) border px-3 py-2 text-sm transition-colors text-left disabled:cursor-not-allowed disabled:opacity-60 ' +
+                        (checked
+                          ? 'border-[var(--brand-600)] bg-[var(--brand-50)] text-[var(--text-primary)]'
+                          : 'border-border bg-card text-[var(--text-primary)] hover:bg-muted')
+                      }
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={
+                          'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border ' +
+                          (checked
+                            ? 'border-[var(--brand-600)] bg-[var(--brand-600)] text-[var(--white)]'
+                            : 'border-input bg-card')
+                        }
+                      >
+                        {checked && (
+                          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M3 8.5L6.5 12L13 4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="truncate">{t.name}</span>
+                      {t.nameEn && (
+                        <span className="ml-auto truncate text-xs text-muted-foreground">{t.nameEn}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {tags.tagIds.length === 0 && (
+                <p
+                  data-trace-id="place-tags-empty"
+                  className="mt-3 text-sm text-muted-foreground"
+                >
+                  No tags assigned yet — pick from the catalog.
+                </p>
+              )}
+
+              <div className="mt-4 flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  data-trace-id="place-tags-save"
+                  disabled={!tags.isDirty || tags.isSaving || isSoftDeleted}
+                  onClick={handleTagsSave}
+                >
+                  {tags.isSaving ? 'Saving…' : 'Save tags'}
                 </Button>
               </div>
             </>
