@@ -18,6 +18,7 @@ import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
+import { usePlaceHours, DAY_LABELS } from '@/lib/api/hooks/use-place-hours';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
 export default function EditPlacePage() {
@@ -30,6 +31,8 @@ export default function EditPlacePage() {
   const amenities = usePlaceAmenities(id, []);
   const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags();
   const tags = usePlaceTags(id, []);
+  const hours = usePlaceHours(id);
+  const [hoursError, setHoursError] = useState('');
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
@@ -129,6 +132,19 @@ export default function EditPlacePage() {
           return;
         }
       }
+      if (hours.isDirty && !isSoftDeleted) {
+        try {
+          await hours.save();
+        } catch (hoursErr) {
+          if (hoursErr instanceof AdminApiError) {
+            setHoursError(hoursErr.message);
+          } else {
+            setHoursError('Connection error. Try again.');
+          }
+          setSaving(false);
+          return;
+        }
+      }
       router.push('/dashboard/places');
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to update place';
@@ -160,6 +176,19 @@ export default function EditPlacePage() {
         setTagsError(e.message);
       } else {
         setTagsError('Connection error. Try again.');
+      }
+    }
+  };
+
+  const handleHoursSave = async () => {
+    setHoursError('');
+    try {
+      await hours.save();
+    } catch (e) {
+      if (e instanceof AdminApiError) {
+        setHoursError(e.message);
+      } else {
+        setHoursError('Connection error. Try again.');
       }
     }
   };
@@ -540,6 +569,98 @@ export default function EditPlacePage() {
                   onClick={handleTagsSave}
                 >
                   {tags.isSaving ? 'Saving…' : 'Save tags'}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-trace-id="place-hours-section" className="mt-6">
+        <CardHeader>
+          <CardTitle>Opening hours</CardTitle>
+          <CardDescription>
+            Set when this place is open each day. Mark a day closed to hide its hours on the public detail. Saved with the place.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSoftDeleted && (
+            <div
+              data-trace-id="place-hours-soft-deleted"
+              role="status"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Place is soft-deleted. Hours are read-only.</span>
+            </div>
+          )}
+          {hoursError && (
+            <div
+              data-trace-id="place-hours-error"
+              role="alert"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{hoursError}</span>
+            </div>
+          )}
+          {hours.loading ? (
+            <div className="space-y-2" data-trace-id="place-hours-grid">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="h-10 bg-muted animate-pulse rounded-(--radius-ds-md)" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2" data-trace-id="place-hours-grid">
+                {hours.hours.map((h) => (
+                  <div
+                    key={h.dayOfWeek}
+                    className="flex flex-wrap items-center gap-3 rounded-(--radius-ds-md) border border-border px-3 py-2"
+                    data-trace-id={`place-hours-day-${h.dayOfWeek}`}
+                  >
+                    <span className="w-24 text-sm font-medium">{DAY_LABELS[h.dayOfWeek]}</span>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={h.isClosed}
+                        disabled={isSoftDeleted}
+                        onChange={(e) => hours.setDay(h.dayOfWeek, { isClosed: e.target.checked })}
+                        data-trace-id={`place-hours-closed-${h.dayOfWeek}`}
+                      />
+                      Closed
+                    </label>
+                    <Input
+                      type="time"
+                      aria-label={`${DAY_LABELS[h.dayOfWeek]} open time`}
+                      className="w-32"
+                      value={h.openTime ?? ''}
+                      disabled={isSoftDeleted || h.isClosed}
+                      onChange={(e) => hours.setDay(h.dayOfWeek, { openTime: e.target.value || null })}
+                      data-trace-id={`place-hours-open-${h.dayOfWeek}`}
+                    />
+                    <span className="text-muted-foreground">to</span>
+                    <Input
+                      type="time"
+                      aria-label={`${DAY_LABELS[h.dayOfWeek]} close time`}
+                      className="w-32"
+                      value={h.closeTime ?? ''}
+                      disabled={isSoftDeleted || h.isClosed}
+                      onChange={(e) => hours.setDay(h.dayOfWeek, { closeTime: e.target.value || null })}
+                      data-trace-id={`place-hours-close-${h.dayOfWeek}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  data-trace-id="place-hours-save"
+                  disabled={!hours.isDirty || hours.isSaving || isSoftDeleted}
+                  onClick={handleHoursSave}
+                >
+                  {hours.isSaving ? 'Saving…' : 'Save hours'}
                 </Button>
               </div>
             </>

@@ -105,6 +105,8 @@ export const adminApi = {
     request<T>('GET', path, { params }),
   post: <T>(path: string, body?: unknown) =>
     request<T>('POST', path, { body }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>('PATCH', path, { body }),
   delete: <T>(path: string) =>
