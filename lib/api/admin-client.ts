@@ -100,11 +100,45 @@ export function toList<T>(raw: unknown): NormalizedList<T> {
   };
 }
 
+// Multipart upload — sends FormData with the auth token but lets the browser
+// set the multipart Content-Type/boundary. Used for media image/video uploads.
+async function upload<T>(path: string, form: FormData): Promise<T> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+    body: form,
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await res.json();
+  } catch {
+    payload = null;
+  }
+  if (
+    !res.ok ||
+    !payload ||
+    (payload as { success?: boolean }).success === false
+  ) {
+    throw new AdminApiError(
+      res.status,
+      payload as { error?: { code?: string; message?: string } } | null,
+    );
+  }
+  return ((payload as { data?: T }).data ?? payload) as T;
+}
+
 export const adminApi = {
   get: <T>(path: string, params?: Record<string, string | number | undefined | null>) =>
     request<T>('GET', path, { params }),
   post: <T>(path: string, body?: unknown) =>
     request<T>('POST', path, { body }),
+  upload,
   put: <T>(path: string, body?: unknown) =>
     request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) =>

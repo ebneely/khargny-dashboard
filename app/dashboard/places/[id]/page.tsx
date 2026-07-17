@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { X } from 'lucide-react';
+import { X, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours, DAY_LABELS } from '@/lib/api/hooks/use-place-hours';
+import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
 export default function EditPlacePage() {
@@ -33,6 +34,8 @@ export default function EditPlacePage() {
   const tags = usePlaceTags(id, []);
   const hours = usePlaceHours(id);
   const [hoursError, setHoursError] = useState('');
+  const media = usePlaceMedia(id);
+  const [mediaError, setMediaError] = useState('');
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
@@ -664,6 +667,137 @@ export default function EditPlacePage() {
                 </Button>
               </div>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-trace-id="place-media-section" className="mt-6">
+        <CardHeader>
+          <CardTitle>Photos</CardTitle>
+          <CardDescription>
+            Upload images for this place. They appear in its public gallery. Use the arrows to reorder; the first image is the cover.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSoftDeleted && (
+            <div
+              data-trace-id="place-media-soft-deleted"
+              role="status"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Place is soft-deleted. Photos are read-only.</span>
+            </div>
+          )}
+          {(mediaError || media.isError) && (
+            <div
+              data-trace-id="place-media-error"
+              role="alert"
+              className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
+            >
+              <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{mediaError || 'Failed to load photos.'}</span>
+            </div>
+          )}
+
+          {!isSoftDeleted && (
+            <div className="mb-4">
+              <label
+                className="inline-flex cursor-pointer items-center gap-2 rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-2 text-sm hover:bg-muted"
+                data-trace-id="place-media-upload"
+              >
+                <Plus className="h-4 w-4" />
+                {media.busy ? 'Uploading…' : 'Add photo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={media.busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!file) return;
+                    setMediaError('');
+                    try {
+                      await media.upload(file);
+                    } catch (err) {
+                      setMediaError(err instanceof AdminApiError ? err.message : 'Upload failed. Try again.');
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          )}
+
+          {media.loading ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-trace-id="place-media-grid">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-muted animate-pulse rounded-(--radius-ds-md)" />
+              ))}
+            </div>
+          ) : media.images.length === 0 ? (
+            <p data-trace-id="place-media-empty" className="text-sm text-muted-foreground">
+              No photos yet — add the first one above.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-trace-id="place-media-grid">
+              {media.images.map((img, idx) => (
+                <div
+                  key={img.id}
+                  className="group relative overflow-hidden rounded-(--radius-ds-md) border border-border"
+                  data-trace-id={`place-media-item-${img.id}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.urls?.thumb || img.urls?.small || img.url}
+                    alt={img.altText || 'Place photo'}
+                    className="aspect-square w-full object-cover"
+                  />
+                  {idx === 0 && (
+                    <span className="absolute left-1 top-1 rounded bg-[var(--brand-600)] px-1.5 py-0.5 text-[10px] text-[var(--white)]">
+                      Cover
+                    </span>
+                  )}
+                  {!isSoftDeleted && (
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="flex gap-1">
+                        <Button
+                          type="button" variant="ghost" size="icon-sm"
+                          aria-label="Move left" disabled={idx === 0 || media.busy}
+                          onClick={() => media.move(img.id, -1)}
+                          data-trace-id={`place-media-move-left-${img.id}`}
+                          className="text-white hover:text-white"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button" variant="ghost" size="icon-sm"
+                          aria-label="Move right" disabled={idx === media.images.length - 1 || media.busy}
+                          onClick={() => media.move(img.id, 1)}
+                          data-trace-id={`place-media-move-right-${img.id}`}
+                          className="text-white hover:text-white"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        type="button" variant="ghost" size="icon-sm"
+                        aria-label="Delete photo" disabled={media.busy}
+                        onClick={async () => {
+                          setMediaError('');
+                          try { await media.remove(img.id); }
+                          catch (err) { setMediaError(err instanceof AdminApiError ? err.message : 'Delete failed. Try again.'); }
+                        }}
+                        data-trace-id={`place-media-delete-${img.id}`}
+                        className="text-white hover:text-white"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
