@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Trash2, RotateCcw, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAdminPlaces } from '@/lib/api/hooks/use-admin-places';
+import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { Badge } from '@/components/ui/badge';
+import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
+import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
 
 const PAGE_SIZE = 20;
 
@@ -23,12 +26,23 @@ export default function PlacesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
 
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [pendingRestore, setPendingRestore] = useState<{ id: string; name: string } | null>(null);
+
   const { data, isLoading, isError, refetch } = useAdminPlaces({
     search: search || undefined,
-    status: statusFilter !== 'all' ? statusFilter : undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
     skip: page * PAGE_SIZE,
     limit: PAGE_SIZE,
   });
+  const { data: session } = useCurrentSession();
+  const isSuperadmin = session?.user.role === 'super_admin';
+
+  const visibleItems = useMemo(() => {
+    const items = data?.items ?? [];
+    if (statusFilter !== 'deleted') return items;
+    return items.filter((p) => p.deletedAt != null);
+  }, [data, statusFilter]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
@@ -64,6 +78,7 @@ export default function PlacesPage() {
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="deleted">Deleted</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -80,7 +95,7 @@ export default function PlacesPage() {
               <p className="text-muted-foreground mb-3">Failed to load places</p>
               <Button variant="outline" onClick={() => refetch()}>Retry</Button>
             </div>
-          ) : data && data.items.length > 0 ? (
+          ) : visibleItems.length > 0 ? (
             <>
               <Table>
                 <TableHeader>
@@ -96,19 +111,25 @@ export default function PlacesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.items.map((place) => (
+                  {visibleItems.map((place) => {
+                    const deletedAt = place.deletedAt ?? null;
+                    return (
                     <TableRow key={place.id}>
                       <TableCell>
-                        <Link href={`/dashboard/places/${place.id}`} className="hover:text-orange-600 font-medium">
+                        <Link href={`/dashboard/places/${place.id}`} className="hover:text-orange-600 font-medium" data-trace-id={`place-list-name-${place.id}`}>
                           {place.name}
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{place.city?.name || '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{place.category?.nameAr || place.category?.nameEn || '—'}</TableCell>
                       <TableCell>
-                        <Badge variant={place.status === 'active' ? 'default' : 'secondary'}>
-                          {place.status}
-                        </Badge>
+                        {deletedAt ? (
+                          <Badge variant="destructive" data-trace-id={`place-list-status-deleted-${place.id}`}>Deleted</Badge>
+                        ) : (
+                          <Badge variant={place.status === 'active' ? 'default' : 'secondary'}>
+                            {place.status}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">{place.rating > 0 ? place.rating.toFixed(1) : '—'}</TableCell>
                       <TableCell className="text-center text-muted-foreground">{place.viewCount}</TableCell>
@@ -116,18 +137,44 @@ export default function PlacesPage() {
                         {place._count ? `${place._count.images}i ${place._count.videos}v` : '—'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/dashboard/places/${place.id}`}>
-                          <Button variant="ghost" size="sm">Edit</Button>
-                        </Link>
+                        <div className="flex justify-end gap-1">
+                          <Link href={`/dashboard/places/${place.id}`}>
+                            <Button variant="ghost" size="icon-sm" aria-label="Edit" data-trace-id={`place-list-edit-${place.id}`}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          {deletedAt && isSuperadmin ? (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Restore"
+                              onClick={() => setPendingRestore({ id: place.id, name: place.name })}
+                              data-trace-id={`place-list-restore-${place.id}`}
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                          ) : !deletedAt ? (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Delete"
+                              onClick={() => setPendingDelete({ id: place.id, name: place.name })}
+                              data-trace-id={`place-list-delete-${place.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          ) : null}
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                 <p className="text-sm text-muted-foreground">
-                  Page {page + 1} of {totalPages} ({data.total} total)
+                  Page {page + 1} of {totalPages} ({data?.total ?? 0} total)
                 </p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
@@ -141,11 +188,28 @@ export default function PlacesPage() {
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No places found</p>
+              <p className="text-muted-foreground">
+                {statusFilter === 'deleted' ? 'No deleted places.' : 'No places found'}
+              </p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <PlaceDeleteDialog
+        placeId={pendingDelete?.id ?? null}
+        placeName={pendingDelete?.name ?? null}
+        open={pendingDelete !== null}
+        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
+        onDeleted={async () => { setPendingDelete(null); await refetch(); }}
+      />
+      <PlaceRestoreDialog
+        placeId={pendingRestore?.id ?? null}
+        placeName={pendingRestore?.name ?? null}
+        open={pendingRestore !== null}
+        onOpenChange={(o) => { if (!o) setPendingRestore(null); }}
+        onRestored={async () => { setPendingRestore(null); await refetch(); }}
+      />
     </div>
   );
 }
