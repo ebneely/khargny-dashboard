@@ -31,6 +31,7 @@ export default function NewPlacePage() {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
+  const [mapsUrl, setMapsUrl] = useState('');
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
   const [tiktok, setTiktok] = useState('');
@@ -64,7 +65,7 @@ export default function NewPlacePage() {
         cityId, categoryId,
         description: description || undefined, descriptionEn: descriptionEn || undefined,
         address: address || undefined, phone: phone || undefined,
-        website: website || undefined, instagram: instagram || undefined,
+        website: website || undefined, mapsUrl: mapsUrl || undefined, instagram: instagram || undefined,
         facebook: facebook || undefined, tiktok: tiktok || undefined,
         priceRange: priceRange ? parseInt(priceRange) : undefined,
         featured, status,
@@ -157,6 +158,10 @@ export default function NewPlacePage() {
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
                 <Input id="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mapsUrl">Google Maps link</Label>
+                <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priceRange">Price Range (1-4)</Label>

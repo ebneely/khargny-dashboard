@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { CATEGORY_ICONS } from '@/lib/category-icons';
 import { adminApi } from '@/lib/api/admin-client';
 import { autoSlug } from '@/lib/utils/slug';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -146,13 +147,16 @@ export default function NewCategoryPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon</Label>
-                <Input
-                  id="icon"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  placeholder="utensils, landmark, …"
-                  data-trace-id="create-category-icon"
-                />
+                <Select value={icon} onValueChange={(v) => v && setIcon(v)}>
+                  <SelectTrigger data-trace-id="create-category-icon">
+                    <SelectValue placeholder="Pick an icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_ICONS.map((ic) => (
+                      <SelectItem key={ic.value} value={ic.value}>{ic.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
