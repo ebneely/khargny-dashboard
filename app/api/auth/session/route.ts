@@ -96,7 +96,7 @@ export async function GET() {
 
   const profile = body.data;
   const expiresAt =
-    parseExpiresIn(process.env.JWT_EXPIRES_IN) || parseExpiresIn('15m');
+    parseExpiresIn(process.env.JWT_EXPIRES_IN) || parseExpiresIn('1h');
 
   return NextResponse.json({
     success: true,

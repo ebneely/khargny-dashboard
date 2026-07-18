@@ -18,6 +18,20 @@ export default function EditTagPage() {
   const { data: tag, isLoading, isError } = useAdminTag(id);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this tag? This cannot be undone.')) return;
+    setError('');
+    setDeleting(true);
+    try {
+      await adminApi.delete(`/v1/admin/tags/${id}`);
+      router.push('/dashboard/tags');
+    } catch (e: any) {
+      setError(e.message || 'Failed to delete tag');
+      setDeleting(false);
+    }
+  };
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -82,9 +96,16 @@ export default function EditTagPage() {
               <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
-              <Link href="/dashboard/tags"><Button type="button" variant="outline">Cancel</Button></Link>
+            <div className="flex items-center justify-between pt-4">
+              <Button type="submit" disabled={saving || deleting}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={saving || deleting}
+                onClick={handleDelete}
+              >
+                {deleting ? 'Deleting…' : 'Delete tag'}
+              </Button>
             </div>
           </form>
         </CardContent>

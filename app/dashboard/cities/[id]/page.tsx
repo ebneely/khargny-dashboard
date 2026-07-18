@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { autoSlug } from '@/lib/utils/slug';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Trash2, RotateCcw } from 'lucide-react';
@@ -40,6 +41,8 @@ export default function EditCityPage() {
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [nameEdited, setNameEdited] = useState(false);
   const [region, setRegion] = useState('');
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
@@ -62,6 +65,14 @@ export default function EditCityPage() {
       setStatus(city.status);
     }
   }, [city]);
+
+  // Auto-regenerate the slug from the name — but ONLY after the admin actually edits the name
+  // (nameEdited), and only until they hand-edit the slug (slugTouched). This matches the create
+  // form's behavior without clobbering the loaded slug on initial hydration.
+  useEffect(() => {
+    if (!nameEdited || slugTouched) return;
+    setSlug(autoSlug(name, nameEn));
+  }, [name, nameEn, nameEdited, slugTouched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,7 +187,7 @@ export default function EditCityPage() {
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => { setName(e.target.value); setNameEdited(true); }}
                   data-trace-id="edit-city-name"
                   required
                 />
@@ -186,7 +197,7 @@ export default function EditCityPage() {
                 <Input
                   id="nameEn"
                   value={nameEn}
-                  onChange={(e) => setNameEn(e.target.value)}
+                  onChange={(e) => { setNameEn(e.target.value); setNameEdited(true); }}
                   data-trace-id="edit-city-name-en"
                 />
               </div>
@@ -198,7 +209,7 @@ export default function EditCityPage() {
                 <Input
                   id="slug"
                   value={slug}
-                  onChange={(e) => { setSlug(e.target.value); setSlugError(''); }}
+                  onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
                   data-trace-id="edit-city-slug"
                   aria-invalid={!!slugError}
                   aria-describedby={slugError ? 'edit-city-slug-error' : undefined}

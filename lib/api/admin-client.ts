@@ -18,6 +18,31 @@ function getToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+// One-shot access-token refresh. The access token lives ~15min; without this, any admin
+// write after it expires returns 401 "Unauthorized" — even for a super_admin (the exact
+// "I'm superadmin but get Unauthorized creating a place" bug). Refresh via the dashboard's
+// /api/auth/refresh route (issues a new pair from the refresh_token cookie), then retry once.
+async function tryRefresh(): Promise<boolean> {
+  try {
+    const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function doFetch(method: string, url: string, opts?: { body?: unknown }) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, {
+    method,
+    credentials: 'include',
+    headers,
+    body: opts?.body !== undefined ? JSON.stringify(opts.body) : undefined,
+  });
+}
+
 async function request<T>(method: string, path: string, opts?: { body?: unknown; params?: Record<string, string | number | undefined | null> }): Promise<T> {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (opts?.params) {
@@ -26,21 +51,12 @@ async function request<T>(method: string, path: string, opts?: { body?: unknown;
     }
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  let res = await doFetch(method, url.toString(), opts);
 
-  const token = getToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  // 401 → the access token likely expired. Refresh once and retry the same request.
+  if (res.status === 401 && (await tryRefresh())) {
+    res = await doFetch(method, url.toString(), opts);
   }
-
-  const res = await fetch(url.toString(), {
-    method,
-    credentials: 'include',
-    headers,
-    body: opts?.body !== undefined ? JSON.stringify(opts.body) : undefined,
-  });
 
   let payload: T | { success: false; error: { code: string; message: string } } | null = null;
   try { payload = await res.json(); } catch { payload = null; }

@@ -31,7 +31,7 @@ export default function NewCityPage() {
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [featured, setFeatured] = useState(false);
-  const [status, setStatus] = useState('draft');
+  const [status, setStatus] = useState('active');
   const [parentCityId, setParentCityId] = useState('');
 
   useEffect(() => {

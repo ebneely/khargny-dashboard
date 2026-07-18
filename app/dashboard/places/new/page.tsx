@@ -36,7 +36,7 @@ export default function NewPlacePage() {
   const [tiktok, setTiktok] = useState('');
   const [priceRange, setPriceRange] = useState('');
   const [featured, setFeatured] = useState(false);
-  const [status, setStatus] = useState('draft');
+  const [status, setStatus] = useState('active');
 
   useEffect(() => {
     Promise.all([
