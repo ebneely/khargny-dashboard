@@ -132,6 +132,7 @@ export default function CitiesPage() {
                     <TableHead>English</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Region</TableHead>
+                    <TableHead className="text-center">Places</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-center">Featured</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -154,6 +155,16 @@ export default function CitiesPage() {
                         <TableCell className="text-muted-foreground">{city.nameEn || '—'}</TableCell>
                         <TableCell className="text-muted-foreground">{city.slug}</TableCell>
                         <TableCell className="text-muted-foreground">{city.region || '—'}</TableCell>
+                        <TableCell className="text-center text-sm">
+                          {(city.placeCount ?? 0) > 0 ? (
+                            <span title={`${city.activePlaceCount ?? 0} active of ${city.placeCount} total`}>
+                              {city.placeCount}
+                              <span className="text-muted-foreground"> ({city.activePlaceCount ?? 0} active)</span>
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {deletedAt ? (
                             <Badge variant="destructive" data-trace-id={`city-list-status-deleted-${city.id}`}>Deleted</Badge>

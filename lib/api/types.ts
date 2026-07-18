@@ -61,6 +61,9 @@ export interface AdminCity {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  // place counts attached by the admin cities list (total incl. draft, and active)
+  placeCount?: number;
+  activePlaceCount?: number;
 }
 
 export interface AdminCityList {
