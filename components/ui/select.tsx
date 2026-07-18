@@ -6,7 +6,49 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type SelectOption = { value: unknown; label: React.ReactNode }
+
+// Base UI's Select.Value renders the raw selected *value* (e.g. a UUID) unless
+// Select.Root is given an `items` map of value -> label. Rather than repeat that
+// map at every call site, walk the SelectItem children here and derive it. An
+// explicit `items` prop still wins if a caller passes one.
+function collectSelectItems(
+  children: React.ReactNode,
+  acc: SelectOption[],
+) {
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return
+    const props = child.props as { value?: unknown; children?: React.ReactNode }
+    if (child.type === SelectItem && props.value !== undefined) {
+      acc.push({ value: props.value, label: props.children })
+    } else if (props.children) {
+      collectSelectItems(props.children, acc)
+    }
+  })
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  items,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const derivedItems = React.useMemo(() => {
+    if (items) return items
+    const acc: SelectOption[] = []
+    collectSelectItems(children, acc)
+    return acc.length ? acc : undefined
+  }, [items, children])
+
+  const Root = SelectPrimitive.Root as React.ComponentType<
+    SelectPrimitive.Root.Props<Value, Multiple>
+  >
+
+  return (
+    <Root items={derivedItems as typeof items} {...props}>
+      {children}
+    </Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
