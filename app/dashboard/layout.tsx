@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ProfileHeader } from "@/components/auth/profile-header";
 
 const NAV_ITEMS = [
+  { href: "/dashboard/storefront", label: "Storefront" },
   { href: "/dashboard/places", label: "Places" },
   { href: "/dashboard/cities", label: "Cities" },
   { href: "/dashboard/categories", label: "Categories" },
