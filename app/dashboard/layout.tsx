@@ -22,11 +22,11 @@ export default function DashboardLayout({
       <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6">
         <Link href="/dashboard" className="mb-6 flex items-center gap-2">
           <Image
-            src="/khargny-mark.jpg"
+            src="/khargny-logo.png"
             alt="Khargny"
             width={28}
-            height={28}
-            className="rounded-md"
+            height={36}
+            className="h-9 w-auto"
           />
           <span className="font-display text-lg font-semibold text-foreground">
             خرجني

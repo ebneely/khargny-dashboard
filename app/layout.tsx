@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Khargny Dashboard",
   description: "Khargny (خرجني) admin dashboard",
-  icons: { icon: "/khargny-mark.jpg" },
+  icons: { icon: "/khargny-logo.png" },
 };
 
 export default function RootLayout({
