@@ -42,8 +42,14 @@ export function useAdminPlace(id: string) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminPlace>(`/v1/admin/places/${id}`);
-      setData(result);
+      // GET /v1/admin/places/:id returns { place, imageCount, videoCount } — unwrap to the
+      // place itself (the edit form reads place.name/cityId/... directly). Without this the
+      // form never populates ("edit doesn't load").
+      const result = await adminApi.get<AdminPlace | { place: AdminPlace }>(
+        `/v1/admin/places/${id}`,
+      );
+      const place = (result as { place?: AdminPlace })?.place ?? (result as AdminPlace);
+      setData(place);
     } catch (e) {
       setIsError(true);
       setError(e as Error);
