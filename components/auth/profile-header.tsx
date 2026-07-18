@@ -30,7 +30,7 @@ function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
 
 export function ProfileHeader() {
   const router = useRouter();
-  const { data, isLoading } = useCurrentSession();
+  const { data, isLoading, isError } = useCurrentSession();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -44,6 +44,27 @@ export function ProfileHeader() {
     router.push('/login?redirect=/dashboard');
     router.refresh();
   };
+
+  // Session expired / unreachable (after the one-shot refresh in the hook failed):
+  // show an actionable sign-in prompt instead of an endless loading skeleton, so the
+  // sidebar never looks half-built.
+  if (isError && !data) {
+    return (
+      <div
+        data-trace-id="auth-profile-header"
+        className="mb-4 flex items-center justify-between gap-3 rounded-(--radius-ds-lg) border border-border bg-card px-3 py-3"
+      >
+        <span className="text-sm text-muted-foreground">Session expired</span>
+        <Link
+          href="/login?redirect=/dashboard"
+          className="text-sm font-medium text-primary hover:underline"
+          data-trace-id="auth-profile-signin"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
 
   if (isLoading || !data) {
     return (

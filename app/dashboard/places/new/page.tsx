@@ -43,8 +43,10 @@ export default function NewPlacePage() {
       adminApi.get<AdminCity[]>('/v1/admin/cities', { limit: 100 }),
       adminApi.get<AdminCategory[]>('/v1/admin/categories'),
     ]).then(([c, cats]) => {
-      setCities(Array.isArray(c) ? c : (c as any).items ?? []);
-      setCategories(Array.isArray(cats) ? cats : (cats as any).items ?? []);
+      // /v1/admin/cities is paginated ({ data, meta }); /v1/admin/categories is a raw
+      // array. Accept either shape (data → items → array) so the City dropdown isn't empty.
+      setCities(Array.isArray(c) ? c : (c as any).data ?? (c as any).items ?? []);
+      setCategories(Array.isArray(cats) ? cats : (cats as any).data ?? (cats as any).items ?? []);
     }).catch(() => {});
   }, []);
 

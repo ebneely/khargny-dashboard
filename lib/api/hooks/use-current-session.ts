@@ -27,7 +27,19 @@ export function useCurrentSession() {
     setIsLoading(true);
     setIsError(false);
     try {
-      const res = await window.fetch('/api/auth/session', { credentials: 'include' });
+      let res = await window.fetch('/api/auth/session', { credentials: 'include' });
+      // The access token lives ~15min. When it expires /api/auth/session 401s; rather
+      // than stick on the loading skeleton forever, try a one-shot refresh (the backend
+      // issues a new pair from the refresh_token cookie) and re-fetch once.
+      if (res.status === 401) {
+        const refreshed = await window.fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (refreshed.ok) {
+          res = await window.fetch('/api/auth/session', { credentials: 'include' });
+        }
+      }
       if (!res.ok) {
         setIsError(true);
         return;
