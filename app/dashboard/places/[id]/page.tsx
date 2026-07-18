@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -211,6 +212,16 @@ export default function EditPlacePage() {
         </Link>
       </div>
 
+      <Tabs defaultValue="details">
+        <TabsList className="mb-6">
+          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="amenities">Amenities</TabsTrigger>
+          <TabsTrigger value="tags">Tags</TabsTrigger>
+          <TabsTrigger value="hours">Hours</TabsTrigger>
+          <TabsTrigger value="photos">Photos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details">
       <Card>
         <CardHeader><CardTitle>Place Details</CardTitle></CardHeader>
         <CardContent>
@@ -330,8 +341,10 @@ export default function EditPlacePage() {
           </form>
         </CardContent>
       </Card>
+        </TabsContent>
 
-      <Card data-trace-id="place-amenities-section" className="mt-6">
+        <TabsContent value="amenities">
+      <Card data-trace-id="place-amenities-section">
         <CardHeader>
           <CardTitle>Amenities</CardTitle>
           <CardDescription>
@@ -455,8 +468,10 @@ export default function EditPlacePage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
-      <Card data-trace-id="place-tags-section" className="mt-6">
+        <TabsContent value="tags">
+      <Card data-trace-id="place-tags-section">
         <CardHeader>
           <CardTitle>Tags</CardTitle>
           <CardDescription>
@@ -580,8 +595,10 @@ export default function EditPlacePage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
-      <Card data-trace-id="place-hours-section" className="mt-6">
+        <TabsContent value="hours">
+      <Card data-trace-id="place-hours-section">
         <CardHeader>
           <CardTitle>Opening hours</CardTitle>
           <CardDescription>
@@ -672,8 +689,10 @@ export default function EditPlacePage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
-      <Card data-trace-id="place-media-section" className="mt-6">
+        <TabsContent value="photos">
+      <Card data-trace-id="place-media-section">
         <CardHeader>
           <CardTitle>Photos</CardTitle>
           <CardDescription>
@@ -803,8 +822,10 @@ export default function EditPlacePage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 flex gap-3 sticky bottom-0 bg-background/80 backdrop-blur py-3 border-t border-border">
         <Button type="button" disabled={saving} onClick={(e) => {
           const form = document.getElementById('place-form') as HTMLFormElement | null;
           if (form) {
