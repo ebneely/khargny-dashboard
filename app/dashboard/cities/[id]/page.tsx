@@ -19,6 +19,7 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { adminApi } from '@/lib/api/admin-client';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
+import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { Badge } from '@/components/ui/badge';
 import type { AdminApiError } from '@/lib/api/admin-client';
 
@@ -50,6 +51,7 @@ export default function EditCityPage() {
   const [lng, setLng] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('draft');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (city) {
@@ -63,6 +65,7 @@ export default function EditCityPage() {
       setLng(city.lng ? String(city.lng) : '');
       setFeatured(city.featured);
       setStatus(city.status);
+      setImageUrl((city as { imageUrl?: string | null }).imageUrl ?? null);
     }
   }, [city]);
 
@@ -230,6 +233,11 @@ export default function EditCityPage() {
                   data-trace-id="edit-city-region"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cover photo</Label>
+              <CityImageUpload cityId={id} imageUrl={imageUrl} onChange={setImageUrl} />
             </div>
 
             <div className="space-y-2">

@@ -58,6 +58,8 @@ export interface AdminCity {
   featured: boolean;
   status: 'active' | 'draft';
   parentCityId: string | null;
+  imageUrl?: string | null;
+  imageStoragePath?: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

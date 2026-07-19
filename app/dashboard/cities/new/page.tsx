@@ -50,7 +50,7 @@ export default function NewCityPage() {
     }
     setSaving(true);
     try {
-      await adminApi.post('/v1/admin/cities', {
+      const created = await adminApi.post<{ id: string }>('/v1/admin/cities', {
         name, nameEn: nameEn || undefined, slug,
         region: region || undefined,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
@@ -58,7 +58,9 @@ export default function NewCityPage() {
         featured, status,
         parentCityId: parentCityId || undefined,
       });
-      router.push('/dashboard/cities');
+      // Straight to edit so the admin can add a cover photo (needs the new id).
+      if (created?.id) router.push(`/dashboard/cities/${created.id}`);
+      else router.push('/dashboard/cities');
     } catch (e: any) {
       const err = e as AdminApiError;
       if (err.status === 409) {
