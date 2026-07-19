@@ -39,6 +39,7 @@ export default function EditPlacePage() {
   const [mediaError, setMediaError] = useState('');
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dropActive, setDropActive] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
@@ -740,6 +741,33 @@ export default function EditPlacePage() {
             </div>
           )}
 
+          {/* Live upload progress — animated 0→100% per file, 2 at a time. */}
+          {media.queue.length > 0 && (
+            <div className="mb-4 space-y-2" data-trace-id="place-media-queue">
+              {media.queue.map((it) => (
+                <div key={it.id} className="rounded-(--radius-ds-md) border border-border bg-muted/40 px-3 py-2">
+                  <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate font-medium">
+                      {it.kind === 'video' ? '🎬 ' : ''}{it.name}
+                    </span>
+                    <span className={it.status === 'error' ? 'text-[var(--error)]' : 'text-muted-foreground'}>
+                      {it.status === 'error' ? (it.error || 'Failed') : it.status === 'done' ? 'Done' : `${it.percent}%`}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={
+                        'h-full rounded-full transition-all duration-300 ease-out ' +
+                        (it.status === 'error' ? 'bg-[var(--error)]' : 'bg-[var(--brand-600)]')
+                      }
+                      style={{ width: `${it.status === 'error' ? 100 : it.percent}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {!isSoftDeleted && (
             <div className="mb-4">
               <label
@@ -830,7 +858,8 @@ export default function EditPlacePage() {
                   <img
                     src={img.urls?.thumb || img.urls?.small || img.url}
                     alt={img.altText || 'Place photo'}
-                    className="aspect-square w-full object-cover"
+                    className="aspect-square w-full cursor-zoom-in object-cover"
+                    onClick={() => setPreview(img.urls?.large || img.urls?.medium || img.url)}
                   />
                   {idx === 0 && (
                     <span className="absolute left-1 top-1 rounded bg-[var(--brand-600)] px-1.5 py-0.5 text-[10px] text-[var(--white)]">
@@ -963,6 +992,28 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Image preview lightbox — click any photo to view it large. */}
+      {preview && (
+        <div
+          role="dialog"
+          aria-label="Image preview"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          onClick={() => setPreview(null)}
+          data-trace-id="place-media-preview"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={preview} alt="Preview" className="max-h-full max-w-full rounded-(--radius-ds-md) object-contain" />
+          <button
+            type="button"
+            aria-label="Close preview"
+            className="absolute right-4 top-4 rounded-full bg-black/60 p-2 text-white"
+            onClick={(e) => { e.stopPropagation(); setPreview(null); }}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 flex gap-3 sticky bottom-0 bg-background/80 backdrop-blur py-3 border-t border-border">
         {/* Save directly from component state — do NOT go through the details <form>.

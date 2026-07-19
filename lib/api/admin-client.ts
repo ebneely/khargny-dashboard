@@ -176,12 +176,61 @@ async function upload<T>(path: string, form: FormData): Promise<T> {
   return ((payload as { data?: T }).data ?? payload) as T;
 }
 
+// Multipart upload with progress. fetch() can't report upload progress, so this
+// uses XMLHttpRequest. Reports 0→100 via onProgress, and on a 401 refreshes the
+// token once (single-flight, shared with request()) and retries.
+async function uploadWithProgress<T>(
+  path: string,
+  form: FormData,
+  onProgress?: (percent: number) => void,
+): Promise<T> {
+  const send = () =>
+    new Promise<{ status: number; body: unknown }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}${path}`);
+      xhr.withCredentials = true;
+      const token = getToken();
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        };
+      }
+      xhr.onload = () => {
+        let body: unknown = null;
+        try {
+          body = JSON.parse(xhr.responseText);
+        } catch {
+          body = null;
+        }
+        resolve({ status: xhr.status, body });
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(form);
+    });
+
+  let res = await send();
+  if (res.status === 401 && (await tryRefresh())) {
+    res = await send();
+  }
+  const ok = res.status >= 200 && res.status < 300;
+  if (!ok || !res.body || (res.body as { success?: boolean }).success === false) {
+    throw new AdminApiError(
+      res.status,
+      res.body as { error?: { code?: string; message?: string } } | null,
+    );
+  }
+  onProgress?.(100);
+  return ((res.body as { data?: T }).data ?? res.body) as T;
+}
+
 export const adminApi = {
   get: <T>(path: string, params?: Record<string, string | number | undefined | null>) =>
     request<T>('GET', path, { params }),
   post: <T>(path: string, body?: unknown) =>
     request<T>('POST', path, { body }),
   upload,
+  uploadWithProgress,
   put: <T>(path: string, body?: unknown) =>
     request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) =>
