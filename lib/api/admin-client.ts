@@ -18,17 +18,35 @@ function getToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-// One-shot access-token refresh. The access token lives ~15min; without this, any admin
-// write after it expires returns 401 "Unauthorized" — even for a super_admin (the exact
-// "I'm superadmin but get Unauthorized creating a place" bug). Refresh via the dashboard's
-// /api/auth/refresh route (issues a new pair from the refresh_token cookie), then retry once.
-async function tryRefresh(): Promise<boolean> {
-  try {
-    const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
-    return r.ok;
-  } catch {
-    return false;
+// Access-token refresh, SINGLE-FLIGHT. The access token lives ~1h; without a refresh,
+// any admin request after it expires returns 401 "Unauthorized" — even for a super_admin.
+//
+// Critically, the backend ROTATES refresh tokens: /v1/auth/refresh revokes the old
+// refresh token and issues a new one. The edit page fires ~7 queries in parallel
+// (place, amenities, tags, hours, media, cities, categories); when the access token
+// expires they all 401 at once. If each fired its own /api/auth/refresh, the first
+// would rotate the token and the rest would present the now-revoked token → the
+// dashboard route clears the cookies → the admin is logged out. That is the
+// "session expires after so short a time / Session expired / Failed to load place"
+// bug. Sharing ONE in-flight refresh promise across all concurrent 401s fixes it.
+let refreshInFlight: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        return r.ok;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      // Concurrent 401s from the same burst all captured this promise synchronously
+      // before it settled, so they share the single refresh; clear once it settles.
+      refreshInFlight = null;
+    });
   }
+  return refreshInFlight;
 }
 
 async function doFetch(method: string, url: string, opts?: { body?: unknown }) {
@@ -119,16 +137,25 @@ export function toList<T>(raw: unknown): NormalizedList<T> {
 // Multipart upload — sends FormData with the auth token but lets the browser
 // set the multipart Content-Type/boundary. Used for media image/video uploads.
 async function upload<T>(path: string, form: FormData): Promise<T> {
-  const headers: Record<string, string> = {};
-  const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const send = () => {
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: form,
+    });
+  };
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    credentials: 'include',
-    headers,
-    body: form,
-  });
+  // Same 401 → refresh → retry-once flow as request(). Without it, a photo upload
+  // after the ~15min access token expired returned "Unauthorized" and never
+  // recovered — the "Failed to upload image… / Unauthorized on retry" bug.
+  let res = await send();
+  if (res.status === 401 && (await tryRefresh())) {
+    res = await send();
+  }
 
   let payload: unknown = null;
   try {

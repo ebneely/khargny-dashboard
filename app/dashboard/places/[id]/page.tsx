@@ -37,6 +37,8 @@ export default function EditPlacePage() {
   const [hoursError, setHoursError] = useState('');
   const media = usePlaceMedia(id);
   const [mediaError, setMediaError] = useState('');
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dropActive, setDropActive] = useState(false);
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
@@ -98,8 +100,8 @@ export default function EditPlacePage() {
     }
   }, [place]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError('');
     setAmenitiesError('');
     setSaving(true);
@@ -677,6 +679,17 @@ export default function EditPlacePage() {
                       onChange={(e) => hours.setDay(h.dayOfWeek, { closeTime: e.target.value || null })}
                       data-trace-id={`place-hours-close-${h.dayOfWeek}`}
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="ml-auto text-xs"
+                      disabled={isSoftDeleted}
+                      onClick={() => hours.copyToAll(h.dayOfWeek)}
+                      data-trace-id={`place-hours-copy-all-${h.dayOfWeek}`}
+                    >
+                      Copy to all days
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -702,7 +715,7 @@ export default function EditPlacePage() {
         <CardHeader>
           <CardTitle>Photos</CardTitle>
           <CardDescription>
-            Upload images for this place. They appear in its public gallery. Use the arrows to reorder; the first image is the cover.
+            Upload images for this place — pick several at once or drag &amp; drop them in. They appear in its public gallery. Drag a photo (or use the arrows) to reorder; the first image is the cover.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -730,23 +743,46 @@ export default function EditPlacePage() {
           {!isSoftDeleted && (
             <div className="mb-4">
               <label
-                className="inline-flex cursor-pointer items-center gap-2 rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-2 text-sm hover:bg-muted"
+                onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
+                onDragLeave={() => setDropActive(false)}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  setDropActive(false);
+                  const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+                  if (!files.length) return;
+                  setMediaError('');
+                  try {
+                    await media.uploadMany(files);
+                  } catch (err) {
+                    setMediaError(err instanceof AdminApiError ? err.message : 'Upload failed. Try again.');
+                  }
+                }}
+                className={
+                  'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-(--radius-ds-md) border border-dashed px-4 py-6 text-sm transition-colors ' +
+                  (dropActive ? 'border-[var(--brand-600)] bg-[var(--brand-50)]' : 'border-border bg-muted/40 hover:bg-muted')
+                }
                 data-trace-id="place-media-upload"
               >
-                <Plus className="h-4 w-4" />
-                {media.busy ? 'Uploading…' : 'Add photo'}
+                <Plus className="h-5 w-5" />
+                <span className="font-medium">
+                  {media.busy ? 'Uploading…' : 'Add photos'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Click to pick several, or drag &amp; drop images here
+                </span>
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
                   disabled={media.busy}
                   onChange={async (e) => {
-                    const file = e.target.files?.[0];
+                    const files = Array.from(e.target.files ?? []);
                     e.target.value = '';
-                    if (!file) return;
+                    if (!files.length) return;
                     setMediaError('');
                     try {
-                      await media.upload(file);
+                      await media.uploadMany(files);
                     } catch (err) {
                       setMediaError(err instanceof AdminApiError ? err.message : 'Upload failed. Try again.');
                     }
@@ -771,7 +807,23 @@ export default function EditPlacePage() {
               {media.images.map((img, idx) => (
                 <div
                   key={img.id}
-                  className="group relative overflow-hidden rounded-(--radius-ds-md) border border-border"
+                  draggable={!isSoftDeleted && !media.busy}
+                  onDragStart={() => setDragIdx(idx)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={async () => {
+                    if (dragIdx === null || dragIdx === idx) { setDragIdx(null); return; }
+                    const from = dragIdx;
+                    setDragIdx(null);
+                    setMediaError('');
+                    try { await media.reorder(from, idx); }
+                    catch (err) { setMediaError(err instanceof AdminApiError ? err.message : 'Reorder failed. Try again.'); }
+                  }}
+                  onDragEnd={() => setDragIdx(null)}
+                  className={
+                    'group relative overflow-hidden rounded-(--radius-ds-md) border transition-opacity ' +
+                    (dragIdx === idx ? 'border-[var(--brand-600)] opacity-50' : 'border-border') +
+                    (isSoftDeleted ? '' : ' cursor-grab active:cursor-grabbing')
+                  }
                   data-trace-id={`place-media-item-${img.id}`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -832,14 +884,12 @@ export default function EditPlacePage() {
       </Tabs>
 
       <div className="mt-6 flex gap-3 sticky bottom-0 bg-background/80 backdrop-blur py-3 border-t border-border">
-        <Button type="button" disabled={saving} onClick={(e) => {
-          const form = document.getElementById('place-form') as HTMLFormElement | null;
-          if (form) {
-            form.requestSubmit();
-          } else {
-            e.preventDefault();
-          }
-        }}>
+        {/* Save directly from component state — do NOT go through the details <form>.
+            The form lives in the Details tab, and Radix unmounts inactive tabs, so on
+            the Amenities/Tags/Hours/Photos tabs document.getElementById('place-form')
+            was null and the click did nothing (the "Save Changes does nothing / no
+            network request" bug). handleSubmit reads state, which is always mounted. */}
+        <Button type="button" disabled={saving} onClick={() => handleSubmit()}>
           {saving ? 'Saving…' : 'Save Changes'}
         </Button>
         <Link href="/dashboard/places"><Button type="button" variant="outline">Cancel</Button></Link>

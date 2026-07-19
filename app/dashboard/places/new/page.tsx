@@ -11,8 +11,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { adminApi } from '@/lib/api/admin-client';
+import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
+
+/**
+ * Turn a place name into a URL slug: lowercase ASCII, hyphen-separated.
+ * Arabic characters have no ASCII slug form, so an Arabic-only name yields an
+ * empty base — the caller falls back to a random base then.
+ */
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // drop non-ascii-alnum (incl. Arabic)
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function randomSuffix(): string {
+  return Math.random().toString(36).slice(2, 7);
+}
 
 export default function NewPlacePage() {
   const router = useRouter();
@@ -24,6 +42,15 @@ export default function NewPlacePage() {
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [slug, setSlug] = useState('');
+  // Auto-derive the slug from the name until the admin edits it by hand.
+  const [slugEdited, setSlugEdited] = useState(false);
+
+  // Keep the slug in lockstep with the (English, else Arabic) name while untouched.
+  const autoSlugFrom = (nextName: string, nextNameEn: string) => {
+    if (slugEdited) return;
+    const base = slugify(nextNameEn) || slugify(nextName);
+    setSlug(base);
+  };
   const [cityId, setCityId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
@@ -54,14 +81,17 @@ export default function NewPlacePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !slug || !cityId || !categoryId) {
-      setError('Name, slug, city, and category are required');
+    if (!name || !cityId || !categoryId) {
+      setError('Name, city, and category are required');
       return;
     }
-    setSaving(true);
-    try {
-      await adminApi.post('/v1/admin/places', {
-        name, nameEn: nameEn || undefined, slug,
+    // Guarantee a slug even if the field is blank (Arabic-only name → random base).
+    let baseSlug = slug || slugify(nameEn) || slugify(name);
+    if (!baseSlug) baseSlug = `place-${randomSuffix()}`;
+
+    const create = (slugToUse: string) =>
+      adminApi.post('/v1/admin/places', {
+        name, nameEn: nameEn || undefined, slug: slugToUse,
         cityId, categoryId,
         description: description || undefined, descriptionEn: descriptionEn || undefined,
         address: address || undefined, phone: phone || undefined,
@@ -70,6 +100,27 @@ export default function NewPlacePage() {
         priceRange: priceRange ? parseInt(priceRange) : undefined,
         featured, status,
       });
+
+    setSaving(true);
+    try {
+      try {
+        await create(baseSlug);
+      } catch (err) {
+        // If the slug is already taken, retry once with a short unique suffix so
+        // the admin never has to hand-resolve a collision.
+        const isDuplicate =
+          err instanceof AdminApiError &&
+          (err.status === 409 ||
+            /slug/i.test(err.message) ||
+            /exist|taken|duplicate|unique/i.test(err.message));
+        if (isDuplicate) {
+          const uniqueSlug = `${baseSlug}-${randomSuffix()}`;
+          setSlug(uniqueSlug);
+          await create(uniqueSlug);
+        } else {
+          throw err;
+        }
+      }
       router.push('/dashboard/places');
     } catch (e: any) {
       setError(e.message || 'Failed to create place');
@@ -96,17 +147,33 @@ export default function NewPlacePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name (Arabic) *</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); autoSlugFrom(e.target.value, nameEn); }}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nameEn">Name (English)</Label>
-                <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+                <Input
+                  id="nameEn"
+                  value={nameEn}
+                  onChange={(e) => { setNameEn(e.target.value); autoSlugFrom(name, e.target.value); }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="slug">Slug *</Label>
-              <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="my-place-slug" />
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }}
+                placeholder="auto-generated from the name"
+              />
+              <p className="text-xs text-muted-foreground">
+                Auto-filled from the name and kept unique on save. Edit it if you want a custom URL.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

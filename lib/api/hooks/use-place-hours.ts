@@ -50,6 +50,8 @@ export interface UsePlaceHoursResult {
   isDirty: boolean;
   isSaving: boolean;
   setDay: (day: number, patch: Partial<PlaceHour>) => void;
+  /** Copy one day's open/close/closed to every day — kills the per-day drudgery. */
+  copyToAll: (fromDay: number) => void;
   save: () => Promise<void>;
 }
 
@@ -94,6 +96,21 @@ export function usePlaceHours(placeId: string): UsePlaceHoursResult {
     });
   }, []);
 
+  const copyToAll = useCallback((fromDay: number) => {
+    setHours((prev) => {
+      const src = prev.find((h) => h.dayOfWeek === fromDay);
+      if (!src) return prev;
+      const next = prev.map((h) => ({
+        ...h,
+        openTime: src.openTime,
+        closeTime: src.closeTime,
+        isClosed: src.isClosed,
+      }));
+      setIsDirty(JSON.stringify(next) !== savedRef.current);
+      return next;
+    });
+  }, []);
+
   const save = useCallback(async () => {
     setIsSaving(true);
     try {
@@ -114,5 +131,5 @@ export function usePlaceHours(placeId: string): UsePlaceHoursResult {
     }
   }, [placeId, hours]);
 
-  return { hours, loading, isDirty, isSaving, setDay, save };
+  return { hours, loading, isDirty, isSaving, setDay, copyToAll, save };
 }

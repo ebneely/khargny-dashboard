@@ -23,8 +23,12 @@ export interface UsePlaceMediaResult {
   busy: boolean;
   refetch: () => Promise<void>;
   upload: (file: File) => Promise<void>;
+  /** Upload several files in one go (multi-select / drag-drop onto the dropzone). */
+  uploadMany: (files: File[]) => Promise<void>;
   remove: (imageId: string) => Promise<void>;
   move: (imageId: string, dir: -1 | 1) => Promise<void>;
+  /** Reorder by index (drag-drop) and persist the new order. */
+  reorder: (fromIdx: number, toIdx: number) => Promise<void>;
 }
 
 export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
@@ -72,6 +76,29 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
     [placeId, images.length, refetch],
   );
 
+  // Upload many files sequentially (keeps a deterministic order), then refetch once.
+  const uploadMany = useCallback(
+    async (files: File[]) => {
+      if (!files.length) return;
+      setBusy(true);
+      try {
+        let order = images.length;
+        for (const file of files) {
+          const form = new FormData();
+          form.append('file', file);
+          form.append('placeId', placeId);
+          form.append('type', 'image');
+          form.append('order', String(order++));
+          await adminApi.upload(`/v1/admin/media/image`, form);
+        }
+        await refetch();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [placeId, images.length, refetch],
+  );
+
   const remove = useCallback(
     async (imageId: string) => {
       setBusy(true);
@@ -107,5 +134,35 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
     [images, refetch],
   );
 
-  return { images, loading, isError, busy, refetch, upload, remove, move };
+  // Move an image from one index to another (drag-drop) and persist the order.
+  const reorder = useCallback(
+    async (fromIdx: number, toIdx: number) => {
+      if (
+        fromIdx === toIdx ||
+        fromIdx < 0 ||
+        toIdx < 0 ||
+        fromIdx >= images.length ||
+        toIdx >= images.length
+      ) {
+        return;
+      }
+      const reordered = images.slice();
+      const [moved] = reordered.splice(fromIdx, 1);
+      reordered.splice(toIdx, 0, moved);
+      setImages(reordered); // optimistic
+      setBusy(true);
+      try {
+        await adminApi.post(`/v1/admin/media/reorder`, {
+          type: 'image',
+          items: reordered.map((img, order) => ({ id: img.id, order })),
+        });
+        await refetch();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [images, refetch],
+  );
+
+  return { images, loading, isError, busy, refetch, upload, uploadMany, remove, move, reorder };
 }
