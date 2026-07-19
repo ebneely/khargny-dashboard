@@ -713,7 +713,7 @@ export default function EditPlacePage() {
         <TabsContent value="photos">
       <Card data-trace-id="place-media-section">
         <CardHeader>
-          <CardTitle>Photos</CardTitle>
+          <CardTitle>Photos &amp; videos</CardTitle>
           <CardDescription>
             Upload images for this place — pick several at once or drag &amp; drop them in. They appear in its public gallery. Drag a photo (or use the arrows) to reorder; the first image is the cover.
           </CardDescription>
@@ -878,6 +878,87 @@ export default function EditPlacePage() {
               ))}
             </div>
           )}
+
+          {/* Videos */}
+          <div className="mt-8 border-t border-border pt-6">
+            <h3 className="mb-1 text-sm font-medium">Videos</h3>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Upload short clips (MP4/WebM, up to 100MB each). They stream in the place&apos;s public gallery.
+            </p>
+            {!isSoftDeleted && (
+              <label
+                className="mb-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-sm hover:bg-muted"
+                data-trace-id="place-media-video-upload"
+              >
+                <Plus className="h-5 w-5" />
+                <span className="font-medium">{media.busy ? 'Uploading…' : 'Add videos'}</span>
+                <span className="text-xs text-muted-foreground">Click to pick one or more video files</span>
+                <input
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  className="hidden"
+                  disabled={media.busy}
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    e.target.value = '';
+                    if (!files.length) return;
+                    setMediaError('');
+                    try {
+                      await media.uploadVideos(files);
+                    } catch (err) {
+                      setMediaError(err instanceof AdminApiError ? err.message : 'Upload failed. Try again.');
+                    }
+                  }}
+                />
+              </label>
+            )}
+            {media.videos.length === 0 ? (
+              <p className="text-sm text-muted-foreground" data-trace-id="place-media-video-empty">
+                No videos yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-trace-id="place-media-video-grid">
+                {media.videos.map((vid) => (
+                  <div
+                    key={vid.id}
+                    className="group relative overflow-hidden rounded-(--radius-ds-md) border border-border"
+                    data-trace-id={`place-media-video-item-${vid.id}`}
+                  >
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video
+                      src={vid.url}
+                      poster={vid.posterUrl || vid.thumbnailUrl || undefined}
+                      controls
+                      preload="metadata"
+                      className="aspect-video w-full bg-black object-contain"
+                    />
+                    {!isSoftDeleted && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Delete video"
+                        disabled={media.busy}
+                        onClick={async () => {
+                          setMediaError('');
+                          try {
+                            await media.removeVideo(vid.id);
+                          } catch (err) {
+                            setMediaError(err instanceof AdminApiError ? err.message : 'Delete failed. Try again.');
+                          }
+                        }}
+                        data-trace-id={`place-media-video-delete-${vid.id}`}
+                        className="absolute right-1 top-1 bg-black/50 text-white hover:text-white"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
         </TabsContent>

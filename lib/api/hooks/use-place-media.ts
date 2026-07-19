@@ -16,8 +16,18 @@ export interface PlaceImage {
   urls?: { thumb?: string; small?: string; medium?: string; original?: string };
 }
 
+export interface PlaceVideo {
+  id: string;
+  url: string;
+  posterUrl?: string | null;
+  thumbnailUrl?: string | null;
+  durationSeconds?: number | null;
+  mimeType?: string | null;
+}
+
 export interface UsePlaceMediaResult {
   images: PlaceImage[];
+  videos: PlaceVideo[];
   loading: boolean;
   isError: boolean;
   busy: boolean;
@@ -29,10 +39,14 @@ export interface UsePlaceMediaResult {
   move: (imageId: string, dir: -1 | 1) => Promise<void>;
   /** Reorder by index (drag-drop) and persist the new order. */
   reorder: (fromIdx: number, toIdx: number) => Promise<void>;
+  /** Upload video files (POST /v1/admin/media/video). */
+  uploadVideos: (files: File[]) => Promise<void>;
+  removeVideo: (videoId: string) => Promise<void>;
 }
 
 export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
   const [images, setImages] = useState<PlaceImage[]>([]);
+  const [videos, setVideos] = useState<PlaceVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -42,11 +56,13 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
     setLoading(true);
     setIsError(false);
     try {
-      const result = await adminApi.get<{ images?: PlaceImage[] }>(
-        `/v1/admin/media/place/${placeId}`,
-      );
+      const result = await adminApi.get<{
+        images?: PlaceImage[];
+        videos?: PlaceVideo[];
+      }>(`/v1/admin/media/place/${placeId}`);
       const list = (result.images ?? []).slice().sort((a, b) => a.order - b.order);
       setImages(list);
+      setVideos(result.videos ?? []);
     } catch {
       setIsError(true);
     } finally {
@@ -164,5 +180,53 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
     [images, refetch],
   );
 
-  return { images, loading, isError, busy, refetch, upload, uploadMany, remove, move, reorder };
+  // Upload video files sequentially, then refetch once.
+  const uploadVideos = useCallback(
+    async (files: File[]) => {
+      if (!files.length) return;
+      setBusy(true);
+      try {
+        for (const file of files) {
+          const form = new FormData();
+          form.append('file', file);
+          form.append('placeId', placeId);
+          form.append('type', 'video');
+          await adminApi.upload(`/v1/admin/media/video`, form);
+        }
+        await refetch();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [placeId, refetch],
+  );
+
+  const removeVideo = useCallback(
+    async (videoId: string) => {
+      setBusy(true);
+      try {
+        await adminApi.delete(`/v1/admin/media/${videoId}/video`);
+        await refetch();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [refetch],
+  );
+
+  return {
+    images,
+    videos,
+    loading,
+    isError,
+    busy,
+    refetch,
+    upload,
+    uploadMany,
+    remove,
+    move,
+    reorder,
+    uploadVideos,
+    removeVideo,
+  };
 }
