@@ -222,7 +222,7 @@ export default function EditPlacePage() {
           <TabsTrigger value="amenities">Amenities</TabsTrigger>
           <TabsTrigger value="tags">Tags</TabsTrigger>
           <TabsTrigger value="hours">Hours</TabsTrigger>
-          <TabsTrigger value="photos">Photos</TabsTrigger>
+          <TabsTrigger value="photos">Media</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
