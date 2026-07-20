@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ProfileHeader } from "@/components/auth/profile-header";
 import { getServerSession } from "@/lib/auth-server";
+import { ReadOnlyGate } from "@/components/auth/read-only-gate";
 
 // `superAdminOnly` items are filtered out server-side, so a non-super-admin never
 // receives the link in the HTML at all — nothing to flash, nothing to find on refresh.
@@ -23,6 +24,9 @@ export default async function DashboardLayout({
 }) {
   const session = await getServerSession();
   const isSuperAdmin = session?.user?.role === "super_admin";
+  // A viewer sees everything and can change nothing — the gate disables every field and
+  // button in the content area while leaving the sidebar nav live.
+  const isViewer = session?.user?.role === "viewer";
   const navItems = NAV_ITEMS.filter(
     (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
   );
@@ -55,7 +59,9 @@ export default async function DashboardLayout({
           ))}
         </nav>
       </aside>
-      <main className="flex-1 bg-background px-8 py-6">{children}</main>
+      <main className="flex-1 bg-background px-8 py-6">
+        <ReadOnlyGate readOnly={isViewer}>{children}</ReadOnlyGate>
+      </main>
     </div>
   );
 }

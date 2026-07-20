@@ -10,6 +10,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      // All feedback — success, error, status — surfaces here, bottom-right, with a close
+      // button, so no message relies on an inline banner that scroll can hide.
+      position="bottom-right"
+      closeButton
+      richColors
       className="toaster group"
       icons={{
         success: (
