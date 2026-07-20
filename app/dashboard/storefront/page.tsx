@@ -11,6 +11,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { adminApi } from '@/lib/api/admin-client';
+import { SectionPlacesDialog } from '@/components/admin/section-places-dialog';
+import { ListChecks } from 'lucide-react';
 
 type Section = {
   id: string;
@@ -40,6 +42,7 @@ export default function StorefrontPage() {
   const [titleEn, setTitleEn] = useState('');
   const [kind, setKind] = useState<Section['kind']>('featured');
   const [creating, setCreating] = useState(false);
+  const [managing, setManaging] = useState<Section | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -161,6 +164,18 @@ export default function StorefrontPage() {
                       <code className="text-xs text-muted-foreground">{s.key}</code>
                     </div>
                   </div>
+                  {s.kind === 'custom' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setManaging(s)}
+                      data-trace-id={`storefront-manage-${s.key}`}
+                    >
+                      <ListChecks className="h-4 w-4" />
+                      Places
+                    </Button>
+                  )}
                   <Button
                     variant={s.enabled ? 'outline' : 'secondary'}
                     size="sm"
@@ -225,6 +240,13 @@ export default function StorefrontPage() {
           </form>
         </CardContent>
       </Card>
+
+      <SectionPlacesDialog
+        sectionId={managing?.id ?? null}
+        sectionTitle={managing ? managing.titleEn || managing.titleAr : null}
+        open={managing !== null}
+        onOpenChange={(o) => { if (!o) setManaging(null); }}
+      />
     </div>
   );
 }
