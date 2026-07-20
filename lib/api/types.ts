@@ -121,10 +121,10 @@ export interface AdminTag {
 // (AdminsRoutes + Admin + AdminList + CreateAdmin + UpdateAdmin Zod contracts).
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type AdminRole = 'super_admin' | 'editor' | 'viewer';
+export type AdminRole = 'super_admin' | 'admin' | 'viewer';
 export type AdminStatus = 'active' | 'disabled';
 
-export const ADMIN_ROLES: readonly AdminRole[] = ['super_admin', 'editor', 'viewer'] as const;
+export const ADMIN_ROLES: readonly AdminRole[] = ['super_admin', 'admin', 'viewer'] as const;
 export const ADMIN_STATUSES: readonly AdminStatus[] = ['active', 'disabled'] as const;
 
 export interface Admin {

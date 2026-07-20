@@ -24,7 +24,7 @@ export default function EditAdminPage() {
   const { data: admin, isLoading, isError, refetch } = useAdmin(id);
   const { data: session } = useCurrentSession();
 
-  const [role, setRole] = useState<AdminRole>('editor');
+  const [role, setRole] = useState<AdminRole>('admin');
   const [status, setStatus] = useState<AdminStatus>('active');
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -177,7 +177,7 @@ export default function EditAdminPage() {
                 <SelectContent>
                   {ADMIN_ROLES.map((r) => (
                     <SelectItem key={r} value={r}>
-                      {r === 'super_admin' ? 'Super admin' : r === 'editor' ? 'Editor' : 'Viewer'}
+                      {r === 'super_admin' ? 'Super admin' : r === 'admin' ? 'Admin' : 'Viewer'}
                     </SelectItem>
                   ))}
                 </SelectContent>

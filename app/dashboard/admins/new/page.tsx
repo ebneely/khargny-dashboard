@@ -44,7 +44,7 @@ export default function NewAdminPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<AdminRole>('editor');
+  const [role, setRole] = useState<AdminRole>('admin');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -161,7 +161,7 @@ export default function NewAdminPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="super_admin">Super admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="viewer">Viewer</SelectItem>
                 </SelectContent>
               </Select>

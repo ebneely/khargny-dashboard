@@ -21,6 +21,7 @@ import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { HoursEditor } from '@/components/admin/hours-editor';
+import { RegionPicker } from '@/components/region-picker';
 import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
@@ -58,6 +59,7 @@ export default function EditPlacePage() {
   const [description, setDescription] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [address, setAddress] = useState('');
+  const [region, setRegion] = useState('');
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
   const [mapsUrl, setMapsUrl] = useState('');
@@ -90,6 +92,7 @@ export default function EditPlacePage() {
       setDescription(place.description || '');
       setDescriptionEn(place.descriptionEn || '');
       setAddress(place.address || '');
+      setRegion((place as any).region || '');
       setPhone(place.phone || '');
       setWebsite(place.website || '');
       setMapsUrl((place as any).mapsUrl || '');
@@ -122,7 +125,7 @@ export default function EditPlacePage() {
         name, nameEn: nameEn || undefined, slug,
         cityId, categoryId,
         description: description || undefined, descriptionEn: descriptionEn || undefined,
-        address: address || undefined, phone: phone || undefined,
+        address: address || undefined, region: region || undefined, phone: phone || undefined,
         website: website || undefined, mapsUrl: mapsUrl || undefined, instagram: instagram || undefined,
         facebook: facebook || undefined, tiktok: tiktok || undefined,
         priceRange: priceRange ? parseInt(priceRange) : undefined,
@@ -273,6 +276,19 @@ export default function EditPlacePage() {
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+            </div>
+
+            {/* The area inside the city — what visitors actually browse by. Locked to the
+                catalog: free text here would make the field unfilterable, which is the only
+                reason it exists. Narrowed to the selected city's areas. */}
+            <div className="space-y-2">
+              <Label>Region (area)</Label>
+              <RegionPicker
+                value={region}
+                onChange={setRegion}
+                city={cities.find((c) => c.id === cityId)?.nameEn || undefined}
+                traceId="place-region"
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-4">

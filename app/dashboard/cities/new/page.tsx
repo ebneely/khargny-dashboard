@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { RegionPicker } from '@/components/region-picker';
+import { CityPicker } from '@/components/city-picker';
 import { adminApi } from '@/lib/api/admin-client';
 import { autoSlug } from '@/lib/utils/slug';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -95,6 +96,17 @@ export default function NewCityPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
+            {/* A city IS one of Egypt's 27 governorates. Picking one fills both name
+                fields, so the same governorate can't arrive spelled three different ways. */}
+            <div className="space-y-2">
+              <Label>Governorate *</Label>
+              <CityPicker
+                value={nameEn}
+                onSelect={(c) => { setNameEn(c.value); setName(c.nameAr); }}
+                traceId="create-city-governorate"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name (Arabic) *</Label>
@@ -144,10 +156,7 @@ export default function NewCityPage() {
               <RegionPicker
                 value={region}
                 onChange={setRegion}
-                // Picking an area fills both names from the catalog, so an editor
-                // types neither. Explicit pick, so it overwrites — editing the name
-                // fields afterwards still wins.
-                onSelect={(r) => { setName(r.nameAr); setNameEn(r.value); }}
+                city={nameEn || undefined}
                 traceId="create-city-region"
               />
             </div>

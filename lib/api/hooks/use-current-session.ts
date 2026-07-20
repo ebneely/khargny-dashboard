@@ -6,7 +6,7 @@ export interface CurrentSession {
   user: {
     id: string;
     email: string;
-    role: 'super_admin' | 'editor' | 'viewer' | string;
+    role: 'super_admin' | 'admin' | 'viewer' | string;
   };
   session: {
     id: string;

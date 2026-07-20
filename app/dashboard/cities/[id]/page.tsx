@@ -228,10 +228,6 @@ export default function EditCityPage() {
               <RegionPicker
                 value={region}
                 onChange={setRegion}
-                // Picking an area fills both names from the catalog, so an editor
-                // types neither. Explicit pick, so it overwrites — editing the name
-                // fields afterwards still wins.
-                onSelect={(r) => { setName(r.nameAr); setNameEn(r.value); }}
                 traceId="edit-city-region"
               />
             </div>

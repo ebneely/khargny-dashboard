@@ -17,14 +17,14 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 
 function roleLabel(role: string): string {
   if (role === 'super_admin') return 'Super admin';
-  if (role === 'editor') return 'Editor';
+  if (role === 'admin') return 'Admin';
   if (role === 'viewer') return 'Viewer';
   return role;
 }
 
 function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
   if (role === 'super_admin') return 'default';
-  if (role === 'editor') return 'secondary';
+  if (role === 'admin') return 'secondary';
   return 'outline';
 }
 

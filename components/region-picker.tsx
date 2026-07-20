@@ -2,7 +2,7 @@
 
 /**
  * RegionPicker — pick the AREA a place sits in (Nasr City, Zamalek, Naama Bay), grouped by
- * the city it belongs to.
+ * the CITY it belongs to, where city means one of Egypt's 27 governorates.
  *
  * Region was a free-text input, so the same area arrived spelled several ways and nothing
  * could group or filter by it. Search matches the English name, the Arabic name, the parent
@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from 'react';
 import { Check, MapPin } from 'lucide-react';
-import { EGYPT_REGIONS, REGION_CITIES, findRegion, type EgyptRegion } from '@/lib/egypt-regions';
+import { EGYPT_REGIONS, EGYPT_CITIES, findRegion, type EgyptRegion } from '@/lib/egypt-regions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -47,7 +47,7 @@ export function RegionPicker({
     const q = query.trim().toLowerCase();
     const activeCity = city || cityFilter;
     const pool = activeCity
-      ? EGYPT_REGIONS.filter((r) => r.city.toLowerCase() === activeCity.toLowerCase())
+      ? EGYPT_REGIONS.filter((r) => r.governorate.toLowerCase() === activeCity.toLowerCase())
       : EGYPT_REGIONS;
 
     const matches = q
@@ -55,17 +55,17 @@ export function RegionPicker({
           (r) =>
             r.value.toLowerCase().includes(q) ||
             r.nameAr.includes(query.trim()) ||
-            r.city.toLowerCase().includes(q) ||
+            r.town.toLowerCase().includes(q) ||
             r.governorate.toLowerCase().includes(q) ||
             (r.keywords ?? []).some((k) => k.includes(q)),
         )
       : pool;
 
-    // Group by city, preserving catalog order so Cairo/Giza/Alexandria come first.
+    // Group by governorate (= city), in catalog order so Cairo/Giza/Alexandria come first.
     const byCity = new Map<string, EgyptRegion[]>();
     for (const region of matches) {
-      if (!byCity.has(region.city)) byCity.set(region.city, []);
-      byCity.get(region.city)!.push(region);
+      if (!byCity.has(region.governorate)) byCity.set(region.governorate, []);
+      byCity.get(region.governorate)!.push(region);
     }
     return Array.from(byCity.entries());
   }, [query, city, cityFilter]);
@@ -87,9 +87,11 @@ export function RegionPicker({
             data-trace-id={traceId ? `${traceId}-city-filter` : undefined}
             className="h-9 shrink-0 rounded-md border border-input bg-background px-2 text-sm"
           >
-            <option value="">All cities</option>
-            {REGION_CITIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            <option value="">All cities (27 governorates)</option>
+            {EGYPT_CITIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.value} — {c.nameAr}
+              </option>
             ))}
           </select>
         )}
@@ -112,7 +114,7 @@ export function RegionPicker({
             <MapPin className="h-3.5 w-3.5" />
             <span className="font-medium">{selected.value}</span>
             <span>
-              — {selected.nameAr} · {selected.city}
+              — {selected.nameAr} · {selected.governorate}
             </span>
           </span>
         ) : value ? (
@@ -137,7 +139,7 @@ export function RegionPicker({
               <p className="px-1 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 {cityName}
                 <span className="ml-1.5 font-normal normal-case opacity-70">
-                  {regions[0].governorate}
+                  {regions.length} area{regions.length === 1 ? '' : 's'}
                 </span>
               </p>
               <div className="grid grid-cols-2 gap-1 sm:grid-cols-3">
@@ -145,11 +147,11 @@ export function RegionPicker({
                   const isSelected = region.value === value;
                   return (
                     <button
-                      key={`${region.city}-${region.value}`}
+                      key={`${region.governorate}-${region.value}`}
                       type="button"
                       onClick={() => pick(region)}
                       aria-pressed={isSelected}
-                      title={`${region.value} — ${region.nameAr} (${region.city})`}
+                      title={`${region.value} — ${region.nameAr} (${region.town}, ${region.governorate})`}
                       data-trace-id={
                         traceId
                           ? `${traceId}-${region.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`

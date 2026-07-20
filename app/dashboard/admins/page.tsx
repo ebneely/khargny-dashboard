@@ -26,7 +26,7 @@ const PAGE_SIZE = 20;
 
 function roleLabel(r: Admin['role']): string {
   if (r === 'super_admin') return 'Super admin';
-  if (r === 'editor') return 'Editor';
+  if (r === 'admin') return 'Admin';
   if (r === 'viewer') return 'Viewer';
   return r;
 }
