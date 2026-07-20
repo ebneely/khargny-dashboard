@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * A confirm-then-DELETE dialog for simple catalog rows (amenities, tags).
+ *
+ * Deleting is irreversible and these rows are referenced by places, so it always asks first
+ * and surfaces the backend's reason on failure rather than a generic "something went wrong".
+ * Categories keep their own dialog because their delete has extra semantics (child
+ * reassignment, soft-delete when places reference them).
+ */
+
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,14 +20,31 @@ import {
 import { adminApi } from '@/lib/api/admin-client';
 
 type Props = {
-  categoryId: string | null;
-  categoryName: string | null;
+  /** e.g. "/v1/admin/amenities" — the id is appended. */
+  endpoint: string;
+  /** e.g. "amenity" — used in the copy. */
+  entityLabel: string;
+  entityId: string | null;
+  entityName: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDeleted: () => void;
+  /** Extra sentence explaining the consequence, e.g. what happens to places using it. */
+  consequence?: string;
+  traceId?: string;
 };
 
-export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenChange, onDeleted }: Props) {
+export function EntityDeleteDialog({
+  endpoint,
+  entityLabel,
+  entityId,
+  entityName,
+  open,
+  onOpenChange,
+  onDeleted,
+  consequence,
+  traceId,
+}: Props) {
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -30,22 +56,23 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
   }, [open]);
 
   const handleDelete = async () => {
-    if (!categoryId) return;
+    if (!entityId) return;
     setSubmitting(true);
     setError(null);
     try {
-      await adminApi.delete(`/v1/admin/categories/${categoryId}`);
-      toast.success(`"${categoryName}" has been deleted.`);
+      await adminApi.delete(`${endpoint}/${entityId}`);
+      toast.success(`"${entityName}" has been deleted.`);
       onOpenChange(false);
       onDeleted();
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string };
-      if (err.status === 400) {
-        setError(err.message || 'This category could not be deleted.');
-      } else if (err.status === 404) {
-        setError('This category no longer exists.');
+      if (err.status === 404) {
+        setError(`This ${entityLabel} no longer exists.`);
+      } else if (err.status === 400 || err.status === 409) {
+        // The backend knows why (e.g. still referenced) — show its reason, not a guess.
+        setError(err.message || `This ${entityLabel} can't be deleted right now.`);
       } else {
-        setError(err.message || 'Failed to delete category.');
+        setError(err.message || `Failed to delete ${entityLabel}.`);
       }
     } finally {
       setSubmitting(false);
@@ -54,14 +81,11 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-trace-id="category-delete-dialog">
+      <DialogContent data-trace-id={traceId}>
         <DialogHeader>
-          <DialogTitle>Delete {categoryName || 'this category'}?</DialogTitle>
+          <DialogTitle>Delete {entityName || `this ${entityLabel}`}?</DialogTitle>
           <DialogDescription>
-            Any child categories are reassigned to this category&apos;s parent. If places are
-            still assigned to it, those places are set to <strong>draft</strong> (hidden from
-            the site) and the category is removed from the dashboard rather than erased from
-            the database — places must keep pointing at a category that exists.
+            {consequence ?? `This removes the ${entityLabel} permanently.`}
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}

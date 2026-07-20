@@ -11,9 +11,11 @@ import {
   TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
+import { EntityDeleteDialog } from '@/components/admin/entity-delete-dialog';
 
 export default function TagsPage() {
   const [search, setSearch] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const { data, isLoading, isError, refetch } = useAdminTags();
 
   const filtered = useMemo(() => {
@@ -90,6 +92,16 @@ export default function TagsPage() {
                       <Link href={`/dashboard/tags/${tag.id}`}>
                         <Button variant="ghost" size="sm">Edit</Button>
                       </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        aria-label={`Delete ${tag.name}`}
+                        onClick={() => setPendingDelete({ id: tag.id, name: tag.name })}
+                        data-trace-id={`tag-list-delete-${tag.id}`}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -102,6 +114,18 @@ export default function TagsPage() {
           )}
         </CardContent>
       </Card>
+
+      <EntityDeleteDialog
+        endpoint="/v1/admin/tags"
+        entityLabel="tag"
+        entityId={pendingDelete?.id ?? null}
+        entityName={pendingDelete?.name ?? null}
+        open={pendingDelete !== null}
+        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
+        onDeleted={async () => { setPendingDelete(null); await refetch(); }}
+        consequence="This removes the tag from the catalog and from every place it was assigned to."
+        traceId="tag-delete-dialog"
+      />
     </div>
   );
 }
