@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronLeft, ChevronRight, ShieldOff, ShieldCheck, Pencil, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, ShieldOff, ShieldCheck, Pencil, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,6 +27,9 @@ const PAGE_SIZE = 20;
 function roleLabel(r: Admin['role']): string {
   if (r === 'super_admin') return 'Super admin';
   if (r === 'admin') return 'Admin';
+  // Accounts created before the rename still read 'editor' until migration 0012 runs.
+  // Showing the raw value made those rows display a lowercase "editor" in the Role column.
+  if ((r as string) === 'editor') return 'Admin';
   if (r === 'viewer') return 'Viewer';
   return r;
 }
@@ -50,6 +53,7 @@ export default function AdminsPage() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [pendingDisable, setPendingDisable] = useState<Admin | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Admin | null>(null);
   const [pendingEnable, setPendingEnable] = useState<Admin | null>(null);
   const [actionInFlight, setActionInFlight] = useState<Admin | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -65,6 +69,24 @@ export default function AdminsPage() {
   const totalLoaded = data?.items.length ?? 0;
   const hasNext = totalLoaded === PAGE_SIZE;
   const hasPrev = page > 0;
+
+  const handleDelete = async (admin: Admin) => {
+    setActionInFlight(admin);
+    setActionError(null);
+    try {
+      await adminApi.delete(`/v1/admin/admins/${admin.id}`);
+      toast.success(`${admin.email} has been deleted.`);
+      setPendingDelete(null);
+      await refetch();
+    } catch (e: unknown) {
+      const err = e as { status?: number; message?: string };
+      // 403 carries a real reason from the server (own account, last super admin) — show it
+      // rather than a generic failure, since both are recoverable by doing something else.
+      setActionError(err.message || 'Failed to delete admin.');
+    } finally {
+      setActionInFlight(null);
+    }
+  };
 
   const handleDisable = async (admin: Admin) => {
     setActionInFlight(admin);
@@ -265,6 +287,20 @@ export default function AdminsPage() {
                                   Enable
                                 </Button>
                               )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                                disabled={isSelf || actionInFlight?.id === admin.id}
+                                title={
+                                  isSelf ? 'You cannot delete your own account' : undefined
+                                }
+                                onClick={() => setPendingDelete(admin)}
+                                data-trace-id={`admin-row-${admin.id}-delete`}
+                              >
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                Delete
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -310,6 +346,44 @@ export default function AdminsPage() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog
+          open={pendingDelete !== null}
+          onOpenChange={(open) => !open && setPendingDelete(null)}
+        >
+          <DialogContent data-trace-id="admin-delete-confirm">
+            <DialogHeader>
+              <DialogTitle>Delete {pendingDelete?.email}?</DialogTitle>
+              <DialogDescription>
+                The account is removed from this list, its sessions end immediately and its
+                email becomes available again. What they did stays in the audit log. This
+                cannot be undone — use Disable instead if you may want them back.
+              </DialogDescription>
+            </DialogHeader>
+            {actionError && (
+              <p className="text-sm text-destructive" role="alert">{actionError}</p>
+            )}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setPendingDelete(null)}
+                disabled={!!actionInFlight}
+                data-trace-id="admin-delete-cancel"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => pendingDelete && handleDelete(pendingDelete)}
+                disabled={!!actionInFlight}
+                data-trace-id="admin-delete-confirm-btn"
+              >
+                {actionInFlight ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Delete admin
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Disable confirm dialog (US-dev-ADM-003 acceptance scenario 1+2) */}
         <Dialog
