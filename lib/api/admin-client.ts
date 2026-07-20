@@ -49,6 +49,26 @@ function tryRefresh(): Promise<boolean> {
   return refreshInFlight;
 }
 
+/**
+ * The session is genuinely gone (refresh failed / refresh token revoked or expired).
+ * Send the admin to the login screen instead of letting a save fail silently — the
+ * previous behaviour surfaced a generic error and the admin walked away believing
+ * their changes were saved. `next` brings them back to the page they were on.
+ *
+ * Guarded so we redirect once and never loop while already on /login.
+ */
+let redirectingToLogin = false;
+
+function handleSessionExpired(): void {
+  if (typeof window === 'undefined' || redirectingToLogin) return;
+  const { pathname, search } = window.location;
+  if (pathname.startsWith('/login')) return;
+  redirectingToLogin = true;
+  // The login page reads `redirect` — keep its convention so we return here after.
+  const redirect = encodeURIComponent(`${pathname}${search}`);
+  window.location.assign(`/login?reason=expired&redirect=${redirect}`);
+}
+
 async function doFetch(method: string, url: string, opts?: { body?: unknown }) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -72,8 +92,15 @@ async function request<T>(method: string, path: string, opts?: { body?: unknown;
   let res = await doFetch(method, url.toString(), opts);
 
   // 401 → the access token likely expired. Refresh once and retry the same request.
-  if (res.status === 401 && (await tryRefresh())) {
-    res = await doFetch(method, url.toString(), opts);
+  if (res.status === 401) {
+    if (await tryRefresh()) {
+      res = await doFetch(method, url.toString(), opts);
+    }
+    // Still 401 after a refresh attempt → the session is really gone. Redirect to
+    // login rather than surfacing a generic error the admin mistakes for a save.
+    if (res.status === 401) {
+      handleSessionExpired();
+    }
   }
 
   let payload: T | { success: false; error: { code: string; message: string } } | null = null;
@@ -210,8 +237,11 @@ async function uploadWithProgress<T>(
     });
 
   let res = await send();
-  if (res.status === 401 && (await tryRefresh())) {
-    res = await send();
+  if (res.status === 401) {
+    if (await tryRefresh()) {
+      res = await send();
+    }
+    if (res.status === 401) handleSessionExpired();
   }
   const ok = res.status >= 200 && res.status < 300;
   if (!ok || !res.body || (res.body as { success?: boolean }).success === false) {
