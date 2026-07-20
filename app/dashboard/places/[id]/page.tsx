@@ -888,6 +888,21 @@ export default function EditPlacePage() {
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
+                      {idx !== 0 && (
+                        <Button
+                          type="button" variant="ghost" size="sm"
+                          aria-label="Set as cover" disabled={media.busy}
+                          onClick={async () => {
+                            setMediaError('');
+                            try { await media.reorder(idx, 0); }
+                            catch (err) { setMediaError(err instanceof AdminApiError ? err.message : 'Could not set cover.'); }
+                          }}
+                          data-trace-id={`place-media-set-cover-${img.id}`}
+                          className="h-7 px-2 text-[11px] text-white hover:text-white"
+                        >
+                          Set cover
+                        </Button>
+                      )}
                       <Button
                         type="button" variant="ghost" size="icon-sm"
                         aria-label="Delete photo" disabled={media.busy}
