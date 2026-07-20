@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ChevronRight, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DangerZone } from '@/components/admin/danger-zone';
+import { getServerSession } from '@/lib/auth-server';
 
 const SUB_SECTIONS = [
   {
@@ -11,7 +13,12 @@ const SUB_SECTIONS = [
   },
 ];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  // The reset destroys the whole catalog, so only a super_admin is even shown it. The
+  // backend's RolesGuard enforces this independently — this is presentation, not security.
+  const session = await getServerSession();
+  const isSuperAdmin = session?.user?.role === 'super_admin';
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -48,6 +55,20 @@ export default function SettingsPage() {
           ))}
         </CardContent>
       </Card>
+
+      {isSuperAdmin && (
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger zone</CardTitle>
+            <CardDescription>
+              Irreversible actions affecting the entire site. Super admin only.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DangerZone />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

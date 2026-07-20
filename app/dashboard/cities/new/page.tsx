@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { RegionPicker } from '@/components/region-picker';
 import { adminApi } from '@/lib/api/admin-client';
 import { autoSlug } from '@/lib/utils/slug';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -28,8 +29,6 @@ export default function NewCityPage() {
   const [region, setRegion] = useState('');
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('active');
   const [parentCityId, setParentCityId] = useState('');
@@ -54,7 +53,6 @@ export default function NewCityPage() {
         name, nameEn: nameEn || undefined, slug,
         region: region || undefined,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
-        lat: lat ? parseFloat(lat) : undefined, lng: lng ? parseFloat(lng) : undefined,
         featured, status,
         parentCityId: parentCityId || undefined,
       });
@@ -138,15 +136,12 @@ export default function NewCityPage() {
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Input
-                  id="region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  data-trace-id="create-city-region"
-                />
-              </div>
+            </div>
+
+            {/* Governorate, not free text — see components/region-picker.tsx. */}
+            <div className="space-y-2">
+              <Label htmlFor="region">Region (governorate)</Label>
+              <RegionPicker value={region} onChange={setRegion} traceId="create-city-region" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -166,31 +161,6 @@ export default function NewCityPage() {
                   value={descriptionEn}
                   onChange={(e) => setDescriptionEn(e.target.value)}
                   data-trace-id="create-city-desc-en"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="lat">Latitude</Label>
-                <Input
-                  id="lat"
-                  type="number"
-                  step="any"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                  data-trace-id="create-city-lat"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lng">Longitude</Label>
-                <Input
-                  id="lng"
-                  type="number"
-                  step="any"
-                  value={lng}
-                  onChange={(e) => setLng(e.target.value)}
-                  data-trace-id="create-city-lng"
                 />
               </div>
             </div>

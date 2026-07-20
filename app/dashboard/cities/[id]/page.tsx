@@ -19,6 +19,7 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { adminApi } from '@/lib/api/admin-client';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
+import { RegionPicker } from '@/components/region-picker';
 import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { Badge } from '@/components/ui/badge';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -47,8 +48,6 @@ export default function EditCityPage() {
   const [region, setRegion] = useState('');
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('draft');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -61,8 +60,6 @@ export default function EditCityPage() {
       setRegion(city.region || '');
       setDescriptionAr(city.descriptionAr || '');
       setDescriptionEn(city.descriptionEn || '');
-      setLat(city.lat ? String(city.lat) : '');
-      setLng(city.lng ? String(city.lng) : '');
       setFeatured(city.featured);
       setStatus(city.status);
       setImageUrl((city as { imageUrl?: string | null }).imageUrl ?? null);
@@ -87,7 +84,6 @@ export default function EditCityPage() {
         name, nameEn: nameEn || undefined, slug,
         region: region || undefined,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
-        lat: lat ? parseFloat(lat) : undefined, lng: lng ? parseFloat(lng) : undefined,
         featured, status,
       });
       setError('');
@@ -224,15 +220,12 @@ export default function EditCityPage() {
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Input
-                  id="region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  data-trace-id="edit-city-region"
-                />
-              </div>
+            </div>
+
+            {/* Governorate, not free text — see components/region-picker.tsx. */}
+            <div className="space-y-2">
+              <Label htmlFor="region">Region (governorate)</Label>
+              <RegionPicker value={region} onChange={setRegion} traceId="edit-city-region" />
             </div>
 
             <div className="space-y-2">
@@ -265,31 +258,6 @@ export default function EditCityPage() {
                   value={descriptionEn}
                   onChange={(e) => setDescriptionEn(e.target.value)}
                   data-trace-id="edit-city-desc-en"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="lat">Latitude</Label>
-                <Input
-                  id="lat"
-                  type="number"
-                  step="any"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                  data-trace-id="edit-city-lat"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lng">Longitude</Label>
-                <Input
-                  id="lng"
-                  type="number"
-                  step="any"
-                  value={lng}
-                  onChange={(e) => setLng(e.target.value)}
-                  data-trace-id="edit-city-lng"
                 />
               </div>
             </div>

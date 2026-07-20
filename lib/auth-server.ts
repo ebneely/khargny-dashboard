@@ -28,7 +28,12 @@ export const getServerSession = cache(
 
       if (!response.ok) return null;
 
-      return await response.json();
+      // /api/auth/session answers { success, data: { user, session } }. Returning the body
+      // as-is left session.user undefined, so `role === 'super_admin'` was never true and
+      // the Admins tab was hidden from super admins too. Accept both shapes so a future
+      // change to the envelope can't silently re-break authorization UI.
+      const body = await response.json();
+      return (body?.data ?? body) as DashboardSession;
     } catch {
       return null;
     }
