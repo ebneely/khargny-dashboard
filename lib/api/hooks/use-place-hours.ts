@@ -52,6 +52,8 @@ export interface UsePlaceHoursResult {
   setDay: (day: number, patch: Partial<PlaceHour>) => void;
   /** Copy one day's open/close/closed to every day — kills the per-day drudgery. */
   copyToAll: (fromDay: number) => void;
+  /** Apply one open/close/closed value to several days at once. */
+  setDays: (days: number[], patch: Partial<PlaceHour>) => void;
   save: () => Promise<void>;
 }
 
@@ -96,6 +98,21 @@ export function usePlaceHours(placeId: string): UsePlaceHoursResult {
     });
   }, []);
 
+  // Bulk apply — the whole point of the editor's "pick days, pick times, apply" flow.
+  // Doing this with repeated setDay calls would re-run the dirty check per day and, worse,
+  // read a stale `prev` if React batched them.
+  const setDays = useCallback((days: number[], patch: Partial<PlaceHour>) => {
+    if (days.length === 0) return;
+    const target = new Set(days);
+    setHours((prev) => {
+      const next = prev.map((h) =>
+        target.has(h.dayOfWeek) ? { ...h, ...patch } : h,
+      );
+      setIsDirty(JSON.stringify(next) !== savedRef.current);
+      return next;
+    });
+  }, []);
+
   const copyToAll = useCallback((fromDay: number) => {
     setHours((prev) => {
       const src = prev.find((h) => h.dayOfWeek === fromDay);
@@ -131,5 +148,5 @@ export function usePlaceHours(placeId: string): UsePlaceHoursResult {
     }
   }, [placeId, hours]);
 
-  return { hours, loading, isDirty, isSaving, setDay, copyToAll, save };
+  return { hours, loading, isDirty, isSaving, setDay, setDays, copyToAll, save };
 }

@@ -19,7 +19,8 @@ import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
-import { usePlaceHours, DAY_LABELS } from '@/lib/api/hooks/use-place-hours';
+import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
+import { HoursEditor } from '@/components/admin/hours-editor';
 import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
@@ -611,68 +612,14 @@ export default function EditPlacePage() {
             </div>
           ) : (
             <>
-              <div className="space-y-2" data-trace-id="place-hours-grid">
-                {hours.hours.map((h) => (
-                  <div
-                    key={h.dayOfWeek}
-                    className="flex flex-wrap items-center gap-3 rounded-(--radius-ds-md) border border-border px-3 py-2"
-                    data-trace-id={`place-hours-day-${h.dayOfWeek}`}
-                  >
-                    <span className="w-24 text-sm font-medium">{DAY_LABELS[h.dayOfWeek]}</span>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={h.isClosed}
-                        disabled={isSoftDeleted}
-                        onChange={(e) => hours.setDay(h.dayOfWeek, { isClosed: e.target.checked })}
-                        data-trace-id={`place-hours-closed-${h.dayOfWeek}`}
-                      />
-                      Closed
-                    </label>
-                    <Input
-                      type="time"
-                      aria-label={`${DAY_LABELS[h.dayOfWeek]} open time`}
-                      className="w-32"
-                      value={h.openTime ?? ''}
-                      disabled={isSoftDeleted || h.isClosed}
-                      onChange={(e) => hours.setDay(h.dayOfWeek, { openTime: e.target.value || null })}
-                      data-trace-id={`place-hours-open-${h.dayOfWeek}`}
-                    />
-                    <span className="text-muted-foreground">to</span>
-                    <Input
-                      type="time"
-                      aria-label={`${DAY_LABELS[h.dayOfWeek]} close time`}
-                      className="w-32"
-                      value={h.closeTime ?? ''}
-                      disabled={isSoftDeleted || h.isClosed}
-                      onChange={(e) => hours.setDay(h.dayOfWeek, { closeTime: e.target.value || null })}
-                      data-trace-id={`place-hours-close-${h.dayOfWeek}`}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="ml-auto text-xs"
-                      disabled={isSoftDeleted}
-                      onClick={() => hours.copyToAll(h.dayOfWeek)}
-                      data-trace-id={`place-hours-copy-all-${h.dayOfWeek}`}
-                    >
-                      Copy to all days
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <Button
-                  type="button"
-                  size="sm"
-                  data-trace-id="place-hours-save"
-                  disabled={!hours.isDirty || hours.isSaving || isSoftDeleted}
-                  onClick={handleHoursSave}
-                >
-                  {hours.isSaving ? 'Saving…' : 'Save hours'}
-                </Button>
-              </div>
+              <HoursEditor
+                hours={hours.hours}
+                disabled={isSoftDeleted}
+                setDay={hours.setDay}
+                setDays={hours.setDays}
+              />
+              {/* No save button here — the bottom "Save Changes" bar owns saving for the
+                  whole place and already persists hours when dirty (see handleSubmit). */}
             </>
           )}
         </CardContent>
