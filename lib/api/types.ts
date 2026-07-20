@@ -19,6 +19,11 @@ export interface AdminPlace {
   featured: boolean;
   rating: number;
   viewCount: number;
+  /** Lifetime saves. Monotonic — un-saving never decrements it. */
+  saveCount?: number;
+  /** Lifetime Directions/Go taps from web + app. Monotonic. */
+  directionsCount?: number;
+  region?: string | null;
   status: 'active' | 'draft';
   createdAt: string;
   updatedAt: string;

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Trash2, RotateCcw, Pencil } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Navigation, Trash2, RotateCcw, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,13 @@ import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
 
 const PAGE_SIZE = 20;
+
+/** Does this place have any media at all? Counts come from the admin list payload. */
+function hasMedia(place: { _count?: { images: number; videos: number } }): boolean {
+  const c = place._count;
+  if (!c) return false;
+  return (c.images ?? 0) > 0 || (c.videos ?? 0) > 0;
+}
 
 export default function PlacesPage() {
   const [search, setSearch] = useState('');
@@ -104,9 +111,29 @@ export default function PlacesPage() {
                     <TableHead>City</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-center"><Star className="w-4 h-4 inline" /></TableHead>
-                    <TableHead className="text-center"><Eye className="w-4 h-4 inline" /></TableHead>
-                    <TableHead className="text-center">Media</TableHead>
+                    {/* Four metrics, each with a tooltip — an unlabelled icon column is a
+                        guessing game. Rating is deliberately absent: there is no review
+                        system yet, so any number here would be invented. */}
+                    <TableHead className="text-center">
+                      <span title="Saves — how many times this place has ever been saved. Only ever goes up; un-saving does not reduce it.">
+                        <Star className="w-4 h-4 inline" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <span title="Views — how many times the public detail page has been opened.">
+                        <Eye className="w-4 h-4 inline" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <span title="Directions — how many times someone tapped Directions / Go, from the website or the app. Only ever goes up.">
+                        <Navigation className="w-4 h-4 inline" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <span title="Media — whether this place has any photo or video.">
+                        Media
+                      </span>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -131,10 +158,18 @@ export default function PlacesPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-center">{place.rating > 0 ? place.rating.toFixed(1) : '—'}</TableCell>
-                      <TableCell className="text-center text-muted-foreground">{place.viewCount}</TableCell>
-                      <TableCell className="text-center text-muted-foreground text-sm">
-                        {place._count ? `${place._count.images}i ${place._count.videos}v` : '—'}
+                      <TableCell className="text-center text-muted-foreground">{place.saveCount ?? 0}</TableCell>
+                      <TableCell className="text-center text-muted-foreground">{place.viewCount ?? 0}</TableCell>
+                      <TableCell className="text-center text-muted-foreground">{place.directionsCount ?? 0}</TableCell>
+                      <TableCell className="text-center">
+                        {/* Boolean, not a count: the question this column answers is "does
+                            this place still need photos?", and "0i 0v" made that a reading
+                            exercise. The exact counts live on the Media tab. */}
+                        {hasMedia(place) ? (
+                          <Badge variant="secondary">Yes</Badge>
+                        ) : (
+                          <Badge variant="destructive">No</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
