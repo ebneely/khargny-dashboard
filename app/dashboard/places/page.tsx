@@ -28,8 +28,19 @@ function hasMedia(place: { _count?: { images: number; videos: number } }): boole
   return (c.images ?? 0) > 0 || (c.videos ?? 0) > 0;
 }
 
+/** Name in the chosen language, falling back to the other so a cell is never blank. */
+function pickName(ar: string | null | undefined, en: string | null | undefined, lang: 'en' | 'ar'): string {
+  const a = ar?.trim() || '';
+  const e = en?.trim() || '';
+  return (lang === 'ar' ? a || e : e || a) || '—';
+}
+
 export default function PlacesPage() {
   const [search, setSearch] = useState('');
+  // Whole-table language view. The dashboard is bilingual and an editor may think in either
+  // language, so one toggle flips every name column rather than showing both and doubling
+  // the width. Defaults to English; falls back to the other language when one is missing.
+  const [lang, setLang] = useState<'en' | 'ar'>('en');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
 
@@ -57,12 +68,34 @@ export default function PlacesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground">Places</h1>
-        <Link href="/dashboard/places/new">
+        <div className="flex items-center gap-3">
+          <div className="inline-flex rounded-md border border-border p-0.5" role="group" aria-label="Table language">
+            <button
+              type="button"
+              onClick={() => setLang('en')}
+              aria-pressed={lang === 'en'}
+              data-trace-id="places-lang-en"
+              className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'en' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLang('ar')}
+              aria-pressed={lang === 'ar'}
+              data-trace-id="places-lang-ar"
+              className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'ar' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              ع
+            </button>
+          </div>
+          <Link href="/dashboard/places/new">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
             Add Place
           </Button>
-        </Link>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -144,11 +177,11 @@ export default function PlacesPage() {
                     <TableRow key={place.id}>
                       <TableCell>
                         <Link href={`/dashboard/places/${place.id}`} className="hover:text-orange-600 font-medium" data-trace-id={`place-list-name-${place.id}`}>
-                          {place.name}
+                          {pickName(place.name, place.nameEn, lang)}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{place.city?.name || '—'}</TableCell>
-                      <TableCell className="text-muted-foreground">{place.category?.nameAr || place.category?.nameEn || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{pickName(place.city?.name, place.city?.nameEn, lang)}</TableCell>
+                      <TableCell className="text-muted-foreground">{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</TableCell>
                       <TableCell>
                         {deletedAt ? (
                           <Badge variant="destructive" data-trace-id={`place-list-status-deleted-${place.id}`}>Deleted</Badge>
@@ -165,7 +198,7 @@ export default function PlacesPage() {
                         {/* Boolean, not a count: the question this column answers is "does
                             this place still need photos?", and "0i 0v" made that a reading
                             exercise. The exact counts live on the Media tab. */}
-                        {hasMedia(place) ? (
+                        {(place.hasMedia ?? hasMedia(place)) ? (
                           <Badge variant="secondary">Yes</Badge>
                         ) : (
                           <Badge variant="destructive">No</Badge>

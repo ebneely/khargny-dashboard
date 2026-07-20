@@ -28,9 +28,10 @@ export interface AdminPlace {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  city?: { name: string };
+  city?: { name: string; nameEn?: string | null };
   category?: { nameAr: string; nameEn: string | null };
   _count?: { images: number; videos: number };
+  hasMedia?: boolean;
 }
 
 export interface AdminPlaceList {
