@@ -95,7 +95,6 @@ export default function CategoriesPage() {
                     <TableHead>Slug</TableHead>
                     <TableHead>Icon</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Order</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -119,7 +118,6 @@ export default function CategoriesPage() {
                           {cat.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">{cat.sortOrder}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Link href={`/dashboard/categories/${cat.id}/edit`}>

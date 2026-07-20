@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { adminApi } from '@/lib/api/admin-client';
 import { SectionPlacesDialog } from '@/components/admin/section-places-dialog';
+import { FooterSettingsCard } from '@/components/admin/footer-settings-card';
 import { ListChecks } from 'lucide-react';
 
 type Section = {
@@ -164,18 +165,18 @@ export default function StorefrontPage() {
                       <code className="text-xs text-muted-foreground">{s.key}</code>
                     </div>
                   </div>
-                  {s.kind === 'custom' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5"
-                      onClick={() => setManaging(s)}
-                      data-trace-id={`storefront-manage-${s.key}`}
-                    >
-                      <ListChecks className="h-4 w-4" />
-                      Places
-                    </Button>
-                  )}
+                  {/* Any section can be hand-curated by pinning places; non-custom sections
+                      that have no pins still auto-fill by kind. */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setManaging(s)}
+                    data-trace-id={`storefront-manage-${s.key}`}
+                  >
+                    <ListChecks className="h-4 w-4" />
+                    Places
+                  </Button>
                   <Button
                     variant={s.enabled ? 'outline' : 'secondary'}
                     size="sm"
@@ -240,6 +241,8 @@ export default function StorefrontPage() {
           </form>
         </CardContent>
       </Card>
+
+      <FooterSettingsCard />
 
       <SectionPlacesDialog
         sectionId={managing?.id ?? null}
