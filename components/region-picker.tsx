@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from 'react';
 import { Check, MapPin } from 'lucide-react';
-import { EGYPT_REGIONS, findRegion, type EgyptRegion } from '@/lib/egypt-regions';
+import { EGYPT_REGIONS, REGION_CITIES, findRegion, type EgyptRegion } from '@/lib/egypt-regions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,22 +20,34 @@ import { cn } from '@/lib/utils';
 export function RegionPicker({
   value,
   onChange,
+  onSelect,
   traceId,
   /** Pre-filter to one city's areas, e.g. when the city is already chosen. */
   city,
 }: {
   value: string;
   onChange: (value: string) => void;
+  /** Fired with the full record on pick, so a form can auto-fill its name fields. */
+  onSelect?: (region: EgyptRegion) => void;
   traceId?: string;
   city?: string;
 }) {
   const [query, setQuery] = useState('');
+  // Filter by city as well as free-text search: an editor who knows the place is in Cairo
+  // shouldn't have to scroll past every other governorate to find its district.
+  const [cityFilter, setCityFilter] = useState<string>('');
   const selected = findRegion(value);
+
+  const pick = (region: EgyptRegion) => {
+    onChange(region.value);
+    onSelect?.(region);
+  };
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const pool = city
-      ? EGYPT_REGIONS.filter((r) => r.city.toLowerCase() === city.toLowerCase())
+    const activeCity = city || cityFilter;
+    const pool = activeCity
+      ? EGYPT_REGIONS.filter((r) => r.city.toLowerCase() === activeCity.toLowerCase())
       : EGYPT_REGIONS;
 
     const matches = q
@@ -56,7 +68,7 @@ export function RegionPicker({
       byCity.get(region.city)!.push(region);
     }
     return Array.from(byCity.entries());
-  }, [query, city]);
+  }, [query, city, cityFilter]);
 
   return (
     <div className="space-y-2" data-trace-id={traceId}>
@@ -67,6 +79,20 @@ export function RegionPicker({
           placeholder="Search area — zamalek, nasr city, naama bay, الزمالك…"
           aria-label="Search region"
         />
+        {!city && (
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            aria-label="Filter by city"
+            data-trace-id={traceId ? `${traceId}-city-filter` : undefined}
+            className="h-9 shrink-0 rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value="">All cities</option>
+            {REGION_CITIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
         {value && (
           <Button
             type="button"
@@ -121,7 +147,7 @@ export function RegionPicker({
                     <button
                       key={`${region.city}-${region.value}`}
                       type="button"
-                      onClick={() => onChange(region.value)}
+                      onClick={() => pick(region)}
                       aria-pressed={isSelected}
                       title={`${region.value} — ${region.nameAr} (${region.city})`}
                       data-trace-id={

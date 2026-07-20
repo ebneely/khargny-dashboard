@@ -19,9 +19,10 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Check, Clock } from 'lucide-react';
+import { Check, Clock, ClipboardPaste } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { parseHoursText } from '@/lib/parse-hours';
 import type { PlaceHour } from '@/lib/api/hooks/use-place-hours';
 
 /** Egypt's week starts on Saturday; show it that way rather than Sunday-first. */
@@ -97,6 +98,9 @@ export function HoursEditor({
   const [selected, setSelected] = useState<number[]>([...WEEKDAYS, ...WEEKEND]);
   const [open, setOpen] = useState('10:00');
   const [close, setClose] = useState('22:00');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [pasteResult, setPasteResult] = useState<{ applied: number; unparsed: string[] } | null>(null);
 
   const allDays = useMemo(() => [...WEEKDAYS, ...WEEKEND], []);
   const isAll = selected.length === 7;
@@ -113,6 +117,21 @@ export function HoursEditor({
       closeTime: p.close,
       isClosed: Boolean(p.closed),
     });
+  };
+
+  // Paste the hours block straight off Google Maps (or a website) instead of clicking. We
+  // parse text the admin copied themselves — see lib/parse-hours.ts for why this is not a
+  // Maps scraper.
+  const applyPaste = () => {
+    const { days, unparsed } = parseHoursText(pasteText);
+    for (const d of days) {
+      setDay(d.dayOfWeek, {
+        openTime: d.openTime,
+        closeTime: d.closeTime,
+        isClosed: d.isClosed,
+      });
+    }
+    setPasteResult({ applied: days.length, unparsed });
   };
 
   const applySelection = () => {
@@ -141,6 +160,65 @@ export function HoursEditor({
             </Button>
           ))}
         </div>
+      </div>
+
+      {/* ── Paste from Google Maps / a website ───────────────────────────────────────── */}
+      <div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={() => setPasteOpen((v) => !v)}
+          data-trace-id="place-hours-paste-toggle"
+        >
+          <ClipboardPaste className="h-4 w-4" />
+          Paste hours from Google Maps
+        </Button>
+
+        {pasteOpen && (
+          <div className="mt-2 space-y-2 rounded-md border p-3">
+            <p className="text-xs text-muted-foreground">
+              On Google Maps, expand the opening hours, select the whole block and copy it.
+              Paste it here — English or Arabic, 12- or 24-hour, &ldquo;Closed&rdquo; and
+              &ldquo;Open 24 hours&rdquo; all work.
+            </p>
+            <textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              rows={7}
+              dir="auto"
+              placeholder={'Monday  9 AM–10 PM\nTuesday  9 AM–10 PM\nWednesday  Closed'}
+              disabled={disabled}
+              data-trace-id="place-hours-paste-input"
+              className="w-full rounded-md border border-input bg-background p-2 font-mono text-xs"
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={disabled || !pasteText.trim()}
+                onClick={applyPaste}
+                data-trace-id="place-hours-paste-apply"
+              >
+                Fill hours from this
+              </Button>
+              {pasteResult && (
+                <span className="text-xs text-muted-foreground">
+                  Filled {pasteResult.applied} day{pasteResult.applied === 1 ? '' : 's'}.
+                  {pasteResult.unparsed.length > 0 &&
+                    ` Couldn't read: ${pasteResult.unparsed.slice(0, 3).join(' · ')}`}
+                </span>
+              )}
+            </div>
+            {pasteResult && pasteResult.applied > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Check the week below before saving — pasted text is a starting point, not a
+                source of truth.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Custom: pick days, pick times, apply ─────────────────────────────────────── */}

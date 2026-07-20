@@ -141,7 +141,15 @@ export default function NewCityPage() {
             {/* Governorate, not free text — see components/region-picker.tsx. */}
             <div className="space-y-2">
               <Label htmlFor="region">Region (governorate)</Label>
-              <RegionPicker value={region} onChange={setRegion} traceId="create-city-region" />
+              <RegionPicker
+                value={region}
+                onChange={setRegion}
+                // Picking an area fills both names from the catalog, so an editor
+                // types neither. Explicit pick, so it overwrites — editing the name
+                // fields afterwards still wins.
+                onSelect={(r) => { setName(r.nameAr); setNameEn(r.value); }}
+                traceId="create-city-region"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

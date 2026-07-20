@@ -225,7 +225,15 @@ export default function EditCityPage() {
             {/* Governorate, not free text — see components/region-picker.tsx. */}
             <div className="space-y-2">
               <Label htmlFor="region">Region (governorate)</Label>
-              <RegionPicker value={region} onChange={setRegion} traceId="edit-city-region" />
+              <RegionPicker
+                value={region}
+                onChange={setRegion}
+                // Picking an area fills both names from the catalog, so an editor
+                // types neither. Explicit pick, so it overwrites — editing the name
+                // fields afterwards still wins.
+                onSelect={(r) => { setName(r.nameAr); setNameEn(r.value); }}
+                traceId="edit-city-region"
+              />
             </div>
 
             <div className="space-y-2">
