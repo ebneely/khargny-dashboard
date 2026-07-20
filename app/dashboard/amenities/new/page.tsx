@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconPicker } from '@/components/icon-picker';
 import { adminApi } from '@/lib/api/admin-client';
 
 export default function NewAmenityPage() {
@@ -58,15 +59,16 @@ export default function NewAmenityPage() {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="واي فاي مجاني" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nameEn">English Name</Label>
-                <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Free WiFi" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="icon">Icon</Label>
-                <Input id="icon" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="wifi" />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="nameEn">English Name</Label>
+              <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Free WiFi" />
+            </div>
+
+            {/* Was a free-text input: an admin could save "wifi ", "WiFi" or any name no
+                surface could draw, so amenity icons never rendered. Now a fixed catalog. */}
+            <div className="space-y-2">
+              <Label htmlFor="icon">Icon</Label>
+              <IconPicker value={icon} onChange={setIcon} traceId="create-amenity-icon" />
             </div>
 
             <div className="flex gap-3 pt-4">

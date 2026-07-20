@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { CATEGORY_ICONS } from '@/lib/category-icons';
+import { IconPicker } from '@/components/icon-picker';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import type { AdminCategory } from '@/lib/api/types';
 
@@ -198,16 +198,7 @@ export default function EditCategoryPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon</Label>
-                <Select value={icon} onValueChange={(v) => v && setIcon(v)}>
-                  <SelectTrigger data-trace-id="edit-category-icon">
-                    <SelectValue placeholder="Pick an icon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_ICONS.map((ic) => (
-                      <SelectItem key={ic.value} value={ic.value}>{ic.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <IconPicker value={icon} onChange={setIcon} traceId="edit-category-icon" />
               </div>
             </div>
 

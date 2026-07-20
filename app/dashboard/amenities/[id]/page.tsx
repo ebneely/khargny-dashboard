@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconPicker } from '@/components/icon-picker';
 import { useAdminAmenity } from '@/lib/api/hooks/use-admin-amenities';
 import { adminApi } from '@/lib/api/admin-client';
 
@@ -71,15 +72,16 @@ export default function EditAmenityPage() {
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nameEn">English Name</Label>
-                <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="icon">Icon</Label>
-                <Input id="icon" value={icon} onChange={(e) => setIcon(e.target.value)} />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="nameEn">English Name</Label>
+              <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+            </div>
+
+            {/* Catalog picker, not free text — see the create form for why. An icon saved
+                before this change that isn't in the catalog shows as unselected here. */}
+            <div className="space-y-2">
+              <Label htmlFor="icon">Icon</Label>
+              <IconPicker value={icon} onChange={setIcon} traceId="edit-amenity-icon" />
             </div>
 
             <div className="flex gap-3 pt-4">
