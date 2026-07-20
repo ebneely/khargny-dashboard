@@ -15,7 +15,13 @@
 
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
-import { ICONS, ICON_GROUP_LABELS, type IconGroup } from '@/lib/icon-catalog';
+import {
+  ICONS,
+  ICON_GROUP_LABELS,
+  iconsForScope,
+  type IconGroup,
+  type IconScope,
+} from '@/lib/icon-catalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -32,9 +38,19 @@ export function lucideByName(name: string | undefined | null) {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join('');
   const Comp = (Lucide as unknown as Record<string, unknown>)[pascal];
-  return typeof Comp === 'function'
+  // Lucide icons are forwardRef objects, NOT plain functions. A `typeof === 'function'`
+  // check rejects every one of them, which silently rendered the whole catalog as the
+  // MapPin fallback — every option in the picker looked identical.
+  return isRenderable(Comp)
     ? (Comp as React.ComponentType<{ size?: number; className?: string }>)
     : null;
+}
+
+function isRenderable(comp: unknown): boolean {
+  return (
+    typeof comp === 'function' ||
+    (typeof comp === 'object' && comp !== null && '$$typeof' in comp)
+  );
 }
 
 export function IconPreview({ name, size = 18 }: { name?: string | null; size?: number }) {
@@ -46,23 +62,27 @@ export function IconPicker({
   value,
   onChange,
   traceId,
+  scope = 'all',
 }: {
   value: string;
   onChange: (value: string) => void;
   traceId?: string;
+  /** Which slice of the catalog to offer — categories and amenities need different icons. */
+  scope?: IconScope;
 }) {
   const [query, setQuery] = useState('');
 
   const groups = useMemo(() => {
+    const available = iconsForScope(scope);
     const q = query.trim().toLowerCase();
     const matches = q
-      ? ICONS.filter(
+      ? available.filter(
           (i) =>
             i.value.includes(q) ||
             i.label.toLowerCase().includes(q) ||
             (i.keywords ?? []).some((k) => k.includes(q)),
         )
-      : ICONS;
+      : available;
 
     const byGroup = new Map<IconGroup, typeof ICONS>();
     for (const icon of matches) {
@@ -70,7 +90,7 @@ export function IconPicker({
       byGroup.get(icon.group)!.push(icon);
     }
     return Array.from(byGroup.entries());
-  }, [query]);
+  }, [query, scope]);
 
   const selected = ICONS.find((i) => i.value === value);
 

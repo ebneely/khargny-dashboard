@@ -147,7 +147,7 @@ export default function NewCategoryPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon</Label>
-                <IconPicker value={icon} onChange={setIcon} traceId="create-category-icon" />
+                <IconPicker value={icon} onChange={setIcon} traceId="create-category-icon" scope="category" />
               </div>
             </div>
 

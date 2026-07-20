@@ -198,7 +198,7 @@ export default function EditCategoryPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon</Label>
-                <IconPicker value={icon} onChange={setIcon} traceId="edit-category-icon" />
+                <IconPicker value={icon} onChange={setIcon} traceId="edit-category-icon" scope="category" />
               </div>
             </div>
 

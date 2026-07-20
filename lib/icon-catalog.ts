@@ -40,7 +40,30 @@ export const ICONS: IconEntry[] = [
   { value: 'camera', label: 'Attraction / photo spot', group: 'places', keywords: ['sight', 'view'] },
   { value: 'shopping-bag', label: 'Shopping', group: 'places', keywords: ['mall', 'market', 'souq'] },
   { value: 'music', label: 'Nightlife / music', group: 'places', keywords: ['live', 'concert', 'bar'] },
+  { value: 'store', label: 'Shop / store', group: 'places', keywords: ['retail', 'kiosk'] },
+  { value: 'hotel', label: 'Hotel / resort', group: 'places', keywords: ['stay', 'accommodation'] },
+  { value: 'bed-double', label: 'Guesthouse', group: 'places', keywords: ['hostel', 'rooms'] },
+  { value: 'ferris-wheel', label: 'Theme park', group: 'places', keywords: ['fun', 'rides', 'amusement'] },
+  { value: 'gamepad-2', label: 'Games / arcade', group: 'places', keywords: ['playstation', 'gaming'] },
+  { value: 'dumbbell', label: 'Gym / fitness', group: 'places', keywords: ['workout', 'sport'] },
+  { value: 'volleyball', label: 'Sports venue', group: 'places', keywords: ['football', 'court', 'pitch'] },
+  { value: 'waves-ladder', label: 'Swimming pool', group: 'places', keywords: ['pool', 'swim', 'aqua'] },
+  { value: 'clapperboard', label: 'Cinema', group: 'places', keywords: ['movie', 'film'] },
+  { value: 'theater', label: 'Theatre / shows', group: 'places', keywords: ['stage', 'performance'] },
+  { value: 'palette', label: 'Art / gallery', group: 'places', keywords: ['museum', 'exhibition'] },
+  { value: 'book-open', label: 'Library / books', group: 'places', keywords: ['reading', 'study'] },
+  { value: 'graduation-cap', label: 'Education', group: 'places', keywords: ['school', 'university'] },
+  { value: 'stethoscope', label: 'Clinic / medical', group: 'places', keywords: ['doctor', 'hospital'] },
+  { value: 'scissors', label: 'Salon / barber', group: 'places', keywords: ['hair', 'beauty', 'spa'] },
+  { value: 'flower-2', label: 'Spa / wellness', group: 'places', keywords: ['massage', 'relax'] },
+  { value: 'fuel', label: 'Fuel station', group: 'places', keywords: ['petrol', 'gas', 'benzine'] },
+  { value: 'church', label: 'Church', group: 'places', keywords: ['worship', 'religious'] },
+  { value: 'sunset', label: 'Viewpoint / sunset', group: 'places', keywords: ['scenic', 'horizon'] },
+  { value: 'anchor', label: 'Marina / port', group: 'places', keywords: ['harbour', 'dock'] },
   { value: 'map-pin', label: 'Generic pin', group: 'general', keywords: ['default', 'other'] },
+  { value: 'star', label: 'Featured / special', group: 'general', keywords: ['highlight', 'top'] },
+  { value: 'sparkles', label: 'New / trending', group: 'general', keywords: ['hot', 'popular'] },
+  { value: 'compass', label: 'Explore', group: 'general', keywords: ['discover', 'guide'] },
 
   // ── Food & drink ─────────────────────────────────────────────────────────────────────
   { value: 'utensils', label: 'Restaurant', group: 'food', keywords: ['eat', 'dining', 'food'] },
@@ -51,6 +74,13 @@ export const ICONS: IconEntry[] = [
   { value: 'wine', label: 'Drinks', group: 'food', keywords: ['bar', 'juice', 'cocktail'] },
   { value: 'soup', label: 'Local cuisine', group: 'food', keywords: ['traditional', 'home food'] },
   { value: 'sandwich', label: 'Snacks', group: 'food', keywords: ['light bites'] },
+  { value: 'beef', label: 'Grill / meat', group: 'food', keywords: ['bbq', 'kebab', 'steak'] },
+  { value: 'fish', label: 'Seafood', group: 'food', keywords: ['fish', 'grilled fish'] },
+  { value: 'salad', label: 'Healthy / salads', group: 'food', keywords: ['vegan', 'diet'] },
+  { value: 'croissant', label: 'Breakfast', group: 'food', keywords: ['brunch', 'morning'] },
+  { value: 'cup-soda', label: 'Juice bar', group: 'food', keywords: ['smoothie', 'fresh juice'] },
+  { value: 'candy', label: 'Sweets / candy', group: 'food', keywords: ['confectionery'] },
+  { value: 'shopping-cart', label: 'Grocery / market', group: 'food', keywords: ['supermarket'] },
 
   // ── Facilities ───────────────────────────────────────────────────────────────────────
   { value: 'wifi', label: 'Wi-Fi', group: 'facilities', keywords: ['internet', 'free wifi'] },
@@ -83,6 +113,31 @@ export const ICONS: IconEntry[] = [
   { value: 'paw-print', label: 'Pet friendly', group: 'access', keywords: ['dog', 'animals'] },
   { value: 'moon-star', label: 'Prayer room', group: 'access', keywords: ['mosque', 'masjid'] },
   { value: 'shield-check', label: 'Security', group: 'access', keywords: ['safe', 'guard'] },
+  { value: 'circle-parking', label: 'Valet parking', group: 'access', keywords: ['valet'] },
+  { value: 'venetian-mask', label: 'Adults only', group: 'access', keywords: ['21+', 'over 18'] },
+  { value: 'languages', label: 'English spoken', group: 'access', keywords: ['bilingual'] },
+
+  // ── More facilities ──────────────────────────────────────────────────────────────────
+  { value: 'wind', label: 'Ventilated / open air', group: 'facilities', keywords: ['airy'] },
+  { value: 'refrigerator', label: 'Fridge / cold storage', group: 'facilities', keywords: ['cold'] },
+  { value: 'washing-machine', label: 'Laundry', group: 'facilities', keywords: ['wash'] },
+  { value: 'printer', label: 'Printing', group: 'facilities', keywords: ['copy', 'scan'] },
+  { value: 'lock', label: 'Lockers', group: 'facilities', keywords: ['storage', 'safe'] },
+  { value: 'phone', label: 'Reservations', group: 'facilities', keywords: ['booking', 'call'] },
+  { value: 'calendar-check', label: 'Events / bookings', group: 'facilities', keywords: ['party'] },
+  { value: 'wallet', label: 'Mobile wallet', group: 'facilities', keywords: ['instapay', 'vodafone cash'] },
+  { value: 'truck', label: 'Catering', group: 'facilities', keywords: ['outside catering'] },
+  { value: 'blocks', label: 'Kids play area', group: 'facilities', keywords: ['playground', 'soft play'] },
+
+  // ── More comfort ─────────────────────────────────────────────────────────────────────
+  { value: 'trees', label: 'Garden seating', group: 'comfort', keywords: ['green', 'outdoor'] },
+  { value: 'armchair', label: 'Comfy seating', group: 'comfort', keywords: ['lounge', 'sofa'] },
+  { value: 'moon', label: 'Open late', group: 'comfort', keywords: ['night', 'after hours'] },
+  { value: 'sun-medium', label: 'Sunny terrace', group: 'comfort', keywords: ['rooftop'] },
+  { value: 'mountain-snow', label: 'Mountain view', group: 'comfort', keywords: ['scenic'] },
+  { value: 'ship-wheel', label: 'Sea view', group: 'comfort', keywords: ['nile view', 'water view'] },
+  { value: 'party-popper', label: 'Lively', group: 'comfort', keywords: ['busy', 'vibrant'] },
+  { value: 'headphones', label: 'Quiet zone', group: 'comfort', keywords: ['study', 'focus'] },
 ];
 
 /** Every valid icon name, for validation and for the renderers' coverage tests. */
@@ -98,8 +153,22 @@ export const ICON_GROUP_LABELS: Record<IconGroup, string> = {
 };
 
 /**
- * Category picker list. Categories describe what a place IS, so the food and place-kind
- * groups are the useful ones — but the full catalog stays available, since an admin may
- * reasonably want e.g. "leaf" for a quiet-spots category.
+ * Categories and amenities answer different questions, so they get different lists.
+ *
+ * A category says what a place IS ("Cafe", "Beach") — offering it "Wheelchair accessible"
+ * is noise. An amenity says what a place HAS ("Wi-Fi", "Parking") — offering it "Cruise /
+ * boat" is noise. Showing one combined list made both pickers long and mostly irrelevant.
  */
-export const CATEGORY_ICONS = ICONS;
+const CATEGORY_GROUPS: IconGroup[] = ['places', 'food', 'general'];
+const AMENITY_GROUPS: IconGroup[] = ['facilities', 'comfort', 'access', 'general'];
+
+export const CATEGORY_ICONS = ICONS.filter((i) => CATEGORY_GROUPS.includes(i.group));
+export const AMENITY_ICONS = ICONS.filter((i) => AMENITY_GROUPS.includes(i.group));
+
+export type IconScope = 'category' | 'amenity' | 'all';
+
+export function iconsForScope(scope: IconScope): IconEntry[] {
+  if (scope === 'category') return CATEGORY_ICONS;
+  if (scope === 'amenity') return AMENITY_ICONS;
+  return ICONS;
+}

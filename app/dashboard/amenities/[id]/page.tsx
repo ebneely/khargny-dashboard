@@ -81,7 +81,7 @@ export default function EditAmenityPage() {
                 before this change that isn't in the catalog shows as unselected here. */}
             <div className="space-y-2">
               <Label htmlFor="icon">Icon</Label>
-              <IconPicker value={icon} onChange={setIcon} traceId="edit-amenity-icon" />
+              <IconPicker value={icon} onChange={setIcon} traceId="edit-amenity-icon" scope="amenity" />
             </div>
 
             <div className="flex gap-3 pt-4">
