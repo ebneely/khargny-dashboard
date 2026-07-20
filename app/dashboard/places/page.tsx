@@ -75,6 +75,7 @@ export default function PlacesPage() {
               onClick={() => setLang('en')}
               aria-pressed={lang === 'en'}
               data-trace-id="places-lang-en"
+              data-ro-allow="true"
               className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'en' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
             >
               EN
@@ -84,6 +85,7 @@ export default function PlacesPage() {
               onClick={() => setLang('ar')}
               aria-pressed={lang === 'ar'}
               data-trace-id="places-lang-ar"
+              data-ro-allow="true"
               className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'ar' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
             >
               ع
