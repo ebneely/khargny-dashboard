@@ -366,3 +366,19 @@ export function findRegion(value: string | null | undefined) {
     (r) => r.value.toLowerCase() === needle || r.nameAr === value.trim(),
   );
 }
+
+/**
+ * The label for a stored region value, in the reader's language.
+ *
+ * `places.region` stores the ENGLISH name as a stable key (it is effectively an enum), so
+ * the Arabic label is not in the database — it is looked up here. Anything not in the
+ * catalog (a legacy or hand-typed value) falls back to the stored string rather than
+ * rendering blank. Kept identical to the copies in the web and app so all three surfaces
+ * resolve a region the same way.
+ */
+export function regionLabel(value: string | null | undefined, locale: string): string {
+  if (!value) return '';
+  const found = findRegion(value);
+  if (!found) return value;
+  return locale === 'ar' ? found.nameAr || found.value : found.value;
+}

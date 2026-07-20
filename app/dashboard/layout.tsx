@@ -1,20 +1,36 @@
 import Link from "next/link";
 import Image from "next/image";
+import {
+  LayoutDashboard,
+  Store,
+  MapPin,
+  Building2,
+  Shapes,
+  Sparkles,
+  Tags,
+  Users,
+  Settings,
+} from "lucide-react";
 import { ProfileHeader } from "@/components/auth/profile-header";
 import { getServerSession } from "@/lib/auth-server";
 import { ReadOnlyGate } from "@/components/auth/read-only-gate";
+import { DashboardNav, type NavItem } from "@/components/admin/dashboard-nav";
 
 // `superAdminOnly` items are filtered out server-side, so a non-super-admin never
 // receives the link in the HTML at all — nothing to flash, nothing to find on refresh.
+//
+// Home leads the list: /dashboard is the insights page and had no nav entry at all, so the
+// only way back to it was the logo.
 const NAV_ITEMS = [
-  { href: "/dashboard/storefront", label: "Storefront" },
-  { href: "/dashboard/places", label: "Places" },
-  { href: "/dashboard/cities", label: "Cities" },
-  { href: "/dashboard/categories", label: "Categories" },
-  { href: "/dashboard/amenities", label: "Amenities" },
-  { href: "/dashboard/tags", label: "Tags" },
-  { href: "/dashboard/admins", label: "Admins", superAdminOnly: true },
-  { href: "/dashboard/settings", label: "Settings" },
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/dashboard/storefront", label: "Storefront", icon: Store },
+  { href: "/dashboard/places", label: "Places", icon: MapPin },
+  { href: "/dashboard/cities", label: "Cities", icon: Building2 },
+  { href: "/dashboard/categories", label: "Categories", icon: Shapes },
+  { href: "/dashboard/amenities", label: "Amenities", icon: Sparkles },
+  { href: "/dashboard/tags", label: "Tags", icon: Tags },
+  { href: "/dashboard/admins", label: "Admins", icon: Users, superAdminOnly: true },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export default async function DashboardLayout({
@@ -25,15 +41,37 @@ export default async function DashboardLayout({
   const session = await getServerSession();
   const isSuperAdmin = session?.user?.role === "super_admin";
   // A viewer sees everything and can change nothing — the gate disables every field and
-  // button in the content area while leaving the sidebar nav live.
+  // button in the content area while leaving the nav live.
   const isViewer = session?.user?.role === "viewer";
-  const navItems = NAV_ITEMS.filter(
+  const navItems: NavItem[] = NAV_ITEMS.filter(
     (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
-  );
+  ).map(({ href, label, icon }) => ({ href, label, icon }));
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6">
+    // Column on small screens (top bar over content), row from lg up (rail beside it). The
+    // layout used to be row-only with a fixed 240px rail, which on a phone left barely more
+    // than half the viewport for the actual page.
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <header className="relative flex shrink-0 items-center gap-3 border-b border-border bg-card px-4 py-3 lg:hidden">
+        <DashboardNav items={navItems} />
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Image
+            src="/khargny-logo.png"
+            alt="Khargny"
+            width={24}
+            height={31}
+            className="h-7 w-auto"
+          />
+          <span className="font-display text-base font-semibold text-foreground">
+            خرجني
+          </span>
+        </Link>
+        <div className="ms-auto">
+          <ProfileHeader />
+        </div>
+      </header>
+
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6 lg:flex">
         <Link href="/dashboard" className="mb-6 flex items-center gap-2">
           <Image
             src="/khargny-logo.png"
@@ -47,19 +85,13 @@ export default async function DashboardLayout({
           </span>
         </Link>
         <ProfileHeader />
-        <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <DashboardNav items={navItems} />
       </aside>
-      <main className="flex-1 bg-background px-8 py-6">
+
+      {/* Padding steps up with the viewport rather than sitting at a desktop 32px on a
+          360px phone, where it cost nearly a fifth of the width. min-w-0 lets wide tables
+          scroll inside the main column instead of stretching the page. */}
+      <main className="min-w-0 flex-1 bg-background px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         <ReadOnlyGate readOnly={isViewer}>{children}</ReadOnlyGate>
       </main>
     </div>
