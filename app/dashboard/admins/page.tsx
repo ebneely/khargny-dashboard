@@ -159,7 +159,7 @@ export default function AdminsPage() {
   return (
     <TooltipProvider>
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-semibold text-foreground">Admins</h1>
             <p className="mt-1 text-sm text-muted-foreground">

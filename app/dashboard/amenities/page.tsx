@@ -32,7 +32,7 @@ export default function AmenitiesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground">Amenities</h1>
         <Link href="/dashboard/amenities/new">
           <Button className="gap-2">
@@ -44,7 +44,7 @@ export default function AmenitiesPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
