@@ -42,13 +42,29 @@ export function useAdminPlace(id: string) {
     setIsError(false);
     setError(null);
     try {
-      // GET /v1/admin/places/:id returns { place, imageCount, videoCount } — unwrap to the
-      // place itself (the edit form reads place.name/cityId/... directly). Without this the
-      // form never populates ("edit doesn't load").
+      // GET /v1/admin/places/:id returns { place, imageCount, videoCount, amenities, tags }
+      // — unwrap to the place itself (the edit form reads place.name/cityId/... directly).
+      // Without this the form never populates ("edit doesn't load").
+      //
+      // amenities/tags are SIBLINGS of `place`, not fields on it, so they must be folded
+      // back on during the unwrap. Dropping them made the Amenities/Tags pickers seed empty
+      // on every load — a saved selection reappeared unchecked after refresh even though the
+      // assign POST had succeeded.
       const result = await adminApi.get<AdminPlace | { place: AdminPlace }>(
         `/v1/admin/places/${id}`,
       );
-      const place = (result as { place?: AdminPlace })?.place ?? (result as AdminPlace);
+      const envelope = result as {
+        place?: AdminPlace;
+        amenities?: { id: string }[];
+        tags?: { id: string }[];
+      };
+      const place = envelope?.place
+        ? ({
+            ...envelope.place,
+            amenities: envelope.amenities ?? [],
+            tags: envelope.tags ?? [],
+          } as AdminPlace)
+        : (result as AdminPlace);
       setData(place);
     } catch (e) {
       setIsError(true);
