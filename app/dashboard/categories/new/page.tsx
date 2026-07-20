@@ -104,7 +104,7 @@ export default function NewCategoryPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="nameAr">Name (Arabic) *</Label>
                 <Input
@@ -126,7 +126,7 @@ export default function NewCategoryPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="slug">Slug *</Label>
                 <Input
@@ -151,7 +151,7 @@ export default function NewCategoryPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="parentId">Parent category</Label>
                 <Select value={parentId || '__none__'} onValueChange={(v) => setParentId(v === '__none__' ? '' : v)}>

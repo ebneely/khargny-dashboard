@@ -144,7 +144,7 @@ export default function NewPlacePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Name (Arabic) *</Label>
                 <Input
@@ -176,7 +176,7 @@ export default function NewPlacePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="cityId">City *</Label>
                 <Select value={cityId} onValueChange={(v) => v && setCityId(v)}>
@@ -201,7 +201,7 @@ export default function NewPlacePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="description">Description (Arabic)</Label>
                 <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
@@ -217,7 +217,7 @@ export default function NewPlacePage() {
               <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
                 <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -243,7 +243,7 @@ export default function NewPlacePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="instagram">Instagram</Label>
                 <Input id="instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} />

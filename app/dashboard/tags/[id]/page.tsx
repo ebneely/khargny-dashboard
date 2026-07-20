@@ -80,7 +80,7 @@ export default function EditTagPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />

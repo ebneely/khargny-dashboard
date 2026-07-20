@@ -155,7 +155,7 @@ export default function EditCategoryPage() {
               </p>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="nameAr">Name (Arabic) *</Label>
                 <Input
@@ -177,7 +177,7 @@ export default function EditCategoryPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="slug">Slug *</Label>
                 <Input
@@ -202,7 +202,7 @@ export default function EditCategoryPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="parentId">Parent category</Label>
                 <Select
