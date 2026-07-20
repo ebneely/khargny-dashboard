@@ -175,32 +175,6 @@ export default function EditPlacePage() {
     }
   };
 
-  const handleAmenitiesSave = async () => {
-    setAmenitiesError('');
-    try {
-      await amenities.save();
-    } catch (e) {
-      if (e instanceof AdminApiError) {
-        setAmenitiesError(e.message);
-      } else {
-        setAmenitiesError('Connection error. Try again.');
-      }
-    }
-  };
-
-  const handleTagsSave = async () => {
-    setTagsError('');
-    try {
-      await tags.save();
-    } catch (e) {
-      if (e instanceof AdminApiError) {
-        setTagsError(e.message);
-      } else {
-        setTagsError('Connection error. Try again.');
-      }
-    }
-  };
-
   const handleHoursSave = async () => {
     setHoursError('');
     try {
@@ -472,17 +446,10 @@ export default function EditPlacePage() {
                 </p>
               )}
 
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <Button
-                  type="button"
-                  size="sm"
-                  data-trace-id="place-amenities-save"
-                  disabled={!amenities.isDirty || amenities.isSaving || isSoftDeleted}
-                  onClick={handleAmenitiesSave}
-                >
-                  {amenities.isSaving ? 'Saving…' : 'Save amenities'}
-                </Button>
-              </div>
+              {/* No save button here on purpose. The bottom "Save Changes" bar is the single
+                  save action for the whole place — it already persists amenities when dirty
+                  (see handleSubmit). Two competing save buttons made it ambiguous which one
+                  actually committed the selection. */}
             </>
           )}
         </CardContent>
@@ -599,17 +566,8 @@ export default function EditPlacePage() {
                 </p>
               )}
 
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <Button
-                  type="button"
-                  size="sm"
-                  data-trace-id="place-tags-save"
-                  disabled={!tags.isDirty || tags.isSaving || isSoftDeleted}
-                  onClick={handleTagsSave}
-                >
-                  {tags.isSaving ? 'Saving…' : 'Save tags'}
-                </Button>
-              </div>
+              {/* No save button here — the bottom "Save Changes" bar owns saving for the
+                  whole place and already persists tags when dirty (see handleSubmit). */}
             </>
           )}
         </CardContent>
@@ -726,7 +684,7 @@ export default function EditPlacePage() {
         <CardHeader>
           <CardTitle>Photos &amp; videos</CardTitle>
           <CardDescription>
-            The place&apos;s photo gallery — pick several at once or drag &amp; drop them in. Drag a photo (or use the arrows) to set the order they appear in the public carousel. Cover photos are managed per city, in the Cities tab.
+            The place&apos;s photo gallery — pick several at once or drag &amp; drop them in. Drag a photo (or use the arrows) to set the order they appear in the public carousel. The first photo is this place&apos;s cover (list thumbnail + detail hero); use &ldquo;Set cover&rdquo; to promote another one. Separate from a city&apos;s own cover photo, which lives in the Cities tab.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -871,9 +829,19 @@ export default function EditPlacePage() {
                     className="aspect-square w-full cursor-zoom-in object-cover"
                     onClick={() => setPreview(img.urls?.large || img.urls?.medium || img.url)}
                   />
-                  <span className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">
-                    {idx + 1}
-                  </span>
+                  {/* The place cover is its own thing, separate from the per-city cover photo:
+                      it's the first image, used as the list-card thumbnail and the detail hero
+                      on web + app. Flagged here so it isn't just an implicit side effect of
+                      whatever order the photos happen to be in. */}
+                  {idx === 0 ? (
+                    <span className="absolute left-1 top-1 rounded bg-[var(--brand-600)] px-1.5 py-0.5 text-[10px] text-[var(--white)]">
+                      Cover
+                    </span>
+                  ) : (
+                    <span className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">
+                      {idx + 1}
+                    </span>
+                  )}
                   {!isSoftDeleted && (
                     <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <div className="flex gap-1">
@@ -896,6 +864,21 @@ export default function EditPlacePage() {
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
+                      {idx !== 0 && (
+                        <Button
+                          type="button" variant="ghost" size="sm"
+                          aria-label="Set as cover" disabled={media.busy}
+                          onClick={async () => {
+                            setMediaError('');
+                            try { await media.reorder(idx, 0); }
+                            catch (err) { setMediaError(err instanceof AdminApiError ? err.message : 'Could not set cover.'); }
+                          }}
+                          data-trace-id={`place-media-set-cover-${img.id}`}
+                          className="h-7 px-2 text-[11px] text-white hover:text-white"
+                        >
+                          Set cover
+                        </Button>
+                      )}
                       <Button
                         type="button" variant="ghost" size="icon-sm"
                         aria-label="Delete photo" disabled={media.busy}
