@@ -28,7 +28,7 @@ function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
   return 'outline';
 }
 
-export function ProfileHeader() {
+export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   const router = useRouter();
   const { data, isLoading, isError } = useCurrentSession();
   const [signingOut, setSigningOut] = useState(false);
@@ -86,6 +86,62 @@ export function ProfileHeader() {
     .slice(0, 2)
     .toUpperCase();
 
+  // The menu content is identical in both layouts — defined once.
+  const menuContent = (
+    <DropdownMenuContent align="end" sideOffset={6} className="min-w-48">
+      <DropdownMenuLabel className="flex items-center gap-2 font-normal">
+        <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="truncate text-xs">{data.user.email}</span>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        render={
+          <Link
+            href="/dashboard/settings/change-password"
+            data-trace-id="auth-profile-change-password"
+          />
+        }
+      >
+        <KeyRound className="h-3.5 w-3.5" />
+        Change password
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        variant="destructive"
+        onClick={handleSignOut}
+        disabled={signingOut}
+        data-trace-id="auth-profile-signout"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+        {signingOut ? 'Signing out…' : 'Sign out'}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  );
+
+  // Compact (mobile header): the whole control is one small dropdown trigger — avatar +
+  // role, no email, no card — so it can't push the logo and menu button off the row. The
+  // email lives inside the menu. The full card is for the desktop sidebar only.
+  if (compact) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card py-1 pe-1.5 ps-1 text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          data-trace-id="auth-profile-menu"
+          aria-label={`${roleLabel(data.user.role)} — profile menu`}
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+            {initials}
+          </span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {roleLabel(data.user.role)}
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        </DropdownMenuTrigger>
+        {menuContent}
+      </DropdownMenu>
+    );
+  }
+
   return (
     <div
       data-trace-id="auth-profile-header"
@@ -116,34 +172,7 @@ export function ProfileHeader() {
         >
           <ChevronDown className="h-4 w-4" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={6} className="min-w-48">
-          <DropdownMenuLabel className="flex items-center gap-2 font-normal">
-            <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="truncate text-xs">{data.user.email}</span>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            render={
-              <Link
-                href="/dashboard/settings/change-password"
-                data-trace-id="auth-profile-change-password"
-              />
-            }
-          >
-            <KeyRound className="h-3.5 w-3.5" />
-            Change password
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            data-trace-id="auth-profile-signout"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            {signingOut ? 'Signing out…' : 'Sign out'}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        {menuContent}
       </DropdownMenu>
     </div>
   );

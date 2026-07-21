@@ -50,23 +50,17 @@ export default async function DashboardLayout({
           layout used to be row-only with a fixed 240px rail, which on a phone left barely more
           than half the viewport for the actual page. */}
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <header className="relative flex shrink-0 items-center gap-3 border-b border-border bg-card px-4 py-3 lg:hidden">
+        {/* Compact mobile bar: menu button, logo, then the language toggle + a small profile
+            dropdown pushed to the end. Everything shrinks so it fits a phone without wrapping
+            or pushing the logo off-screen. */}
+        <header className="relative flex shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2.5 lg:hidden">
           <DashboardNav items={navItems} />
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Image
-              src="/khargny-logo.png"
-              alt="Khargny"
-              width={24}
-              height={31}
-              className="h-7 w-auto"
-            />
-            <span className="font-display text-base font-semibold text-foreground">
-              خرجني
-            </span>
+          <Link href="/dashboard" className="flex shrink-0 items-center gap-1.5" aria-label="Khargny — dashboard home">
+            <Image src="/khargny-logo.png" alt="" width={22} height={28} className="h-6 w-auto" />
           </Link>
-          <div className="ms-auto flex items-center gap-2">
+          <div className="ms-auto flex min-w-0 items-center gap-2">
             <DashboardLangToggle />
-            <ProfileHeader />
+            <ProfileHeader compact />
           </div>
         </header>
 
