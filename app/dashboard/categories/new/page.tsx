@@ -54,6 +54,10 @@ export default function NewCategoryPage() {
     e.preventDefault();
     setError('');
     setSlugError('');
+    if (!nameEn.trim()) {
+      setError('English name is required — every category must have both languages.');
+      return;
+    }
     if (!nameAr || !slug) {
       setError('Arabic name and slug are required');
       return;
@@ -116,7 +120,7 @@ export default function NewCategoryPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English)</Label>
+                <Label htmlFor="nameEn">Name (English) *</Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
