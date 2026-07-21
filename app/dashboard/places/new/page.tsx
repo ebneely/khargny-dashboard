@@ -89,6 +89,17 @@ export default function NewPlacePage() {
       setError('Name, city, and category are required');
       return;
     }
+    // Every place must sit in an area and be findable on the map — the area powers the
+    // city's area filter (a place with none is invisible to it) and the maps link is the
+    // only way a visitor gets directions.
+    if (!region) {
+      setError('Pick the area (region) this place is in.');
+      return;
+    }
+    if (!mapsUrl.trim()) {
+      setError('A Google Maps link is required so visitors can get directions.');
+      return;
+    }
     // Guarantee a slug even if the field is blank (Arabic-only name → random base).
     let baseSlug = slug || slugify(nameEn) || slugify(name);
     if (!baseSlug) baseSlug = `place-${randomSuffix()}`;
@@ -212,7 +223,7 @@ export default function NewPlacePage() {
                 city's governorate. Stored as the English catalog key; the Arabic label is
                 derived from the same catalog, so region carries both languages too. */}
             <div className="space-y-2">
-              <Label>Area</Label>
+              <Label>Area *</Label>
               <RegionPicker
                 value={region}
                 onChange={setRegion}
