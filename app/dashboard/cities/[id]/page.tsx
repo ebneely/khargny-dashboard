@@ -19,7 +19,6 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { adminApi } from '@/lib/api/admin-client';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
-import { RegionPicker } from '@/components/region-picker';
 import { CityAreasPicker } from '@/components/admin/city-areas-picker';
 import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +45,6 @@ export default function EditCityPage() {
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [nameEdited, setNameEdited] = useState(false);
-  const [region, setRegion] = useState('');
   const [areaKeys, setAreaKeys] = useState<string[]>([]);
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
@@ -59,7 +57,6 @@ export default function EditCityPage() {
       setName(city.name);
       setNameEn(city.nameEn || '');
       setSlug(city.slug);
-      setRegion(city.region || '');
       setAreaKeys(city.areaKeys ?? []);
       setDescriptionAr(city.descriptionAr || '');
       setDescriptionEn(city.descriptionEn || '');
@@ -89,7 +86,6 @@ export default function EditCityPage() {
     try {
       await adminApi.patch(`/v1/admin/cities/${id}`, {
         name, nameEn: nameEn || undefined, slug,
-        region: region || undefined,
         areaKeys,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
         featured, status,
@@ -230,20 +226,12 @@ export default function EditCityPage() {
               </div>
             </div>
 
-            {/* Governorate, not free text — see components/region-picker.tsx. */}
+            {/* The regions (areas) this city offers — ONE control. Region and area are the
+                same thing (a district inside the governorate); the old separate single
+                "Region (governorate)" picker was a confusing duplicate and is gone. A place
+                in the city picks its region from exactly this set. */}
             <div className="space-y-2">
-              <Label htmlFor="region">Region (governorate)</Label>
-              <RegionPicker
-                value={region}
-                onChange={setRegion}
-                traceId="edit-city-region"
-              />
-            </div>
-
-            {/* The areas this city offers. A place in the city picks its area from exactly
-                this set; empty falls back to the whole governorate. */}
-            <div className="space-y-2">
-              <Label>Areas in this city</Label>
+              <Label>Regions / areas in this city</Label>
               <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 

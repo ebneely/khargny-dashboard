@@ -289,7 +289,7 @@ export default function EditPlacePage() {
               const governorate = c?.nameEn || (c ? findCity(c.name)?.value : undefined) || undefined;
               return (
                 <div className="space-y-2">
-                  <Label>Region (area)</Label>
+                  <Label>Area (region)</Label>
                   <RegionPicker
                     value={region}
                     onChange={setRegion}

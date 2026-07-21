@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { RegionPicker } from '@/components/region-picker';
 import { CityPicker } from '@/components/city-picker';
 import { CityAreasPicker } from '@/components/admin/city-areas-picker';
 import { adminApi } from '@/lib/api/admin-client';
@@ -28,7 +27,6 @@ export default function NewCityPage() {
   const [nameEn, setNameEn] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
-  const [region, setRegion] = useState('');
   const [areaKeys, setAreaKeys] = useState<string[]>([]);
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
@@ -61,7 +59,6 @@ export default function NewCityPage() {
     try {
       const created = await adminApi.post<{ id: string }>('/v1/admin/cities', {
         name, nameEn: nameEn || undefined, slug,
-        region: region || undefined,
         areaKeys: areaKeys.length > 0 ? areaKeys : undefined,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
         featured, status,
@@ -117,11 +114,11 @@ export default function NewCityPage() {
               />
             </div>
 
-            {/* Which areas this city offers. A place created in the city picks its area from
-                exactly this set — leaving it empty means the place form falls back to the
-                whole governorate. */}
+            {/* The regions (areas) this city offers. "Region" and "area" are the same thing
+                — a district inside the governorate — so there is ONE control for it, not two.
+                A place created in this city picks its region from exactly this set. */}
             <div className="space-y-2">
-              <Label>Areas in this city</Label>
+              <Label>Regions / areas in this city</Label>
               <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 
@@ -168,16 +165,6 @@ export default function NewCityPage() {
               </div>
             </div>
 
-            {/* Governorate, not free text — see components/region-picker.tsx. */}
-            <div className="space-y-2">
-              <Label htmlFor="region">Region (governorate)</Label>
-              <RegionPicker
-                value={region}
-                onChange={setRegion}
-                city={nameEn || undefined}
-                traceId="create-city-region"
-              />
-            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
