@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { RegionPicker } from '@/components/region-picker';
+import { findCity } from '@/lib/egypt-regions';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
@@ -218,20 +219,27 @@ export default function NewPlacePage() {
               </div>
             </div>
 
-            {/* Area (region) — REQUIRED in practice: every city has areas, and without one
-                the mobile area filter for this city is empty. Pre-filtered to the chosen
-                city's governorate. Stored as the English catalog key; the Arabic label is
-                derived from the same catalog, so region carries both languages too. */}
-            <div className="space-y-2">
-              <Label>Area *</Label>
-              <RegionPicker
-                value={region}
-                onChange={setRegion}
-                city={cities.find((c) => c.id === cityId)?.nameEn ?? undefined}
-                allowedKeys={cities.find((c) => c.id === cityId)?.areaKeys ?? undefined}
-                traceId="place-region"
-              />
-            </div>
+            {/* Area (region) — REQUIRED. Only appears AFTER a city is chosen: without a city
+                there is no governorate to scope the areas to, so showing the full 55-area
+                catalog first was meaningless. Scoped to the city's curated areas when it has
+                them (area_keys), else to its governorate. The governorate is the city's
+                English name, resolved from the catalog when the record has no nameEn. */}
+            {cityId && (() => {
+              const c = cities.find((x) => x.id === cityId);
+              const governorate = c?.nameEn || (c ? findCity(c.name)?.value : undefined) || undefined;
+              return (
+                <div className="space-y-2">
+                  <Label>Area *</Label>
+                  <RegionPicker
+                    value={region}
+                    onChange={setRegion}
+                    city={governorate}
+                    allowedKeys={c?.areaKeys ?? undefined}
+                    traceId="place-region"
+                  />
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">

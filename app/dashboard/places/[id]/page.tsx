@@ -23,6 +23,7 @@ import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
+import { findCity } from '@/lib/egypt-regions';
 import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
@@ -280,19 +281,25 @@ export default function EditPlacePage() {
               <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
 
-            {/* The area inside the city — what visitors actually browse by. Locked to the
-                catalog: free text here would make the field unfilterable, which is the only
-                reason it exists. Narrowed to the selected city's areas. */}
-            <div className="space-y-2">
-              <Label>Region (area)</Label>
-              <RegionPicker
-                value={region}
-                onChange={setRegion}
-                city={cities.find((c) => c.id === cityId)?.nameEn || undefined}
-                allowedKeys={cities.find((c) => c.id === cityId)?.areaKeys ?? undefined}
-                traceId="place-region"
-              />
-            </div>
+            {/* The area inside the city — locked to the catalog and scoped to the selected
+                city. Only shown once a city is chosen; the governorate is resolved from the
+                catalog when the city record has no English name. */}
+            {cityId && (() => {
+              const c = cities.find((x) => x.id === cityId);
+              const governorate = c?.nameEn || (c ? findCity(c.name)?.value : undefined) || undefined;
+              return (
+                <div className="space-y-2">
+                  <Label>Region (area)</Label>
+                  <RegionPicker
+                    value={region}
+                    onChange={setRegion}
+                    city={governorate}
+                    allowedKeys={c?.areaKeys ?? undefined}
+                    traceId="place-region"
+                  />
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
