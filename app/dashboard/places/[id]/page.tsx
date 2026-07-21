@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAdminPlace } from '@/lib/api/hooks/use-admin-places';
 import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
@@ -27,6 +28,7 @@ import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
 export default function EditPlacePage() {
   const router = useRouter();
+  const { pick } = useDashboardLang();
   const params = useParams();
   const id = params.id as string;
 
@@ -244,7 +246,7 @@ export default function EditPlacePage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {cities.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{pick(c.name, c.nameEn)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -255,7 +257,7 @@ export default function EditPlacePage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nameAr}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{pick(c.nameAr, c.nameEn)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

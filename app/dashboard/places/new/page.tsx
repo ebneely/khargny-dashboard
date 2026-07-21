@@ -12,6 +12,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
+import { RegionPicker } from '@/components/region-picker';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import type { AdminCity, AdminCategory } from '@/lib/api/types';
 
 /**
@@ -34,6 +36,7 @@ function randomSuffix(): string {
 
 export default function NewPlacePage() {
   const router = useRouter();
+  const { pick } = useDashboardLang();
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
@@ -52,6 +55,7 @@ export default function NewPlacePage() {
     setSlug(base);
   };
   const [cityId, setCityId] = useState('');
+  const [region, setRegion] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
@@ -92,7 +96,7 @@ export default function NewPlacePage() {
     const create = (slugToUse: string) =>
       adminApi.post('/v1/admin/places', {
         name, nameEn: nameEn || undefined, slug: slugToUse,
-        cityId, categoryId,
+        cityId, region: region || undefined, categoryId,
         description: description || undefined, descriptionEn: descriptionEn || undefined,
         address: address || undefined, phone: phone || undefined,
         website: website || undefined, mapsUrl: mapsUrl || undefined, instagram: instagram || undefined,
@@ -179,11 +183,13 @@ export default function NewPlacePage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="cityId">City *</Label>
+                {/* Options are labelled in the global view language (both names live on the
+                    row; the value saved is the id, so both always reach the backend). */}
                 <Select value={cityId} onValueChange={(v) => v && setCityId(v)}>
                   <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
                   <SelectContent>
                     {cities.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{pick(c.name, c.nameEn)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -194,11 +200,25 @@ export default function NewPlacePage() {
                   <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nameAr}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{pick(c.nameAr, c.nameEn)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Area (region) — REQUIRED in practice: every city has areas, and without one
+                the mobile area filter for this city is empty. Pre-filtered to the chosen
+                city's governorate. Stored as the English catalog key; the Arabic label is
+                derived from the same catalog, so region carries both languages too. */}
+            <div className="space-y-2">
+              <Label>Area</Label>
+              <RegionPicker
+                value={region}
+                onChange={setRegion}
+                city={cities.find((c) => c.id === cityId)?.nameEn ?? undefined}
+                traceId="place-region"
+              />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
