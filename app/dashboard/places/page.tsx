@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAdminPlaces } from '@/lib/api/hooks/use-admin-places';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { Badge } from '@/components/ui/badge';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
@@ -37,10 +38,9 @@ function pickName(ar: string | null | undefined, en: string | null | undefined, 
 
 export default function PlacesPage() {
   const [search, setSearch] = useState('');
-  // Whole-table language view. The dashboard is bilingual and an editor may think in either
-  // language, so one toggle flips every name column rather than showing both and doubling
-  // the width. Defaults to English; falls back to the other language when one is missing.
-  const [lang, setLang] = useState<'en' | 'ar'>('en');
+  // Name column follows the GLOBAL dashboard language toggle (in the header), not a
+  // per-page one — the local EN/ع toggle here was a duplicate of it.
+  const { lang } = useDashboardLang();
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
 
@@ -69,28 +69,6 @@ export default function PlacesPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground">Places</h1>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex rounded-md border border-border p-0.5" role="group" aria-label="Table language">
-            <button
-              type="button"
-              onClick={() => setLang('en')}
-              aria-pressed={lang === 'en'}
-              data-trace-id="places-lang-en"
-              data-ro-allow="true"
-              className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'en' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              onClick={() => setLang('ar')}
-              aria-pressed={lang === 'ar'}
-              data-trace-id="places-lang-ar"
-              data-ro-allow="true"
-              className={`rounded px-3 py-1 text-sm transition-colors ${lang === 'ar' ? 'bg-[var(--brand-600)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              ع
-            </button>
-          </div>
           <Link href="/dashboard/places/new">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
