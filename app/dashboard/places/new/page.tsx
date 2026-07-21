@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,6 +71,17 @@ export default function NewPlacePage() {
   const [priceRange, setPriceRange] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('active');
+  // Cover photo is chosen up front but uploaded AFTER the place is created (media needs the
+  // place id). Buffered here with a local preview so it's visible from the start.
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const pickCover = (file: File | null) => {
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverFile(file);
+    setCoverPreview(file ? URL.createObjectURL(file) : null);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -101,12 +113,16 @@ export default function NewPlacePage() {
       setError('A Google Maps link is required so visitors can get directions.');
       return;
     }
+    if (!coverFile) {
+      setError('A cover photo is required — it is the card image visitors see first.');
+      return;
+    }
     // Guarantee a slug even if the field is blank (Arabic-only name → random base).
     let baseSlug = slug || slugify(nameEn) || slugify(name);
     if (!baseSlug) baseSlug = `place-${randomSuffix()}`;
 
     const create = (slugToUse: string) =>
-      adminApi.post('/v1/admin/places', {
+      adminApi.post<{ id: string }>('/v1/admin/places', {
         name, nameEn: nameEn || undefined, slug: slugToUse,
         cityId, region: region || undefined, categoryId,
         description: description || undefined, descriptionEn: descriptionEn || undefined,
@@ -119,8 +135,9 @@ export default function NewPlacePage() {
 
     setSaving(true);
     try {
+      let created: { id: string };
       try {
-        await create(baseSlug);
+        created = await create(baseSlug);
       } catch (err) {
         // If the slug is already taken, retry once with a short unique suffix so
         // the admin never has to hand-resolve a collision.
@@ -132,9 +149,26 @@ export default function NewPlacePage() {
         if (isDuplicate) {
           const uniqueSlug = `${baseSlug}-${randomSuffix()}`;
           setSlug(uniqueSlug);
-          await create(uniqueSlug);
+          created = await create(uniqueSlug);
         } else {
           throw err;
+        }
+      }
+
+      // Upload the buffered cover now that the place exists. It's the first image, so it
+      // becomes the card cover. A failure here shouldn't lose the created place — surface it
+      // and send the admin to the edit screen to retry the photo.
+      if (created?.id && coverFile) {
+        const form = new FormData();
+        form.append('file', coverFile);
+        form.append('placeId', created.id);
+        form.append('type', 'image');
+        form.append('order', '0');
+        try {
+          await adminApi.uploadWithProgress('/v1/admin/media/image', form, () => {});
+        } catch {
+          router.push(`/dashboard/places/${created.id}`);
+          return;
         }
       }
       router.push('/dashboard/places');
@@ -159,6 +193,52 @@ export default function NewPlacePage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive">{error}</p>}
+
+            {/* Cover photo FIRST — it's the card image visitors see, and required. A visible
+                placeholder from the start makes clear one is expected; the file is buffered
+                and uploaded right after the place is created. */}
+            <div className="space-y-2">
+              <Label>Cover photo *</Label>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  data-ro-allow="true"
+                  className="relative flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-[var(--brand-600)] hover:text-foreground"
+                  aria-label={coverPreview ? 'Change cover photo' : 'Add cover photo'}
+                >
+                  {coverPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex flex-col items-center gap-1 text-xs">
+                      <ImagePlus className="h-6 w-6" />
+                      Add photo
+                    </span>
+                  )}
+                </button>
+                <div className="min-w-0 text-sm text-muted-foreground">
+                  <p>{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2). Auto-optimized to WebP.'}</p>
+                  {coverFile && (
+                    <button
+                      type="button"
+                      onClick={() => pickCover(null)}
+                      className="mt-1 text-xs font-medium text-destructive hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickCover(e.target.files?.[0] ?? null)}
+                data-trace-id="place-cover-input"
+              />
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
