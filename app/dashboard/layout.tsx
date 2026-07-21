@@ -1,16 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  LayoutDashboard,
-  Store,
-  MapPin,
-  Building2,
-  Shapes,
-  Sparkles,
-  Tags,
-  Users,
-  Settings,
-} from "lucide-react";
 import { ProfileHeader } from "@/components/auth/profile-header";
 import { getServerSession } from "@/lib/auth-server";
 import { ReadOnlyGate } from "@/components/auth/read-only-gate";
@@ -21,16 +10,20 @@ import { DashboardNav, type NavItem } from "@/components/admin/dashboard-nav";
 //
 // Home leads the list: /dashboard is the insights page and had no nav entry at all, so the
 // only way back to it was the logo.
+//
+// Icons are referenced by NAME, not by component: this is a Server Component and the nav is
+// a Client Component, and a lucide icon is a function — passing one across that boundary
+// throws a Server Components render error. The client maps the name to a component.
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/dashboard/storefront", label: "Storefront", icon: Store },
-  { href: "/dashboard/places", label: "Places", icon: MapPin },
-  { href: "/dashboard/cities", label: "Cities", icon: Building2 },
-  { href: "/dashboard/categories", label: "Categories", icon: Shapes },
-  { href: "/dashboard/amenities", label: "Amenities", icon: Sparkles },
-  { href: "/dashboard/tags", label: "Tags", icon: Tags },
-  { href: "/dashboard/admins", label: "Admins", icon: Users, superAdminOnly: true },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Home", iconName: "home" },
+  { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront" },
+  { href: "/dashboard/places", label: "Places", iconName: "places" },
+  { href: "/dashboard/cities", label: "Cities", iconName: "cities" },
+  { href: "/dashboard/categories", label: "Categories", iconName: "categories" },
+  { href: "/dashboard/amenities", label: "Amenities", iconName: "amenities" },
+  { href: "/dashboard/tags", label: "Tags", iconName: "tags" },
+  { href: "/dashboard/admins", label: "Admins", iconName: "admins", superAdminOnly: true },
+  { href: "/dashboard/settings", label: "Settings", iconName: "settings" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -45,7 +38,7 @@ export default async function DashboardLayout({
   const isViewer = session?.user?.role === "viewer";
   const navItems: NavItem[] = NAV_ITEMS.filter(
     (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
-  ).map(({ href, label, icon }) => ({ href, label, icon }));
+  ).map(({ href, label, iconName }) => ({ href, label, iconName }));
 
   return (
     // Column on small screens (top bar over content), row from lg up (rail beside it). The

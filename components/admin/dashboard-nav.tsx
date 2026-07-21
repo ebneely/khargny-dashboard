@@ -4,9 +4,45 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { animate, stagger } from 'animejs';
-import { Menu, X, type LucideIcon } from 'lucide-react';
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Store,
+  MapPin,
+  Building2,
+  Shapes,
+  Sparkles,
+  Tags,
+  Users,
+  Settings,
+  type LucideIcon,
+} from 'lucide-react';
 
-export type NavItem = { href: string; label: string; icon: LucideIcon };
+/**
+ * Icons live here, keyed by name, NOT passed in from the layout.
+ *
+ * The layout is a Server Component and this is a Client Component. A lucide icon is a
+ * function, and functions are not serializable across the server→client boundary — passing
+ * one as a prop throws "An error occurred in the Server Components render" and takes the
+ * whole dashboard down. So the layout hands over a plain string `iconName` and the mapping
+ * to an actual component happens here, on the client.
+ */
+const ICONS = {
+  home: LayoutDashboard,
+  storefront: Store,
+  places: MapPin,
+  cities: Building2,
+  categories: Shapes,
+  amenities: Sparkles,
+  tags: Tags,
+  admins: Users,
+  settings: Settings,
+} satisfies Record<string, LucideIcon>;
+
+export type NavIconName = keyof typeof ICONS;
+
+export type NavItem = { href: string; label: string; iconName: NavIconName };
 
 /**
  * Dashboard navigation.
@@ -142,7 +178,7 @@ function NavLink({
   active: boolean;
   mobile?: boolean;
 }) {
-  const Icon = item.icon;
+  const Icon = ICONS[item.iconName];
   return (
     <Link
       href={item.href}
