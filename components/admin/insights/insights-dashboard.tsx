@@ -116,6 +116,15 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="Cities" value={t?.cities ?? 0} icon={Building2} loading={isLoading} />
+          {/* Areas = distinct regions that have at least one live place, since a city can hold
+              many. Counted from the byRegion breakdown the endpoint already returns. */}
+          <StatTile
+            label="Areas"
+            value={data?.byRegion.length ?? 0}
+            hint="Across all cities"
+            icon={Navigation}
+            loading={isLoading}
+          />
           <StatTile
             label="Categories"
             value={t?.categories ?? 0}
