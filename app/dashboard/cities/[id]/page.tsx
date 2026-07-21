@@ -20,6 +20,7 @@ import { adminApi } from '@/lib/api/admin-client';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
 import { RegionPicker } from '@/components/region-picker';
+import { CityAreasPicker } from '@/components/admin/city-areas-picker';
 import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { Badge } from '@/components/ui/badge';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -46,6 +47,7 @@ export default function EditCityPage() {
   const [slugTouched, setSlugTouched] = useState(false);
   const [nameEdited, setNameEdited] = useState(false);
   const [region, setRegion] = useState('');
+  const [areaKeys, setAreaKeys] = useState<string[]>([]);
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [featured, setFeatured] = useState(false);
@@ -58,6 +60,7 @@ export default function EditCityPage() {
       setNameEn(city.nameEn || '');
       setSlug(city.slug);
       setRegion(city.region || '');
+      setAreaKeys(city.areaKeys ?? []);
       setDescriptionAr(city.descriptionAr || '');
       setDescriptionEn(city.descriptionEn || '');
       setFeatured(city.featured);
@@ -83,6 +86,7 @@ export default function EditCityPage() {
       await adminApi.patch(`/v1/admin/cities/${id}`, {
         name, nameEn: nameEn || undefined, slug,
         region: region || undefined,
+        areaKeys,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
         featured, status,
       });
@@ -230,6 +234,13 @@ export default function EditCityPage() {
                 onChange={setRegion}
                 traceId="edit-city-region"
               />
+            </div>
+
+            {/* The areas this city offers. A place in the city picks its area from exactly
+                this set; empty falls back to the whole governorate. */}
+            <div className="space-y-2">
+              <Label>Areas in this city</Label>
+              <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 
             <div className="space-y-2">

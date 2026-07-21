@@ -49,6 +49,19 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   // show an actionable sign-in prompt instead of an endless loading skeleton, so the
   // sidebar never looks half-built.
   if (isError && !data) {
+    // Compact: a small "Sign in" pill matching the compact profile footprint, so it can't
+    // overflow the mobile header.
+    if (compact) {
+      return (
+        <Link
+          href="/login?redirect=/dashboard"
+          className="inline-flex shrink-0 items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-primary hover:bg-muted"
+          data-trace-id="auth-profile-signin"
+        >
+          Sign in
+        </Link>
+      );
+    }
     return (
       <div
         data-trace-id="auth-profile-header"
@@ -67,6 +80,17 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   }
 
   if (isLoading || !data) {
+    // Compact skeleton: a small pill (avatar dot + short bar) that matches the compact
+    // profile control, not the full sidebar card — otherwise the mobile header shows a big
+    // placeholder card that overflows.
+    if (compact) {
+      return (
+        <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card py-1 pe-2.5 ps-1">
+          <div className="h-7 w-7 rounded-full bg-muted animate-pulse" />
+          <div className="h-3 w-10 rounded bg-muted animate-pulse" />
+        </div>
+      );
+    }
     return (
       <div
         data-trace-id="auth-profile-header"

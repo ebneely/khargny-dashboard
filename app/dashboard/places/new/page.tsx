@@ -228,6 +228,7 @@ export default function NewPlacePage() {
                 value={region}
                 onChange={setRegion}
                 city={cities.find((c) => c.id === cityId)?.nameEn ?? undefined}
+                allowedKeys={cities.find((c) => c.id === cityId)?.areaKeys ?? undefined}
                 traceId="place-region"
               />
             </div>

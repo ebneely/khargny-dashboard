@@ -22,8 +22,15 @@ export function RegionPicker({
   onChange,
   onSelect,
   traceId,
-  /** Pre-filter to one city's areas, e.g. when the city is already chosen. */
+  /** Pre-filter to one city's governorate, e.g. when the city is already chosen. */
   city,
+  /**
+   * Restrict the choices to exactly these catalog keys — the areas an admin curated onto
+   * the selected city. When set, ONLY these show (the whole point: a place's area comes
+   * from its city's list, not the full 55-area governorate). Undefined/empty means "not
+   * curated", and the picker falls back to the governorate filter.
+   */
+  allowedKeys,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -31,7 +38,9 @@ export function RegionPicker({
   onSelect?: (region: EgyptRegion) => void;
   traceId?: string;
   city?: string;
+  allowedKeys?: string[];
 }) {
+  const allowed = allowedKeys && allowedKeys.length > 0 ? new Set(allowedKeys) : null;
   const [query, setQuery] = useState('');
   // Filter by city as well as free-text search: an editor who knows the place is in Cairo
   // shouldn't have to scroll past every other governorate to find its district.
@@ -46,9 +55,14 @@ export function RegionPicker({
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     const activeCity = city || cityFilter;
-    const pool = activeCity
-      ? EGYPT_REGIONS.filter((r) => r.governorate.toLowerCase() === activeCity.toLowerCase())
+    // A curated area list wins over the governorate filter: it's the exact set the city
+    // offers, so nothing outside it should ever appear.
+    const base = allowed
+      ? EGYPT_REGIONS.filter((r) => allowed.has(r.value))
       : EGYPT_REGIONS;
+    const pool = activeCity
+      ? base.filter((r) => r.governorate.toLowerCase() === activeCity.toLowerCase())
+      : base;
 
     const matches = q
       ? pool.filter(
@@ -68,7 +82,9 @@ export function RegionPicker({
       byCity.get(region.governorate)!.push(region);
     }
     return Array.from(byCity.entries());
-  }, [query, city, cityFilter]);
+    // allowedKeys drives `allowed`; include it so the pool recomputes when the city changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, city, cityFilter, allowedKeys?.join(',')]);
 
   return (
     <div className="space-y-2" data-trace-id={traceId}>

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { RegionPicker } from '@/components/region-picker';
 import { CityPicker } from '@/components/city-picker';
+import { CityAreasPicker } from '@/components/admin/city-areas-picker';
 import { adminApi } from '@/lib/api/admin-client';
 import { autoSlug } from '@/lib/utils/slug';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -28,6 +29,7 @@ export default function NewCityPage() {
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [region, setRegion] = useState('');
+  const [areaKeys, setAreaKeys] = useState<string[]>([]);
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [featured, setFeatured] = useState(false);
@@ -53,6 +55,7 @@ export default function NewCityPage() {
       const created = await adminApi.post<{ id: string }>('/v1/admin/cities', {
         name, nameEn: nameEn || undefined, slug,
         region: region || undefined,
+        areaKeys: areaKeys.length > 0 ? areaKeys : undefined,
         descriptionAr: descriptionAr || undefined, descriptionEn: descriptionEn || undefined,
         featured, status,
         parentCityId: parentCityId || undefined,
@@ -102,9 +105,17 @@ export default function NewCityPage() {
               <Label>Governorate *</Label>
               <CityPicker
                 value={nameEn}
-                onSelect={(c) => { setNameEn(c.value); setName(c.nameAr); }}
+                onSelect={(c) => { setNameEn(c.value); setName(c.nameAr); setAreaKeys([]); }}
                 traceId="create-city-governorate"
               />
+            </div>
+
+            {/* Which areas this city offers. A place created in the city picks its area from
+                exactly this set — leaving it empty means the place form falls back to the
+                whole governorate. */}
+            <div className="space-y-2">
+              <Label>Areas in this city</Label>
+              <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

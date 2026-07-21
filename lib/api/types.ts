@@ -57,6 +57,8 @@ export interface AdminCity {
   nameEn: string | null;
   slug: string;
   region: string | null;
+  /** The areas (English catalog keys) this city offers; null when not curated. */
+  areaKeys: string[] | null;
   descriptionAr: string | null;
   descriptionEn: string | null;
   lat: number | null;
