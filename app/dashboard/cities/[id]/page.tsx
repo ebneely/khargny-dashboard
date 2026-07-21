@@ -81,6 +81,10 @@ export default function EditCityPage() {
     e.preventDefault();
     setError('');
     setSlugError('');
+    if (!nameEn.trim()) {
+      setError('English name is required so the city is never Arabic-only on the English UI.');
+      return;
+    }
     setSaving(true);
     try {
       await adminApi.patch(`/v1/admin/cities/${id}`, {
@@ -196,7 +200,7 @@ export default function EditCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English)</Label>
+                <Label htmlFor="nameEn">Name (English) *</Label>
                 <Input
                   id="nameEn"
                   value={nameEn}

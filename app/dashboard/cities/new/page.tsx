@@ -50,6 +50,13 @@ export default function NewCityPage() {
       setError('Name and slug are required');
       return;
     }
+    // Both languages are mandatory: a city is a governorate and always has an English name
+    // (the picker fills it). Requiring it here means nothing downstream ever falls back to
+    // Arabic on the English UI.
+    if (!nameEn.trim()) {
+      setError('English name is required — pick the governorate above to fill it.');
+      return;
+    }
     setSaving(true);
     try {
       const created = await adminApi.post<{ id: string }>('/v1/admin/cities', {
@@ -130,7 +137,7 @@ export default function NewCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English)</Label>
+                <Label htmlFor="nameEn">Name (English) *</Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
