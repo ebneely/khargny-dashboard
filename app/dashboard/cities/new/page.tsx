@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { ImagePlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,17 @@ export default function NewCityPage() {
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('active');
   const [parentCityId, setParentCityId] = useState('');
+  // Cover photo chosen on THIS form (not only after saving), buffered with a preview and
+  // uploaded right after the city is created (the image endpoint needs the city id).
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const pickCover = (file: File | null) => {
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverFile(file);
+    setCoverPreview(file ? URL.createObjectURL(file) : null);
+  };
 
   useEffect(() => {
     if (slugTouched) return;
@@ -64,7 +76,18 @@ export default function NewCityPage() {
         featured, status,
         parentCityId: parentCityId || undefined,
       });
-      // Straight to edit so the admin can add a cover photo (needs the new id).
+      // Upload the cover chosen on this form now that the city exists (the image endpoint
+      // needs the id). A failure here shouldn't lose the created city — fall through to its
+      // edit screen to retry the photo.
+      if (created?.id && coverFile) {
+        const form = new FormData();
+        form.append('file', coverFile);
+        try {
+          await adminApi.uploadWithProgress(`/v1/admin/cities/${created.id}/image`, form, () => {});
+        } catch {
+          /* keep the city; the edit screen shows the cover uploader to retry */
+        }
+      }
       if (created?.id) router.push(`/dashboard/cities/${created.id}`);
       else router.push('/dashboard/cities');
     } catch (e: any) {
@@ -102,6 +125,51 @@ export default function NewCityPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+
+            {/* Cover photo — visible and settable HERE, before saving. Buffered with a live
+                preview and uploaded right after the city is created. */}
+            <div className="space-y-2">
+              <Label>Cover photo</Label>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  data-ro-allow="true"
+                  className="relative flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-[var(--brand-600)] hover:text-foreground"
+                  aria-label={coverPreview ? 'Change cover photo' : 'Add cover photo'}
+                >
+                  {coverPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex flex-col items-center gap-1 text-xs">
+                      <ImagePlus className="h-6 w-6" />
+                      Add photo
+                    </span>
+                  )}
+                </button>
+                <div className="min-w-0 text-sm text-muted-foreground">
+                  <p>{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2), min 800×600. Auto-optimized to WebP.'}</p>
+                  {coverFile && (
+                    <button
+                      type="button"
+                      onClick={() => pickCover(null)}
+                      className="mt-1 text-xs font-medium text-destructive hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickCover(e.target.files?.[0] ?? null)}
+                data-trace-id="create-city-cover-input"
+              />
+            </div>
 
             {/* A city IS one of Egypt's 27 governorates. Picking one fills both name
                 fields, so the same governorate can't arrive spelled three different ways. */}
