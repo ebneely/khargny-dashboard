@@ -112,6 +112,47 @@ export default function PlacesPage() {
     search !== '' || statusFilter !== 'all' || cityFilter !== 'all' ||
     categoryFilter !== 'all' || mediaFilter !== 'all';
 
+  // Rendered above and below the table: with twenty rows you would otherwise have to
+  // scroll to the bottom to change page, then scroll back up to read the new one.
+  function Pager({ position }: { position: 'top' | 'bottom' }) {
+    if (totalPages <= 1) return null;
+    return (
+      <div
+        className={
+          position === 'top'
+            ? 'flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-border'
+            : 'flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border'
+        }
+      >
+        <p className="text-sm text-muted-foreground">{data?.total ?? 0} places</p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)} aria-label="Previous page">
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          {pageNumbers.map((n, i) =>
+            n === null ? (
+              <span key={`gap-${i}`} className="px-1 text-sm text-muted-foreground select-none">…</span>
+            ) : (
+              <Button
+                key={n}
+                variant={n === page ? 'default' : 'outline'}
+                size="sm"
+                className="min-w-9 tabular-nums"
+                aria-current={n === page ? 'page' : undefined}
+                onClick={() => setPage(n)}
+              >
+                {n + 1}
+              </Button>
+            ),
+          )}
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} aria-label="Next page">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -215,6 +256,7 @@ export default function PlacesPage() {
             </div>
           ) : visibleItems.length > 0 ? (
             <>
+              <Pager position="top" />
               {/* Nine columns don't fit a phone; the Table primitive scrolls its container,
                   and the min-width keeps the columns from crushing rather than letting them
                   collapse into an unreadable smear. */}
@@ -335,39 +377,7 @@ export default function PlacesPage() {
                 </TableBody>
               </Table>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  {data?.total ?? 0} places
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)} aria-label="Previous page">
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-
-                  {/* Jump straight to a page. Twenty-two pages of "next" to reach the end is
-                      not navigation, it is a queue. */}
-                  {pageNumbers.map((n, i) =>
-                    n === null ? (
-                      <span key={`gap-${i}`} className="px-1 text-sm text-muted-foreground select-none">…</span>
-                    ) : (
-                      <Button
-                        key={n}
-                        variant={n === page ? 'default' : 'outline'}
-                        size="sm"
-                        className="min-w-9 tabular-nums"
-                        aria-current={n === page ? 'page' : undefined}
-                        onClick={() => setPage(n)}
-                      >
-                        {n + 1}
-                      </Button>
-                    ),
-                  )}
-
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} aria-label="Next page">
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              <Pager position="bottom" />
             </>
           ) : (
             <div className="text-center py-8">
