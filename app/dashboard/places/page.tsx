@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Navigation, Trash2, RotateCcw, Pencil } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Navigation, Trash2, RotateCcw, Pencil, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAdminPlaces } from '@/lib/api/hooks/use-admin-places';
+import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
+import { useAdminCategories } from '@/lib/api/hooks/use-admin-categories';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { Badge } from '@/components/ui/badge';
@@ -36,20 +38,62 @@ function pickName(ar: string | null | undefined, en: string | null | undefined, 
   return (lang === 'ar' ? a || e : e || a) || '—';
 }
 
+const PUBLIC_SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.5argny.com';
+
+/** The public page for a place, or null when we lack the city slug to build one. */
+function publicUrl(place: { slug: string; city?: { slug?: string } }): string | null {
+  const citySlug = place.city?.slug;
+  if (!citySlug || !place.slug) return null;
+  return `${PUBLIC_SITE}/explorer/${citySlug}/${place.slug}`;
+}
+
+/**
+ * Page numbers to show: always the first and last, plus a window around the current page,
+ * with gaps elided. Twenty-two buttons in a row would be its own navigation problem.
+ */
+function pageWindow(current: number, total: number): (number | null)[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+
+  const pages = new Set<number>([0, total - 1, current]);
+  for (const n of [current - 1, current + 1]) {
+    if (n > 0 && n < total - 1) pages.add(n);
+  }
+  const sorted = [...pages].sort((a, b) => a - b);
+
+  const out: (number | null)[] = [];
+  let previous: number | null = null;
+  for (const n of sorted) {
+    if (previous !== null && n - previous > 1) out.push(null);
+    out.push(n);
+    previous = n;
+  }
+  return out;
+}
+
 export default function PlacesPage() {
   const [search, setSearch] = useState('');
   // Name column follows the GLOBAL dashboard language toggle (in the header), not a
   // per-page one — the local EN/ع toggle here was a duplicate of it.
   const { lang } = useDashboardLang();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [mediaFilter, setMediaFilter] = useState('all');
   const [page, setPage] = useState(0);
 
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const [pendingRestore, setPendingRestore] = useState<{ id: string; name: string } | null>(null);
 
+  // Filter options. Cities and categories are small, fixed lists, so one fetch each.
+  const { data: cityData } = useAdminCities({ limit: 100 });
+  const { data: categoryData } = useAdminCategories();
+
   const { data, isLoading, isError, refetch } = useAdminPlaces({
     search: search || undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
+    cityId: cityFilter === 'all' ? undefined : cityFilter,
+    categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
+    hasMedia: mediaFilter === 'all' ? undefined : mediaFilter === 'with',
     skip: page * PAGE_SIZE,
     limit: PAGE_SIZE,
   });
@@ -63,6 +107,10 @@ export default function PlacesPage() {
   }, [data, statusFilter]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+  const pageNumbers = useMemo(() => pageWindow(page, totalPages), [page, totalPages]);
+  const hasActiveFilters =
+    search !== '' || statusFilter !== 'all' || cityFilter !== 'all' ||
+    categoryFilter !== 'all' || mediaFilter !== 'all';
 
   return (
     <div>
@@ -95,12 +143,62 @@ export default function PlacesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">Any status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="deleted">Deleted</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={cityFilter} onValueChange={(v) => { if (v) { setCityFilter(v); setPage(0); } }}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any city</SelectItem>
+                {(cityData?.items ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{pickName(c.name, c.nameEn, lang)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={categoryFilter} onValueChange={(v) => { if (v) { setCategoryFilter(v); setPage(0); } }}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any category</SelectItem>
+                {(categoryData ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{pickName(c.nameAr, c.nameEn, lang)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* The question this answers is "what still needs photos?", which is why the
+                options are phrased as the work rather than as a boolean. */}
+            <Select value={mediaFilter} onValueChange={(v) => { if (v) { setMediaFilter(v); setPage(0); } }}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any media</SelectItem>
+                <SelectItem value="with">Has media</SelectItem>
+                <SelectItem value="without">Needs media</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearch(''); setStatusFilter('all'); setCityFilter('all');
+                  setCategoryFilter('all'); setMediaFilter('all'); setPage(0);
+                }}
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -189,6 +287,20 @@ export default function PlacesPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {/* Straight to the page a visitor sees. Checking your own work
+                              should not mean reconstructing a URL by hand. */}
+                          {publicUrl(place) && (
+                            <a
+                              href={publicUrl(place)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button variant="ghost" size="icon-sm" aria-label="View on the site" title="View on 5argny.com">
+                                <ExternalLink className="w-4 h-4" />
+                              </Button>
+                            </a>
+                          )}
                           <Link href={`/dashboard/places/${place.id}`}>
                             <Button variant="ghost" size="icon-sm" aria-label="Edit" data-trace-id={`place-list-edit-${place.id}`}>
                               <Pencil className="w-4 h-4" />
@@ -223,15 +335,35 @@ export default function PlacesPage() {
                 </TableBody>
               </Table>
 
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border">
                 <p className="text-sm text-muted-foreground">
-                  Page {page + 1} of {totalPages} ({data?.total ?? 0} total)
+                  {data?.total ?? 0} places
                 </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)} aria-label="Previous page">
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+
+                  {/* Jump straight to a page. Twenty-two pages of "next" to reach the end is
+                      not navigation, it is a queue. */}
+                  {pageNumbers.map((n, i) =>
+                    n === null ? (
+                      <span key={`gap-${i}`} className="px-1 text-sm text-muted-foreground select-none">…</span>
+                    ) : (
+                      <Button
+                        key={n}
+                        variant={n === page ? 'default' : 'outline'}
+                        size="sm"
+                        className="min-w-9 tabular-nums"
+                        aria-current={n === page ? 'page' : undefined}
+                        onClick={() => setPage(n)}
+                      >
+                        {n + 1}
+                      </Button>
+                    ),
+                  )}
+
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} aria-label="Next page">
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>

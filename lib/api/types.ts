@@ -28,8 +28,11 @@ export interface AdminPlace {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  city?: { name: string; nameEn?: string | null };
-  category?: { nameAr: string; nameEn: string | null };
+  // The backend spreads the whole city/category row, so `slug` and `id` have always been
+  // present at runtime; the type simply never admitted it. `city.slug` is what builds the
+  // link to the public page.
+  city?: { id?: string; slug?: string; name: string; nameEn?: string | null };
+  category?: { id?: string; slug?: string; nameAr: string; nameEn: string | null };
   _count?: { images: number; videos: number };
   hasMedia?: boolean;
 }
@@ -46,6 +49,8 @@ export interface AdminPlaceFilters {
   cityId?: string;
   categoryId?: string;
   status?: string;
+  /** true: only places with a photo or video. false: only those with neither. */
+  hasMedia?: boolean;
   sortBy?: string;
   skip?: number;
   limit?: number;
