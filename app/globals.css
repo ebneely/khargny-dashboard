@@ -330,3 +330,68 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  .print-hide,
+  body > div > div > header,
+  body > div > div > aside {
+    display: none !important;
+  }
+
+  body,
+  main {
+    background: white !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .ad-report {
+    color: black;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .ad-report [data-slot="card"] {
+    overflow: visible !important;
+    border: 1px solid var(--border);
+    box-shadow: none !important;
+  }
+
+  .ad-report-chart,
+  .ad-report section {
+    break-inside: avoid;
+  }
+
+  .ad-report [data-slot="table-container"] {
+    overflow: visible !important;
+  }
+
+  .ad-report svg,
+  .ad-report table {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .ad-report svg {
+    height: auto !important;
+    max-width: 100% !important;
+  }
+
+  .ad-report table {
+    font-size: 10px;
+  }
+
+  .ad-report thead {
+    display: table-header-group;
+  }
+
+  .ad-report tr {
+    break-inside: avoid;
+  }
+}

@@ -9,6 +9,7 @@ import {
   X,
   LayoutDashboard,
   Store,
+  Megaphone,
   MapPin,
   Building2,
   Shapes,
@@ -31,6 +32,7 @@ import {
 const ICONS = {
   home: LayoutDashboard,
   storefront: Store,
+  ads: Megaphone,
   places: MapPin,
   cities: Building2,
   categories: Shapes,
@@ -68,10 +70,9 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
 
-  // Close on route change: tapping a link inside the panel should not leave it open over
-  // the page it just navigated to.
   React.useEffect(() => {
-    setOpen(false);
+    const timer = window.setTimeout(() => setOpen(false), 0);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   React.useEffect(() => {
@@ -161,7 +162,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       >
         <nav className="flex flex-col gap-1" aria-label="Dashboard">
           {items.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item.href)} mobile />
+            <NavLink key={item.href} item={item} active={isActive(item.href)} mobile onNavigate={() => setOpen(false)} />
           ))}
         </nav>
       </div>
@@ -173,10 +174,12 @@ function NavLink({
   item,
   active,
   mobile,
+  onNavigate,
 }: {
   item: NavItem;
   active: boolean;
   mobile?: boolean;
+  onNavigate?: () => void;
 }) {
   const Icon = ICONS[item.iconName];
   return (
@@ -184,6 +187,7 @@ function NavLink({
       href={item.href}
       aria-current={active ? 'page' : undefined}
       data-nav-item={mobile ? '' : undefined}
+      onClick={onNavigate}
       className={[
         // 44px min height on mobile: a nav row is a primary tap target.
         'flex items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors',

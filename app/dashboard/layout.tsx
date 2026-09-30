@@ -19,6 +19,7 @@ import { DashboardLangToggle } from "@/components/admin/dashboard-lang-toggle";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", iconName: "home" },
   { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront" },
+  { href: "/dashboard/ads", label: "Ads", iconName: "ads" },
   { href: "/dashboard/places", label: "Places", iconName: "places" },
   { href: "/dashboard/cities", label: "Cities", iconName: "cities" },
   { href: "/dashboard/categories", label: "Categories", iconName: "categories" },
@@ -53,7 +54,7 @@ export default async function DashboardLayout({
         {/* Compact mobile bar: menu button, logo, then the language toggle + a small profile
             dropdown pushed to the end. Everything shrinks so it fits a phone without wrapping
             or pushing the logo off-screen. */}
-        <header className="relative flex shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2.5 lg:hidden">
+        <header className="print-hide relative flex shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2.5 lg:hidden">
           <DashboardNav items={navItems} />
           <Link href="/dashboard" className="flex shrink-0 items-center gap-1.5" aria-label="Khargny — dashboard home">
             <Image src="/khargny-logo.png" alt="" width={22} height={28} className="h-6 w-auto" />
@@ -64,7 +65,7 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6 lg:flex">
+        <aside className="print-hide hidden w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6 lg:flex">
           <Link href="/dashboard" className="mb-6 flex items-center gap-2">
             <Image
               src="/khargny-logo.png"
