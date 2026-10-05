@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,27 +17,44 @@ const CELL_STYLES = {
   oversold: 'bg-error-bg text-error hover:bg-error-bg/70',
 } as const;
 
+const RANGE_DAYS = 56;
+const STEP_DAYS = 28;
+
+function shiftDate(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 export function AdsInventoryPage() {
   const [inventory, setInventory] = React.useState<AdInventory | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  // null = the server default (today in Cairo, 8 weeks).
+  const [from, setFrom] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setInventory(await adminApi.get<AdInventory>('/v1/admin/ads/inventory'));
+      const query = from ? `?from=${from}&to=${shiftDate(from, RANGE_DAYS - 1)}` : '';
+      setInventory(await adminApi.get<AdInventory>(`/v1/admin/ads/inventory${query}`));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not load ad inventory.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [from]);
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  const move = (days: number) => {
+    const base = from ?? inventory?.from;
+    if (base) setFrom(shiftDate(base, days));
+  };
 
   return (
     <div>
@@ -46,6 +63,17 @@ export function AdsInventoryPage() {
         description={inventory
           ? `${formatDay(inventory.from)} – ${formatDay(inventory.to)} · ${inventory.timezone}`
           : 'Booked capacity across national and city placements.'}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label="Previous 4 weeks">
+              <ChevronLeft className="size-4" />4 weeks
+            </Button>
+            <Button variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}>Today</Button>
+            <Button variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label="Next 4 weeks">
+              4 weeks<ChevronRight className="size-4" />
+            </Button>
+          </>
+        }
       />
 
       <div className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Inventory legend">
@@ -115,8 +143,9 @@ function InventoryCell({ scope, day }: { scope: AdInventoryScope; day: AdInvento
         : 'partial';
   const content = (
     <span className="block px-2 py-4 text-center font-semibold tabular-nums" title={`${day.date}: ${day.booked} of ${day.capacity} booked`}>
+      {status === 'oversold' && <span aria-hidden="true">! </span>}
       {day.booked}/{day.capacity}
-      <span className="sr-only"> {status}</span>
+      <span className="sr-only"> {status === 'oversold' ? 'oversold, campaigns rotate' : status}</span>
     </span>
   );
 

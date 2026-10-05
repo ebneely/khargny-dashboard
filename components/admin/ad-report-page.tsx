@@ -58,9 +58,14 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
 
   return (
     <div className="ad-report">
+      {/* The dashboard chrome (logo, sidebar) is hidden in print, so the one-pager carries
+          its own masthead for the advertiser. */}
+      <p className="mb-4 hidden border-b pb-2 text-sm font-semibold print:block">
+        Khargny · خرجني — Sponsored placement report
+      </p>
       <AdsPageHeader
         title={`${placeName} campaign report`}
-        description={`Prepared for ${campaign.advertiserName}. Generated ${new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(report.generatedAt))}.`}
+        description={`Prepared for ${campaign.advertiserName}. Generated ${new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: report.timezone }).format(new Date(report.generatedAt))} (${report.timezone}).`}
         actions={
           <>
             <Button render={<Link href={`/dashboard/ads/${campaignId}`} />} variant="outline"><ArrowLeft className="size-4" />Campaign</Button>
@@ -155,16 +160,23 @@ function DailyBarChart({ days }: { days: AdReportDay[] }) {
   const top = 18;
   const bottom = 38;
   const chartHeight = height - top - bottom;
-  const chartWidth = width - left - 16;
+  const chartWidth = width - left - 44;
   const maxValue = Math.max(1, ...days.map((day) => day.impressions));
+  // Taps are typically 1–5% of impressions: on the impressions scale they would be an
+  // invisible sliver, so they get their own scale (right axis) and are drawn as a line.
+  const maxTaps = Math.max(1, ...days.map((day) => day.taps));
   const groupWidth = chartWidth / days.length;
+  const tapPoints = days.map((day, index) => ({
+    x: left + groupWidth * index + groupWidth / 2,
+    y: top + chartHeight - (day.taps / maxTaps) * chartHeight,
+  }));
   const barWidth = Math.min(18, Math.max(5, groupWidth * 0.55));
 
   return (
     <div className="overflow-x-auto">
       <div className="mb-3 flex items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-primary" />Impressions</span>
-        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-info" />Taps</span>
+        <span className="flex items-center gap-1.5"><span className="h-0.5 w-3 rounded-full bg-info" />Taps (right axis)</span>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-labelledby="daily-chart-title daily-chart-desc" className="max-w-none print:w-full">
         <title id="daily-chart-title">Daily impressions and taps</title>
@@ -173,25 +185,33 @@ function DailyBarChart({ days }: { days: AdReportDay[] }) {
           const y = top + chartHeight * (1 - ratio);
           return (
             <g key={ratio}>
-              <line x1={left} x2={width - 16} y1={y} y2={y} stroke="var(--border)" strokeWidth="1" />
+              <line x1={left} x2={left + chartWidth} y1={y} y2={y} stroke="var(--border)" strokeWidth="1" />
               <text x={left - 8} y={y + 4} textAnchor="end" fontSize="10" fill="var(--muted-foreground)">{formatCount(Math.round(maxValue * ratio))}</text>
+              <text x={left + chartWidth + 8} y={y + 4} textAnchor="start" fontSize="10" fill="var(--info)">{formatCount(Math.round(maxTaps * ratio))}</text>
             </g>
           );
         })}
         {days.map((day, index) => {
           const center = left + groupWidth * index + groupWidth / 2;
           const impressionHeight = (day.impressions / maxValue) * chartHeight;
-          const tapHeight = (day.taps / maxValue) * chartHeight;
+
           const showLabel = days.length <= 20 || index % Math.ceil(days.length / 12) === 0 || index === days.length - 1;
           return (
             <g key={day.date}>
               <rect x={center - barWidth / 2} y={top + chartHeight - impressionHeight} width={barWidth} height={impressionHeight} rx="2" fill="var(--primary)" />
-              {day.taps > 0 && <rect x={center - barWidth / 2} y={top + chartHeight - tapHeight} width={barWidth} height={Math.max(2, tapHeight)} rx="2" fill="var(--info)" />}
+              <circle cx={center} cy={tapPoints[index].y} r="3" fill="var(--info)" />
               {showLabel && <text x={center} y={height - 13} textAnchor="middle" fontSize="10" fill="var(--muted-foreground)">{day.date.slice(5)}</text>}
               <title>{day.date}: {formatCount(day.impressions)} impressions, {formatCount(day.taps)} taps</title>
             </g>
           );
         })}
+        <polyline
+          points={tapPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+          fill="none"
+          stroke="var(--info)"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
       </svg>
     </div>
   );
