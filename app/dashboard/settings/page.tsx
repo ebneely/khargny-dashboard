@@ -6,6 +6,12 @@ import { getServerSession } from '@/lib/auth-server';
 
 const SUB_SECTIONS = [
   {
+    href: '/dashboard/settings/api-keys',
+    title: 'API keys',
+    description: 'Give AI assistants scoped access. Create, copy once, and revoke your own keys.',
+    icon: KeyRound,
+  },
+  {
     href: '/dashboard/settings/change-password',
     title: 'Change password',
     description: 'Rotate your password. Other signed-in sessions will be revoked on the next refresh.',
@@ -43,7 +49,7 @@ export default async function SettingsPage() {
               key={s.href}
               href={s.href}
               className="group flex items-center gap-4 py-3 first:pt-0 last:pb-0 transition-colors hover:text-foreground"
-              data-trace-id="auth-settings-change-password-link"
+              data-trace-id={s.href.endsWith('/api-keys') ? 'auth-settings-api-keys-link' : 'auth-settings-change-password-link'}
             >
               <s.icon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
               <div className="min-w-0 flex-1">
