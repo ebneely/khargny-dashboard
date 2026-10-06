@@ -38,7 +38,7 @@ export interface CampaignListInitialFilters {
   campaignIds?: string[];
 }
 
-export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignListInitialFilters }) {
+export function AdsCampaignsPage({ initialFilters, canWrite }: { initialFilters: CampaignListInitialFilters; canWrite: boolean }) {
   const [tab, setTab] = React.useState<ListTab>(initialFilters.campaignIds?.length ? 'all' : 'live');
   const [campaigns, setCampaigns] = React.useState<AdCampaign[]>([]);
   const requestRef = React.useRef(0);
@@ -98,7 +98,7 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
         title="Ad campaigns"
         description="Manage booked placements, serving state, advertiser records and performance."
         actions={
-          <Button render={<Link href="/dashboard/ads/new" />}>
+          canWrite && <Button render={<Link href="/dashboard/ads/new" />}>
             <Plus className="size-4" aria-hidden="true" />New campaign
           </Button>
         }
@@ -126,7 +126,7 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
           ) : error ? (
             <div className="py-10 text-center" role="alert">
               <p className="mb-3 text-sm text-destructive">{error}</p>
-              <Button variant="outline" onClick={() => void load()}>Retry</Button>
+              <Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button>
             </div>
           ) : campaigns.length === 0 ? (
             <div className="py-12 text-center">
@@ -154,7 +154,7 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
                 {campaigns.map((campaign) => (
                   <TableRow key={campaign.id}>
                     <TableCell>
-                      <Link href={`/dashboard/ads/${campaign.id}`} className="font-medium hover:text-primary">
+                      <Link href={canWrite ? `/dashboard/ads/${campaign.id}` : `/dashboard/ads/${campaign.id}/report`} className="font-medium hover:text-primary">
                         {displayName(campaign.place.name, campaign.place.nameEn)}
                       </Link>
                     </TableCell>
@@ -181,7 +181,7 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
                         >
                           <FileText className="size-4" />
                         </Button>
-                        <Button
+                        {canWrite && <Button
                           render={<Link href={`/dashboard/ads/${campaign.id}`} />}
                           variant="ghost"
                           size="icon-sm"
@@ -189,8 +189,8 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
                           title="Edit"
                         >
                           <Pencil className="size-4" />
-                        </Button>
-                        <LifecycleActions campaign={campaign} onAction={(action) => setPending({ campaign, action })} />
+                        </Button>}
+                        {canWrite && <LifecycleActions campaign={campaign} onAction={(action) => setPending({ campaign, action })} />}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -202,6 +202,7 @@ export function AdsCampaignsPage({ initialFilters }: { initialFilters: CampaignL
       </Card>
 
       <AdCampaignActionDialog
+        canWrite={canWrite}
         campaign={pending?.campaign ?? null}
         action={pending?.action ?? null}
         open={pending !== null}

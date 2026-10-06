@@ -36,12 +36,14 @@ const COPY: Record<CampaignAction, { title: string; description: string; confirm
 };
 
 export function AdCampaignActionDialog({
+  canWrite,
   campaign,
   action,
   open,
   onOpenChange,
   onCompleted,
 }: {
+  canWrite: boolean;
   campaign: AdCampaign | null;
   action: CampaignAction | null;
   open: boolean;
@@ -51,11 +53,11 @@ export function AdCampaignActionDialog({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  if (!action) return null;
+  if (!canWrite || !action) return null;
   const copy = COPY[action];
 
   const submit = async () => {
-    if (!campaign) return;
+    if (!canWrite || !campaign || submitting) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -97,7 +99,7 @@ export function AdCampaignActionDialog({
             type="button"
             variant={action === 'end' ? 'destructive' : 'default'}
             onClick={submit}
-            disabled={submitting}
+            disabled={!canWrite || submitting}
           >
             {submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
             {submitting ? 'Saving…' : copy.confirm}

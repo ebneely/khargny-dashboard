@@ -50,7 +50,7 @@ const EMPTY_FORM: FormValues = {
   notes: '',
 };
 
-export function AdCampaignForm({ campaignId }: { campaignId?: string }) {
+export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; canWrite: boolean }) {
   const router = useRouter();
   const editing = Boolean(campaignId);
   const [campaign, setCampaign] = React.useState<AdCampaign | null>(null);
@@ -123,6 +123,7 @@ export function AdCampaignForm({ campaignId }: { campaignId?: string }) {
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canWrite || saving || createdId) return;
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -322,7 +323,7 @@ export function AdCampaignForm({ campaignId }: { campaignId?: string }) {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button render={<Link href="/dashboard/ads" />} type="button" variant="ghost"><ArrowLeft className="size-4" />Back to campaigns</Button>
-          <Button type="submit" disabled={saving || Boolean(createdId)}>
+          <Button type="submit" disabled={!canWrite || saving || Boolean(createdId)}>
             {saving && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
             {saving ? 'Saving…' : editing ? 'Save changes' : 'Create campaign'}
           </Button>

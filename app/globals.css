@@ -332,22 +332,23 @@
 }
 
 @media print {
-  @page {
+  @page ads-report {
     margin: 14mm;
   }
 
-  .print-hide,
-  body > div > div > header,
-  body > div > div > aside {
+  body:has(.ad-report) .print-hide,
+  body:has(.ad-report) > div > div > header,
+  body:has(.ad-report) > div > div > aside {
     display: none !important;
   }
 
-  body,
-  main {
+  body:has(.ad-report) {
+    page: ads-report;
     background: white !important;
   }
 
-  main {
+  body:has(.ad-report) main {
+    background: white !important;
     padding: 0 !important;
   }
 

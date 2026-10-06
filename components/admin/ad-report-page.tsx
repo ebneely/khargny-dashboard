@@ -48,7 +48,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
     return (
       <Card><CardContent className="py-12 text-center">
         <p className="mb-3 text-sm text-destructive" role="alert">{error ?? 'Report not found.'}</p>
-        <Button variant="outline" onClick={() => void load()}>Retry</Button>
+        <Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button>
       </CardContent></Card>
     );
   }
@@ -69,7 +69,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
         actions={
           <>
             <Button render={<Link href={`/dashboard/ads/${campaignId}`} />} variant="outline"><ArrowLeft className="size-4" />Campaign</Button>
-            <Button onClick={() => window.print()}><Printer className="size-4" />Print / Save PDF</Button>
+            <Button data-ro-allow="true" onClick={() => window.print()}><Printer className="size-4" />Print / Save PDF</Button>
           </>
         }
       />

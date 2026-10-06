@@ -65,11 +65,11 @@ export function AdsInventoryPage() {
           : 'Booked capacity across national and city placements.'}
         actions={
           <>
-            <Button variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label="Previous 4 weeks">
+            <Button data-ro-allow="true" variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label="Previous 4 weeks">
               <ChevronLeft className="size-4" />4 weeks
             </Button>
-            <Button variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}>Today</Button>
-            <Button variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label="Next 4 weeks">
+            <Button data-ro-allow="true" variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}>Today</Button>
+            <Button data-ro-allow="true" variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label="Next 4 weeks">
               4 weeks<ChevronRight className="size-4" />
             </Button>
           </>
@@ -89,7 +89,7 @@ export function AdsInventoryPage() {
           {loading ? (
             <div className="flex min-h-64 items-center justify-center text-sm text-muted-foreground" aria-busy="true"><Loader2 className="mr-2 size-4 animate-spin" />Loading inventory…</div>
           ) : error ? (
-            <div className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button variant="outline" onClick={() => void load()}>Retry</Button></div>
+            <div className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button></div>
           ) : !inventory || inventory.scopes.length === 0 ? (
             <div className="py-12 text-center"><p className="font-medium">No inventory scopes available</p><p className="mt-1 text-sm text-muted-foreground">Active city scopes will appear here when the API returns them.</p></div>
           ) : (

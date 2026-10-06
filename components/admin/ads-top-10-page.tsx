@@ -69,7 +69,7 @@ export function AdsTop10Page() {
         <div>
           <label htmlFor="top10-city" className="mb-2 block text-sm font-medium">City scope</label>
           <Select value={citySlug} onValueChange={(value) => value && setCitySlug(value)}>
-            <SelectTrigger id="top10-city" className="h-11 min-w-56"><SelectValue /></SelectTrigger>
+            <SelectTrigger data-ro-allow="true" id="top10-city" className="h-11 min-w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Egypt</SelectItem>
               {cities.map((city) => <SelectItem key={city.id} value={city.slug}>{displayName(city.name, city.nameEn)}</SelectItem>)}
@@ -87,7 +87,7 @@ export function AdsTop10Page() {
       {loading ? (
         <div className="flex min-h-64 items-center justify-center text-sm text-muted-foreground" aria-busy="true"><Loader2 className="mr-2 size-4 animate-spin" />Calculating preview…</div>
       ) : error ? (
-        <Card><CardContent className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button variant="outline" onClick={() => void load()}>Retry</Button></CardContent></Card>
+        <Card><CardContent className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button></CardContent></Card>
       ) : preview ? (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card>
