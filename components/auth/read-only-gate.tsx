@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Eye } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 /**
  * Wraps the dashboard content so a `viewer` can look but not touch.
@@ -28,7 +29,8 @@ export function ReadOnlyGate({
   readOnly: boolean;
   children: React.ReactNode;
 }) {
-  if (!readOnly) return <>{children}</>;
+  const pathname = usePathname();
+  if (!readOnly || pathname === '/dashboard/settings/api-keys') return <>{children}</>;
 
   return (
     <>
