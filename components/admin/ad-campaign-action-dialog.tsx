@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -94,7 +95,7 @@ export function AdCampaignActionDialog({
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}><DashboardText>Cancel</DashboardText></Button>
           <Button
             type="button"
             variant={action === 'end' ? 'destructive' : 'default'}

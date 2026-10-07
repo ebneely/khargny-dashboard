@@ -1,8 +1,10 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { useState } from 'react';
 import Link from 'next/link';
-import { KeyRound, Plus, RefreshCw } from 'lucide-react';
+import { KeyRound, Plus, RefreshCw, ShieldOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +21,7 @@ function date(value: string | null, fallback: string) {
 }
 
 export function ApiKeysScreen() {
+  const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [revoking, setRevoking] = useState<ApiKey | null>(null);
@@ -46,61 +49,61 @@ export function ApiKeysScreen() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Link href="/dashboard/settings" className="text-sm text-muted-foreground hover:text-foreground">← Settings</Link>
+        <Link href="/dashboard/settings" className="text-sm text-muted-foreground hover:text-foreground"><DashboardText>← Settings</DashboardText></Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-semibold">API keys</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Connect AI assistants without sharing your admin password.</p>
+            <h1 className="font-display text-2xl font-semibold"><DashboardText>API keys</DashboardText></h1>
+            <p className="mt-2 text-sm text-muted-foreground"><DashboardText>Connect AI assistants without sharing your admin password.</DashboardText></p>
           </div>
-          <Button onClick={() => setCreating(true)} disabled={!canCreate} data-trace-id="api-keys-create"><Plus className="h-4 w-4" />Create key</Button>
+          <Button onClick={() => setCreating(true)} disabled={!canCreate} data-trace-id="api-keys-create"><Plus className="h-4 w-4" /><DashboardText>Create key</DashboardText></Button>
         </div>
       </div>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" />{role === 'super_admin' ? "All admins' keys" : 'Your keys'}</CardTitle>
-          <CardDescription>{role === 'super_admin' ? "You can list and revoke any admin's keys. New keys always belong to you." : 'Only your own keys appear here.'} Permissions remain capped by each owner&apos;s current role; disabling an owner disables their keys.</CardDescription>
+          <CardDescription>{role === 'super_admin' ? "You can list and revoke any admin's keys. New keys always belong to you." : 'Only your own keys appear here.'} <DashboardText>Permissions remain capped by each owner&apos;s current role; disabling an owner disables their keys.</DashboardText></CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {session.isError && <p role="alert" className="text-sm text-destructive">Could not verify your role. <Button variant="link" size="sm" onClick={() => session.refetch()}>Retry session</Button></p>}
+          {session.isError && <p role="alert" className="text-sm text-destructive"><DashboardText>Could not verify your role.</DashboardText> <Button variant="link" size="sm" onClick={() => session.refetch()}><DashboardText>Retry session</DashboardText></Button></p>}
           <div className="flex items-center justify-between gap-2 text-sm">
             <span className="text-muted-foreground">{keys.data ? `${keys.data.meta.total} key${keys.data.meta.total === 1 ? '' : 's'}` : 'Your access credentials'}</span>
-            <Button variant="outline" size="sm" onClick={() => keys.refetch()} disabled={keys.isLoading}><RefreshCw className="h-4 w-4" />Refresh</Button>
+            <Button variant="outline" size="sm" onClick={() => keys.refetch()} disabled={keys.isLoading}><RefreshCw className="h-4 w-4" /><DashboardText>Refresh</DashboardText></Button>
           </div>
           {keys.isLoading ? (
             <div className="space-y-3" aria-busy="true" aria-label="Loading API keys">{[1, 2, 3].map((row) => <div key={row} className="h-12 animate-pulse rounded bg-muted" />)}</div>
           ) : keys.isError ? (
-            <p role="alert" className="text-sm text-destructive">Could not load keys. Check your session and use Refresh to retry.</p>
+            <p role="alert" className="text-sm text-destructive"><DashboardText>Could not load keys. Check your session and use Refresh to retry.</DashboardText></p>
           ) : !keys.data?.data.length ? (
-            <div className="rounded-md border border-dashed p-8 text-center" role="status"><p className="font-medium">No keys on this page</p><p className="mt-2 text-sm text-muted-foreground">Create a named key for each AI assistant so you can revoke access independently.</p></div>
+            <div className="rounded-md border border-dashed p-8 text-center" role="status"><p className="font-medium"><DashboardText>No keys on this page</DashboardText></p><p className="mt-2 text-sm text-muted-foreground"><DashboardText>Create a named key for each AI assistant so you can revoke access independently.</DashboardText></p></div>
           ) : (
             <Table>
-              <TableHeader><TableRow><TableHead>Name / prefix</TableHead><TableHead>Permissions</TableHead><TableHead>Created</TableHead><TableHead>Last used</TableHead><TableHead>Expires</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead><DashboardText>Name / prefix</DashboardText></TableHead><TableHead><DashboardText>Permissions</DashboardText></TableHead><TableHead><DashboardText>Created</DashboardText></TableHead><TableHead><DashboardText>Last used</DashboardText></TableHead><TableHead><DashboardText>Expires</DashboardText></TableHead><TableHead><DashboardText>Status</DashboardText></TableHead><TableHead className="text-right"><DashboardText>Action</DashboardText></TableHead></TableRow></TableHeader>
               <TableBody>
                 {keys.data.data.map((key) => (
                   <TableRow key={key.id}>
-                    <TableCell><p className="max-w-48 truncate font-medium" title={key.name}>{key.name}</p><code className="text-xs text-muted-foreground">{key.prefix}…</code>{role === 'super_admin' && key.owner && <p className="max-w-48 truncate text-xs text-muted-foreground" title={key.owner.email}>Owner: {key.owner.email}</p>}</TableCell>
+                    <TableCell><p className="max-w-48 truncate font-medium" title={key.name}>{key.name}</p><code className="text-xs text-muted-foreground">{key.prefix}…</code>{role === 'super_admin' && key.owner && <p className="max-w-48 truncate text-xs text-muted-foreground" title={key.owner.email}><DashboardText>Owner:</DashboardText> {key.owner.email}</p>}</TableCell>
                     <TableCell><div className="flex gap-1">{key.scopes.map((scope) => <Badge key={scope} variant="outline">{scope === 'write' ? 'edit' : scope}</Badge>)}</div></TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{date(key.createdAt, '—')}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{date(key.lastUsedAt, 'Never')}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{date(key.expiresAt, 'No expiry')}</TableCell>
                     <TableCell><Badge variant={key.status === 'active' ? 'secondary' : 'outline'}>{key.status}</Badge></TableCell>
-                    <TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => setRevoking(key)} disabled={key.status === 'revoked' || !canCreate} aria-label={`Revoke ${key.name}`}>Revoke</Button></TableCell>
+                    <TableCell className="text-right"><Button variant="ghost" size="icon-sm" className="hover:text-destructive focus-visible:text-destructive" onClick={() => setRevoking(key)} disabled={key.status === 'revoked' || !canCreate} aria-label={`${lang === 'ar' ? 'إلغاء مفتاح' : 'Revoke'} ${key.name}`} title={key.status === 'revoked' ? (lang === 'ar' ? 'تم إلغاء هذا المفتاح' : 'This key is already revoked') : !canCreate ? (lang === 'ar' ? 'لا يمكنك إدارة المفاتيح في هذه الجلسة' : 'You cannot manage keys in this session') : undefined}><ShieldOff className="size-4" aria-hidden="true" /></Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           )}
           <div className="flex items-center justify-between gap-3 border-t pt-4">
-            <p className="text-xs text-muted-foreground">Page {page} · 25 per page. Revoked keys stay visible.</p>
-            <div className="flex gap-2"><Button variant="outline" size="sm" disabled={page === 1 || keys.isLoading} onClick={() => setPage((value) => value - 1)}>Previous</Button><Button variant="outline" size="sm" disabled={!keys.data?.meta.has_more || keys.isLoading || keys.isError} onClick={() => setPage((value) => value + 1)}>Next</Button></div>
+            <p className="text-xs text-muted-foreground"><DashboardText>Page</DashboardText> {page} <DashboardText>· 25 per page. Revoked keys stay visible.</DashboardText></p>
+            <div className="flex gap-2"><Button variant="outline" size="sm" disabled={page === 1 || keys.isLoading} onClick={() => setPage((value) => value - 1)}><DashboardText>Previous</DashboardText></Button><Button variant="outline" size="sm" disabled={!keys.data?.meta.has_more || keys.isLoading || keys.isError} onClick={() => setPage((value) => value + 1)}><DashboardText>Next</DashboardText></Button></div>
           </div>
         </CardContent>
       </Card>
       {creating && <CreateApiKeyDialog role={role} onClose={() => { setCreating(false); void keys.refetch(); }} onCreated={() => { void keys.refetch(); }} />}
       <Dialog open={revoking !== null} onOpenChange={(open) => { if (!open && !isRevoking) setRevoking(null); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Revoke API key?</DialogTitle><DialogDescription>{revoking?.name} will immediately lose access. {role === 'super_admin' && revoking?.owner && <>Owner: {revoking.owner.email}. </>}The credential cannot be reactivated; its owner can create a replacement.</DialogDescription></DialogHeader>
-          <DialogFooter><Button variant="outline" onClick={() => setRevoking(null)} disabled={isRevoking}>Cancel</Button><Button variant="destructive" onClick={revoke} disabled={isRevoking}>{isRevoking ? 'Revoking…' : 'Revoke key'}</Button></DialogFooter>
+          <DialogHeader><DialogTitle><DashboardText>Revoke API key?</DashboardText></DialogTitle><DialogDescription>{revoking?.name} <DashboardText>will immediately lose access.</DashboardText> {role === 'super_admin' && revoking?.owner && <><DashboardText>Owner:</DashboardText> {revoking.owner.email}. </>}<DashboardText>The credential cannot be reactivated; its owner can create a replacement.</DashboardText></DialogDescription></DialogHeader>
+          <DialogFooter><Button variant="outline" onClick={() => setRevoking(null)} disabled={isRevoking}><DashboardText>Cancel</DashboardText></Button><Button variant="destructive" onClick={revoke} disabled={isRevoking}>{isRevoking ? 'Revoking…' : 'Revoke key'}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

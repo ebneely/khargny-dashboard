@@ -1,23 +1,23 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
-import type { AdPlaceSummary } from '@/lib/api/ads';
 import { optionalText, type PlaceDetailResponse, type Subscriber, type SubscriberDetail, type SubscriberPlace } from '@/lib/api/subscribers';
 import { consumeSubscriberDraft, sameSubscriberPlaces } from '@/lib/subscriber-draft';
-import { AdPlacePicker } from './ad-place-picker';
+import { SubscriberPlaceTable } from './subscriber-place-table';
+import { FormActionBar } from './form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { ActionDialog, type ActionSpec, Field, LoadingState, RequestError, SubscriberSelect, subscriberValidation, textareaClass, useSubscriberText } from './subscriber-ui';
 
 export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesContent }: { subscriber?: SubscriberDetail; canWrite: boolean; onSaved: () => Promise<boolean>; placesContent?: React.ReactNode }) {
-  const { text, lang, pick } = useSubscriberText();
+  const { text, lang } = useSubscriberText();
   const router = useRouter();
   const formId = React.useId();
   const [idempotencyKey] = React.useState(() => crypto.randomUUID());
@@ -99,6 +99,7 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
     roundTrip.current = true;
     router.push(`/dashboard/places/new?subscriberReturn=${encodeURIComponent(`${returnTo}?placeReturn=${token}`)}`);
   };
+  const profileChanges = useFormChanges(values, { name: subscriber?.name ?? '', phone: subscriber?.phone ?? '', whatsapp: subscriber?.whatsapp ?? '', email: subscriber?.email ?? '', notes: subscriber?.notes ?? '', status: subscriber?.status ?? 'active' });
   const saveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!canWrite || submitting.current || returnLoading) return;
@@ -111,7 +112,7 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
         await adminApi.patch<Subscriber>(`/v1/admin/subscribers/${subscriber.id}`, { ...profile, status });
         try { window.sessionStorage.removeItem(draftKey); } catch {}
         const refreshed = await onSaved();
-        if (refreshed) { setSaved(true); toast.success(text('Subscriber saved', 'تم حفظ المشترك')); }
+        if (refreshed) { profileChanges.markSaved(); setSaved(true); toast.success(text('Subscriber saved', 'تم حفظ المشترك')); }
       } else {
         const created = await adminApi.post<Subscriber>('/v1/admin/subscribers', {
           name: profile.name.trim(),
@@ -142,19 +143,19 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
     } catch (caught) { setPlaceError(subscriberValidation(caught, [], lang).message); throw caught; }
     finally { setBusy(false); }
   };
+  const requestSavePlaces = () => {
+    const removesPlaces = persistedPlaces.some((place) => !places.some((entry) => entry.id === place.id));
+    if (removesPlaces) setAction({ title: text('Unlink places?', 'فك ارتباط الأماكن؟'), description: text('Removed places will no longer be linked to this subscriber. Their existing subscriptions and media remain recorded.', 'لن تبقى الأماكن المُزالة مرتبطة بهذا المشترك. تبقى اشتراكاتها ووسائطها المسجلة.'), destructive: true, submit: async () => { await savePlaces(); } });
+    else void savePlaces().catch(() => {});
+  };
   const linkedPlaces = <div className="space-y-4">
     <p className="text-sm text-muted-foreground">{text('A place can belong to one subscriber. Link as many places as needed.', 'يمكن ربط المكان بمشترك واحد فقط. أضف أي عدد من الأماكن.')}</p>
-    {!places.length && <p className="text-sm">{text('No linked places yet.', 'لا توجد أماكن مرتبطة بعد.')}</p>}
-    <ul className="divide-y">{places.map((place) => <li key={place.id} className="flex min-h-12 items-center gap-3 py-2"><Link href={`/dashboard/places/${place.id}`} className="min-w-0 flex-1 truncate font-medium hover:underline">{pick(place.name, place.nameEn)}</Link>{canWrite && <Button type="button" variant="ghost" size="icon-sm" disabled={busy || returnLoading} aria-label={`${text('Unlink', 'إزالة الربط')} ${pick(place.name, place.nameEn)}`} onClick={() => { setPlaces(places.filter((entry) => entry.id !== place.id)); setPlacesSaved(false); }}><X className="size-4" /></Button>}</li>)}</ul>
-    {canWrite && <><AdPlacePicker value="" selectedPlace={null} onChange={(place: AdPlaceSummary | null) => { if (place) { setPlaces((current) => current.some((entry) => entry.id === place.id) ? current : [...current, place]); setPlacesSaved(false); } }} disabled={busy || returnLoading} /><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={createPlace} disabled={busy || returnLoading}><Plus className="size-4" aria-hidden="true" />{text('Create a new place', 'إنشاء مكان جديد')}</Button>{subscriber && <Button type="button" onClick={() => {
-      const removesPlaces = persistedPlaces.some((place) => !places.some((entry) => entry.id === place.id));
-      if (removesPlaces) setAction({ title: text('Unlink places?', 'فك ارتباط الأماكن؟'), description: text('Removed places will no longer be linked to this subscriber. Their existing subscriptions and media remain recorded.', 'لن تبقى الأماكن المُزالة مرتبطة بهذا المشترك. تبقى اشتراكاتها ووسائطها المسجلة.'), destructive: true, submit: async () => { await savePlaces(); } });
-      else void savePlaces().catch(() => {});
-    }} disabled={busy || returnLoading}>{text('Save linked places', 'حفظ الأماكن المرتبطة')}</Button>}</div></>}
+    <SubscriberPlaceTable value={places} persisted={persistedPlaces} subscriberId={subscriberId} readOnly={!canWrite} disabled={busy || returnLoading} onChange={(next) => { setPlaces(next); setPlacesSaved(false); }} />
+    {canWrite && <Button type="button" variant="outline" onClick={createPlace} disabled={busy || returnLoading}><Plus className="size-4" />{text('Create a new place', 'إنشاء مكان جديد')}</Button>}
     {subscriber && !sameSubscriberPlaces(places, persistedPlaces) && <p role="status" className="text-sm text-amber-700 dark:text-amber-400">{text('Unsaved linked-place changes. Save linked places to apply them.', 'توجد تغييرات غير محفوظة للأماكن المرتبطة. احفظ الأماكن المرتبطة لتطبيقها.')}</p>}{placesSaved && sameSubscriberPlaces(places, persistedPlaces) && <p role="status" className="text-sm text-success">{text('Linked places saved.', 'تم حفظ الأماكن المرتبطة.')}</p>}{returnLoading && <LoadingState />}{placeError && <RequestError message={placeError} retry={returnFailed ? () => setReturnRetry((current) => current + 1) : undefined} />}
   </div>;
-  const details = <Card><CardHeader className="flex flex-wrap items-start justify-between gap-3"><div><CardTitle>{text('Subscriber details', 'بيانات المشترك')}</CardTitle><CardDescription className="mt-1">{text('Contact information and internal notes.', 'بيانات الاتصال والملاحظات الداخلية.')}</CardDescription></div>{canWrite && <Button type="submit" form={formId} disabled={busy || returnLoading}>{busy ? text('Saving…', 'جارٍ الحفظ…') : text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')}</Button>}</CardHeader><CardContent><form id={formId} onSubmit={saveProfile} className="space-y-5"><fieldset disabled={!canWrite || busy || returnLoading} className="grid gap-4 sm:grid-cols-2">{([
+  const details = <Card><CardHeader className="flex flex-wrap items-start justify-between gap-3"><div><CardTitle>{text('Subscriber details', 'بيانات المشترك')}</CardTitle><CardDescription className="mt-1">{text('Contact information and internal notes.', 'بيانات الاتصال والملاحظات الداخلية.')}</CardDescription></div></CardHeader><CardContent><form id={formId} onSubmit={saveProfile} className="space-y-5"><fieldset disabled={!canWrite || busy || returnLoading} className="grid gap-4 sm:grid-cols-2">{([
     ['name', text('Name', 'الاسم'), 'text'], ['phone', text('Phone', 'الهاتف'), 'tel'], ['whatsapp', text('WhatsApp', 'واتساب'), 'tel'], ['email', text('Email', 'البريد الإلكتروني'), 'email'],
-  ] as const).map(([name, label, type]) => <Field key={name} label={label} error={fieldErrors[name]}><Input type={type} value={values[name]} required={name === 'name' || name === 'phone'} dir={type === 'tel' || type === 'email' ? 'ltr' : undefined} onChange={(event) => { setValues({ ...values, [name]: event.target.value }); setSaved(false); }} /></Field>)}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><SubscriberSelect value={values.status} disabled={!canWrite || busy || returnLoading} options={[{ value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} onValueChange={(value) => { setValues({ ...values, status: value as 'active' | 'inactive' }); setSaved(false); }} /></Field>}<div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}</form></CardContent></Card>;
-  return <>{subscriber ? <><TabsContent value="details" keepMounted>{details}</TabsContent><TabsContent value="places" keepMounted className="space-y-6"><Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>{placesContent}</TabsContent></> : details}<ActionDialog action={action} onClose={() => setAction(null)} /></>;
+  ] as const).map(([name, label, type]) => <Field key={name} label={label} error={fieldErrors[name]}><Input type={type} value={values[name]} required={name === 'name' || name === 'phone'} dir={type === 'tel' || type === 'email' ? 'ltr' : undefined} onChange={(event) => { setValues({ ...values, [name]: event.target.value }); setSaved(false); }} /></Field>)}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><SubscriberSelect value={values.status} disabled={!canWrite || busy || returnLoading} options={[{ value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} onValueChange={(value) => { setValues({ ...values, status: value as 'active' | 'inactive' }); setSaved(false); }} /></Field>}<div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}</form></CardContent>{canWrite && <FormActionBar form={formId} dirty={profileChanges.dirty || (!subscriber && places.length > 0)} saving={busy} error={error} disabled={busy || returnLoading} cancelHref="/dashboard/subscribers" primaryLabel={text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')} />}</Card>;
+  return <>{subscriber ? <><TabsContent value="details" keepMounted>{details}</TabsContent><TabsContent value="places" keepMounted className="space-y-6"><Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>{placesContent}{canWrite && <FormActionBar dirty={!sameSubscriberPlaces(places, persistedPlaces)} saving={busy} error={placeError} disabled={busy || returnLoading} onSave={requestSavePlaces} cancelHref="/dashboard/subscribers" primaryLabel={text('Save linked places', 'حفظ الأماكن المرتبطة')} />}</TabsContent></> : details}<ActionDialog action={action} onClose={() => setAction(null)} /></>;
 }

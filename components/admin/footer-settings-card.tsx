@@ -7,12 +7,15 @@
  * field clears that link; the site just omits the icon.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import * as React from 'react';
 // lucide-react dropped its brand glyphs (Instagram/Facebook/…). Use neutral icons; the
 // label names the network.
-import { Loader2, Camera, ThumbsUp, Play, MessageCircle, Mail, Phone, Music2 } from 'lucide-react';
+import { Camera, ThumbsUp, Play, MessageCircle, Mail, Phone, Music2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { FormActionBar } from './form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,15 +41,18 @@ const FIELDS: { key: keyof Settings; label: string; placeholder: string; Icon: R
   { key: 'phone', label: 'Phone', placeholder: '+20 100 000 0000', Icon: Phone },
 ];
 
-export function FooterSettingsCard() {
+export function FooterSettingsCard({ active = true, onActivate }: { active?: boolean; onActivate?: () => void }) {
   const [values, setValues] = React.useState<Settings>({});
+  const [original, setOriginal] = React.useState<Settings>({});
+  const [error, setError] = React.useState('');
+  const formChanges = useFormChanges(FIELDS.map(({ key }) => values[key] ?? ''), FIELDS.map(({ key }) => original[key] ?? ''));
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     adminApi
       .get<Settings>('/v1/site-settings')
-      .then((row) => setValues(row ?? {}))
+      .then((row) => { setValues(row ?? {}); setOriginal(row ?? {}); })
       .catch(() => toast.error('Could not load footer settings.'))
       .finally(() => setLoading(false));
   }, []);
@@ -54,16 +60,18 @@ export function FooterSettingsCard() {
   const set = (key: keyof Settings, v: string) => setValues((p) => ({ ...p, [key]: v }));
 
   const save = async () => {
+    setError('');
     setSaving(true);
     try {
       // Send strings; the backend treats "" as clear.
       const body: Record<string, string> = {};
       for (const f of FIELDS) body[f.key] = (values[f.key] ?? '') as string;
       const row = await adminApi.put<Settings>('/v1/admin/site-settings', body);
-      setValues(row ?? values);
+      setValues(row ?? values); setOriginal(row ?? values);
       toast.success('Footer settings saved.');
     } catch (e) {
       const err = e as AdminApiError;
+      setError(err.message || 'Could not save. Check the links are valid URLs.');
       toast.error(err.message || 'Could not save. Check the links are valid URLs.');
     } finally {
       setSaving(false);
@@ -71,18 +79,16 @@ export function FooterSettingsCard() {
   };
 
   return (
-    <Card>
+    <Card onFocusCapture={onActivate}>
       <CardHeader>
-        <CardTitle>Footer &amp; social</CardTitle>
+        <CardTitle><DashboardText>Footer &amp; social</DashboardText></CardTitle>
         <CardDescription>
-          Shown in the website footer and the app. Leave a field blank to hide that icon.
+          <DashboardText>Shown in the website footer and the app. Leave a field blank to hide that icon.</DashboardText>
         </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-          </p>
+          <ContentSkeleton />
         ) : (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -103,10 +109,7 @@ export function FooterSettingsCard() {
               ))}
             </div>
             <div className="flex justify-end">
-              <Button onClick={save} disabled={saving} data-trace-id="footer-settings-save">
-                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Save footer settings
-              </Button>
+              <FormActionBar active={active} dirty={formChanges.dirty} saving={saving} error={error} onSave={() => { void save(); }} cancelHref="/dashboard" traceId="footer-settings-save" />
             </div>
           </div>
         )}

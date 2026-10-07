@@ -1,6 +1,9 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -50,6 +53,8 @@ export default function NewCategoryPage() {
     setSlug(generated);
   }, [nameAr, nameEn, slugTouched]);
 
+  const formChanges = useFormChanges({ nameAr, nameEn, slug, icon, parentId, sortOrder, status }, { nameAr: '', nameEn: '', slug: '', icon: '', parentId: '', sortOrder: '0', status: 'active' });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -72,6 +77,7 @@ export default function NewCategoryPage() {
         status,
       });
       router.push('/dashboard/categories');
+      formChanges.markSaved();
     } catch (e: any) {
       const err = e as AdminApiError;
       if (err.status === 409) {
@@ -88,29 +94,29 @@ export default function NewCategoryPage() {
   return (
     <div>
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
-        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+        <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
-        <Link href="/dashboard/categories" className="hover:text-foreground">Categories</Link>
+        <Link href="/dashboard/categories" className="hover:text-foreground"><DashboardText>Categories</DashboardText></Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">New</span>
+        <span className="text-foreground"><DashboardText>New</DashboardText></span>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">New Category</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>New Category</DashboardText></h1>
         <Link href="/dashboard/categories">
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Category Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Category Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="nameAr">Name (Arabic) *</Label>
+                <Label htmlFor="nameAr"><DashboardText>Name (Arabic) *</DashboardText></Label>
                 <Input
                   id="nameAr"
                   value={nameAr}
@@ -120,7 +126,7 @@ export default function NewCategoryPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English) *</Label>
+                <Label htmlFor="nameEn"><DashboardText>Name (English) *</DashboardText></Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
@@ -132,7 +138,7 @@ export default function NewCategoryPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
+                <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
                 <Input
                   id="slug"
                   value={slug}
@@ -150,20 +156,20 @@ export default function NewCategoryPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="icon">Icon</Label>
+                <Label htmlFor="icon"><DashboardText>Icon</DashboardText></Label>
                 <IconPicker value={icon} onChange={setIcon} traceId="create-category-icon" scope="category" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="parentId">Parent category</Label>
+                <Label htmlFor="parentId"><DashboardText>Parent category</DashboardText></Label>
                 <Select value={parentId || '__none__'} onValueChange={(v) => setParentId(v === '__none__' ? '' : v)}>
                   <SelectTrigger data-trace-id="create-category-parent">
                     <SelectValue placeholder="(none — top-level)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">(none — top-level)</SelectItem>
+                    <SelectItem value="__none__"><DashboardText>(none — top-level)</DashboardText></SelectItem>
                     {parents.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.nameAr}</SelectItem>
                     ))}
@@ -171,7 +177,7 @@ export default function NewCategoryPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sortOrder">Sort order</Label>
+                <Label htmlFor="sortOrder"><DashboardText>Sort order</DashboardText></Label>
                 <Input
                   id="sortOrder"
                   type="number"
@@ -184,25 +190,20 @@ export default function NewCategoryPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
               <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                 <SelectTrigger className="w-32" data-trace-id="create-category-status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
+                  <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving} data-trace-id="create-category-save">
-                {saving ? 'Saving…' : 'Create Category'}
-              </Button>
-              <Link href="/dashboard/categories">
-                <Button type="button" variant="outline" data-trace-id="create-category-cancel">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={error || slugError} disabled={saving} cancelHref="/dashboard/categories" traceId="create-category-save" />
             </div>
           </form>
         </CardContent>

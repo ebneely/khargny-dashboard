@@ -1,5 +1,7 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 import { Check, Search } from 'lucide-react';
 import { regionsForCity } from '@/lib/egypt-regions';
@@ -48,7 +50,7 @@ export function CityAreasPicker({
   if (!governorate) {
     return (
       <p className="rounded-md border border-dashed border-border p-3 text-sm text-muted-foreground">
-        Pick the city (governorate) first — its areas appear here to choose from.
+        <DashboardText>Pick the city (governorate) first — its areas appear here to choose from.</DashboardText>
       </p>
     );
   }
@@ -66,19 +68,19 @@ export function CityAreasPicker({
             aria-label="Filter areas"
           />
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{value.length} selected</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{value.length} <DashboardText>selected</DashboardText></span>
       </div>
 
       <div className="grid max-h-64 grid-cols-2 gap-1 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
         {areas.length === 0 ? (
           <p className="col-span-full p-3 text-center text-sm text-muted-foreground">
-            No areas match “{query}”.
+            <DashboardText>No areas match “</DashboardText>{query}”.
           </p>
         ) : (
           areas.map((a) => {
             const on = selected.has(a.value);
             return (
-              <button
+              <Button variant="ghost"
                 key={a.value}
                 type="button"
                 onClick={() => toggle(a.value)}
@@ -96,7 +98,7 @@ export function CityAreasPicker({
                   <span className="block truncate text-[10px] text-muted-foreground">{a.nameAr}</span>
                 </span>
                 {on && <Check className="h-3.5 w-3.5 shrink-0" />}
-              </button>
+              </Button>
             );
           })
         )}

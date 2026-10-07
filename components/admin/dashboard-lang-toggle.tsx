@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { useDashboardLang, type DashLang } from '@/lib/dashboard-lang';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +16,7 @@ export function DashboardLangToggle({ className }: { className?: string }) {
   const { lang, setLang } = useDashboardLang();
 
   const seg = (value: DashLang, label: string) => (
-    <button
+    <Button variant="ghost"
       type="button"
       onClick={() => setLang(value)}
       aria-pressed={lang === value}
@@ -24,12 +25,12 @@ export function DashboardLangToggle({ className }: { className?: string }) {
       className={cn(
         'rounded px-2.5 py-1 text-xs font-semibold transition-colors',
         lang === value
-          ? 'bg-[var(--brand-600)] text-white'
+          ? 'bg-muted text-foreground ring-1 ring-border'
           : 'text-muted-foreground hover:text-foreground',
       )}
     >
       {label}
-    </button>
+    </Button>
   );
 
   return (

@@ -1,7 +1,11 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { optionalText } from '@/lib/api/subscribers';
+import { FileUpload } from '@/components/ui/file-upload';
 import { useState, useEffect, useRef } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ImagePlus, X } from 'lucide-react';
@@ -97,9 +101,7 @@ export default function NewPlacePage() {
   // the place id). Cover is the first image (order 0) and required.
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
   const [gallery, setGallery] = useState<{ file: File; preview: string }[]>([]);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Amenities / tags / hours are buffered too, then attached to the new place after create.
   const { data: allAmenities } = useAdminAmenities();
@@ -147,6 +149,7 @@ export default function NewPlacePage() {
     }).catch(() => {});
   }, []);
 
+  const formChanges = useFormChanges({ name, nameEn, slug, cityId, region, categoryId, description, descriptionEn, address, phone, website, mapsUrl, instagram, facebook, tiktok, priceRange, featured, status, amenityIds, tagIds, hours, cover: coverFile ? [coverFile.name, coverFile.size, coverFile.lastModified] : null, gallery: gallery.map(({ file }) => [file.name, file.size, file.lastModified]) }, { name: '', nameEn: '', slug: '', cityId: '', region: '', categoryId: '', description: '', descriptionEn: '', address: '', phone: '', website: '', mapsUrl: '', instagram: '', facebook: '', tiktok: '', priceRange: '', featured: false, status: 'active', amenityIds: [], tagIds: [], hours: blankWeek, cover: null, gallery: [] });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (savingRef.current) return;
@@ -250,8 +253,8 @@ export default function NewPlacePage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-foreground">New Place</h1>
-        <Button variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}>Cancel</Button>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>New Place</DashboardText></h1>
+        <Button variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}><DashboardText>Cancel</DashboardText></Button>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -271,61 +274,55 @@ export default function NewPlacePage() {
 
           <TabsContent keepMounted value="details">
             <Card>
-              <CardHeader><CardTitle>Place Details</CardTitle></CardHeader>
+              <CardHeader><CardTitle><DashboardText>Place Details</DashboardText></CardTitle></CardHeader>
               <CardContent className="space-y-6">
                 {/* Cover photo — required, visible from the start, uploaded after create. */}
                 <div className="space-y-2">
-                  <Label>Cover photo *</Label>
+                  <Label><DashboardText>Cover photo *</DashboardText></Label>
                   <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => coverInputRef.current?.click()}
-                      data-ro-allow="true"
-                      className="relative flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-[var(--brand-600)] hover:text-foreground"
-                      aria-label={coverPreview ? 'Change cover photo' : 'Add cover photo'}
-                    >
+                    <div className="flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted text-muted-foreground">
                       {coverPreview ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" />
                       ) : (
                         <span className="flex flex-col items-center gap-1 text-xs">
                           <ImagePlus className="h-6 w-6" />
-                          Add photo
+                          <DashboardText>Add photo</DashboardText>
                         </span>
                       )}
-                    </button>
+                    </div>
                     <div className="min-w-0 text-sm text-muted-foreground">
-                      <p>{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2). Auto-optimized to WebP.'}</p>
+                      <p className="break-all">{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2). Auto-optimized to WebP.'}</p>
                       {coverFile && (
-                        <button type="button" onClick={() => pickCover(null)} className="mt-1 text-xs font-medium text-destructive hover:underline">
-                          Remove
-                        </button>
+                        <Button variant="ghost" type="button" onClick={() => pickCover(null)} className="mt-1 text-xs font-medium text-destructive hover:underline">
+                          <DashboardText>Remove</DashboardText>
+                        </Button>
                       )}
                     </div>
                   </div>
-                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => pickCover(e.target.files?.[0] ?? null)} data-trace-id="place-cover-input" />
+                  <FileUpload label={lang === 'ar' ? 'اختر صورة' : 'Choose a photo'} description={lang === 'ar' ? 'صور للمكان.' : 'Photos of the place.'} accept="image/*" onChange={(e) => pickCover(e.target.files?.[0] ?? null)} data-trace-id="place-cover-input" />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name (Arabic) *</Label>
+                    <Label htmlFor="name"><DashboardText>Name (Arabic) *</DashboardText></Label>
                     <Input id="name" aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? 'name-error' : undefined} value={name} onChange={(e) => { setName(e.target.value); autoSlugFrom(e.target.value, nameEn); }} />{fieldError('name')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nameEn">Name (English)</Label>
+                    <Label htmlFor="nameEn"><DashboardText>Name (English)</DashboardText></Label>
                     <Input id="nameEn" aria-invalid={Boolean(fieldErrors.nameEn)} aria-describedby={fieldErrors.nameEn ? 'nameEn-error' : undefined} value={nameEn} onChange={(e) => { setNameEn(e.target.value); autoSlugFrom(name, e.target.value); }} />{fieldError('nameEn')}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
+                  <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
                   <Input id="slug" aria-invalid={Boolean(fieldErrors.slug)} aria-describedby={fieldErrors.slug ? 'slug-error' : undefined} value={slug} onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }} placeholder="auto-generated from the name" />{fieldError('slug')}
-                  <p className="text-xs text-muted-foreground">Auto-filled from the name and kept unique on save. Edit it if you want a custom URL.</p>
+                  <p className="text-xs text-muted-foreground"><DashboardText>Auto-filled from the name and kept unique on save. Edit it if you want a custom URL.</DashboardText></p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="cityId">City *</Label>
+                    <Label htmlFor="cityId"><DashboardText>City *</DashboardText></Label>
                     <Select value={cityId} onValueChange={(v) => v && setCityId(v)}>
                       <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
                       <SelectContent>
@@ -334,7 +331,7 @@ export default function NewPlacePage() {
                     </Select>{fieldError('cityId')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="categoryId">Category *</Label>
+                    <Label htmlFor="categoryId"><DashboardText>Category *</DashboardText></Label>
                     <Select value={categoryId} onValueChange={(v) => v && setCategoryId(v)}>
                       <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                       <SelectContent>
@@ -349,7 +346,7 @@ export default function NewPlacePage() {
                   const governorate = c?.nameEn || (c ? findCity(c.name)?.value : undefined) || undefined;
                   return (
                     <div className="space-y-2">
-                      <Label>Area *</Label>
+                      <Label><DashboardText>Area *</DashboardText></Label>
                       <RegionPicker value={region} onChange={setRegion} city={governorate} allowedKeys={c?.areaKeys ?? undefined} traceId="place-region" />{fieldError('region')}
                     </div>
                   );
@@ -357,31 +354,31 @@ export default function NewPlacePage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (Arabic)</Label>
+                    <Label htmlFor="description"><DashboardText>Description (Arabic)</DashboardText></Label>
                     <Input id="description" aria-invalid={Boolean(fieldErrors.description)} aria-describedby={fieldErrors.description ? 'description-error' : undefined} value={description} onChange={(e) => setDescription(e.target.value)} />{fieldError('description')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="descriptionEn">Description (English)</Label>
+                    <Label htmlFor="descriptionEn"><DashboardText>Description (English)</DashboardText></Label>
                     <Input id="descriptionEn" aria-invalid={Boolean(fieldErrors.descriptionEn)} aria-describedby={fieldErrors.descriptionEn ? 'descriptionEn-error' : undefined} value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />{fieldError('descriptionEn')}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address"><DashboardText>Address</DashboardText></Label>
                   <Input id="address" aria-invalid={Boolean(fieldErrors.address)} aria-describedby={fieldErrors.address ? 'address-error' : undefined} value={address} onChange={(e) => setAddress(e.target.value)} />{fieldError('address')}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone"><DashboardText>Phone</DashboardText></Label>
                     <Input id="phone" aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? 'phone-error' : undefined} value={phone} onChange={(e) => setPhone(e.target.value)} />{fieldError('phone')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
+                    <Label htmlFor="website"><DashboardText>Website</DashboardText></Label>
                     <Input id="website" aria-invalid={Boolean(fieldErrors.website)} aria-describedby={fieldErrors.website ? 'website-error' : undefined} value={website} onChange={(e) => setWebsite(e.target.value)} />{fieldError('website')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="mapsUrl">Google Maps link *</Label>
+                    <Label htmlFor="mapsUrl"><DashboardText>Google Maps link *</DashboardText></Label>
                     <Input id="mapsUrl" aria-invalid={Boolean(fieldErrors.mapsUrl)} aria-describedby={fieldErrors.mapsUrl ? 'mapsUrl-error' : undefined} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />{fieldError('mapsUrl')}
                   </div>
                   <div className="space-y-2">
@@ -413,15 +410,15 @@ export default function NewPlacePage() {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <Checkbox id="featured" aria-invalid={Boolean(fieldErrors.featured)} aria-describedby={fieldErrors.featured ? 'featured-error' : undefined} checked={featured} onCheckedChange={(v) => setFeatured(v === true)} />{fieldError('featured')}
-                    <Label htmlFor="featured">Featured</Label>
+                    <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
+                    <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
                     <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                       <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                        <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
                       </SelectContent>
                     </Select>{fieldError('status')}
                   </div>
@@ -433,27 +430,27 @@ export default function NewPlacePage() {
           <TabsContent keepMounted value="amenities">
             <Card>
               <CardHeader>
-                <CardTitle>Amenities</CardTitle>
-                <CardDescription>Pick which amenities this place has. Only amenities created in the catalog appear.</CardDescription>
+                <CardTitle><DashboardText>Amenities</DashboardText></CardTitle>
+                <CardDescription><DashboardText>Pick which amenities this place has. Only amenities created in the catalog appear.</DashboardText></CardDescription>
               </CardHeader>
               <CardContent>
                 {!allAmenities || allAmenities.length === 0 ? (
                   <div className="rounded-md border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground">
-                    <p className="mb-2">No amenities exist in the catalog yet.</p>
-                    <Link href="/dashboard/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">Create amenities →</Link>
+                    <p className="mb-2"><DashboardText>No amenities exist in the catalog yet.</DashboardText></p>
+                    <Link href="/dashboard/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline"><DashboardText>Create amenities →</DashboardText></Link>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label="Amenities">
                     {allAmenities.map((a) => {
                       const checked = amenityIds.includes(a.id);
                       return (
-                        <button key={a.id} type="button" role="checkbox" aria-checked={checked}
+                        <Button variant="ghost" key={a.id} type="button" role="checkbox" aria-checked={checked}
                           onClick={() => setAmenityIds((l) => toggle(l, a.id))}
                           className={'flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors ' + (checked ? 'border-[var(--brand-600)] bg-[var(--brand-50)]' : 'border-border bg-card hover:bg-muted')}>
                           {checkbox(checked)}
                           <span className="truncate">{a.name}</span>
                           {a.nameEn && <span className="ml-auto truncate text-xs text-muted-foreground">{a.nameEn}</span>}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -465,27 +462,27 @@ export default function NewPlacePage() {
           <TabsContent keepMounted value="tags">
             <Card>
               <CardHeader>
-                <CardTitle>Tags</CardTitle>
-                <CardDescription>Tag this place (family-friendly, outdoor…). Only tags created in the catalog appear.</CardDescription>
+                <CardTitle><DashboardText>Tags</DashboardText></CardTitle>
+                <CardDescription><DashboardText>Tag this place (family-friendly, outdoor…). Only tags created in the catalog appear.</DashboardText></CardDescription>
               </CardHeader>
               <CardContent>
                 {!allTags || allTags.length === 0 ? (
                   <div className="rounded-md border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground">
-                    <p className="mb-2">No tags exist in the catalog yet.</p>
-                    <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">Create tags →</Link>
+                    <p className="mb-2"><DashboardText>No tags exist in the catalog yet.</DashboardText></p>
+                    <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline"><DashboardText>Create tags →</DashboardText></Link>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label="Tags">
                     {allTags.map((tg) => {
                       const checked = tagIds.includes(tg.id);
                       return (
-                        <button key={tg.id} type="button" role="checkbox" aria-checked={checked}
+                        <Button variant="ghost" key={tg.id} type="button" role="checkbox" aria-checked={checked}
                           onClick={() => setTagIds((l) => toggle(l, tg.id))}
                           className={'flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors ' + (checked ? 'border-[var(--brand-600)] bg-[var(--brand-50)]' : 'border-border bg-card hover:bg-muted')}>
                           {checkbox(checked)}
                           <span className="truncate">{tg.name}</span>
                           {tg.nameEn && <span className="ml-auto truncate text-xs text-muted-foreground">{tg.nameEn}</span>}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -497,8 +494,8 @@ export default function NewPlacePage() {
           <TabsContent keepMounted value="hours">
             <Card>
               <CardHeader>
-                <CardTitle>Opening hours</CardTitle>
-                <CardDescription>Set the week now, or leave it and add hours later on the place.</CardDescription>
+                <CardTitle><DashboardText>Opening hours</DashboardText></CardTitle>
+                <CardDescription><DashboardText>Set the week now, or leave it and add hours later on the place.</DashboardText></CardDescription>
               </CardHeader>
               <CardContent>
                 <HoursEditor hours={hours} setDay={setDay} setDays={setDays} />
@@ -509,24 +506,21 @@ export default function NewPlacePage() {
           <TabsContent keepMounted value="photos">
             <Card>
               <CardHeader>
-                <CardTitle>Media</CardTitle>
-                <CardDescription>The cover is on the Details tab. Add more gallery photos here — they upload with the place.</CardDescription>
+                <CardTitle><DashboardText>Media</DashboardText></CardTitle>
+                <CardDescription><DashboardText>The cover is on the Details tab. Add more gallery photos here — they upload with the place.</DashboardText></CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button type="button" variant="outline" onClick={() => galleryInputRef.current?.click()} className="gap-2">
-                  <ImagePlus className="h-4 w-4" /> Add photos
-                </Button>
-                <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { addGallery(e.target.files); e.target.value = ''; }} />
+                <FileUpload label={lang === 'ar' ? 'اختر صوراً' : 'Choose images'} description={lang === 'ar' ? 'صور للمكان.' : 'Photos of the place.'} accept="image/*" multiple onChange={(e) => { addGallery(e.target.files); e.target.value = ''; }} />
                 {gallery.length > 0 && (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {gallery.map((g, i) => (
                       <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-md border border-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={g.preview} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover" />
-                        <button type="button" onClick={() => removeGallery(i)} aria-label="Remove photo"
+                        <Button variant="ghost" type="button" onClick={() => removeGallery(i)} aria-label="Remove photo"
                           className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80">
                           <X className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -536,10 +530,7 @@ export default function NewPlacePage() {
           </TabsContent>
         </UrlTabs>
 
-        <div className="mt-6 flex gap-3">
-          <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Create Place'}</Button>
-          <Button type="button" variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}>Cancel</Button>
-        </div>
+        <FormActionBar dirty={formChanges.dirty} saving={saving} error={error} onCancel={() => router.push(subscriberReturnPath() ?? '/dashboard/places')} primaryLabel={lang === 'ar' ? 'إنشاء مكان' : 'Create place'} />
       </form>
     </div>
   );

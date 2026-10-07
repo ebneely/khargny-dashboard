@@ -1,23 +1,27 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { Suspense, useState, useEffect, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DashboardLangProvider } from '@/lib/dashboard-lang';
+import { DashboardLangToggle } from '@/components/admin/dashboard-lang-toggle';
+import { ContentSkeleton } from '@/components/admin/content-skeleton';
 
 export default function LoginPage() {
   return (
-    <Suspense
+    <DashboardLangProvider><Suspense
       fallback={
         <div className="flex min-h-full flex-1 items-center justify-center bg-background">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <ContentSkeleton />
         </div>
       }
     >
       <LoginPageInner />
-    </Suspense>
+    </Suspense></DashboardLangProvider>
   );
 }
 
@@ -95,7 +99,7 @@ function LoginPageInner() {
   if (!sessionChecked) {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <ContentSkeleton />
       </div>
     );
   }
@@ -106,12 +110,13 @@ function LoginPageInner() {
         className="w-full max-w-md rounded-(--radius-ds-lg) border border-border bg-card p-8 shadow-(--shadow-ds-sm)"
         data-trace-id="auth-login-form"
       >
-        <h1 className="font-display text-xl font-semibold text-foreground">Sign in</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Khargny admin dashboard</p>
+        <div className="mb-4 flex justify-end"><DashboardLangToggle /></div>
+        <h1 className="font-display text-xl font-semibold text-foreground"><DashboardText>Sign in</DashboardText></h1>
+        <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Khargny admin dashboard</DashboardText></p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email"><DashboardText>Email</DashboardText></Label>
             <Input
               id="email"
               name="email"
@@ -126,7 +131,7 @@ function LoginPageInner() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password"><DashboardText>Password</DashboardText></Label>
             <Input
               id="password"
               name="password"
@@ -147,7 +152,7 @@ function LoginPageInner() {
               role="alert"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{error}</span>
+              <span><DashboardText>{error}</DashboardText></span>
             </div>
           )}
 
@@ -160,7 +165,7 @@ function LoginPageInner() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Signing in…
+                <DashboardText>Signing in…</DashboardText>
               </>
             ) : (
               'Sign in'

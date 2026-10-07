@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -144,7 +145,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       </nav>
 
       {/* Mobile trigger */}
-      <button
+      <Button variant="ghost"
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
@@ -153,7 +154,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
         className="inline-flex size-11 items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-accent lg:hidden"
       >
         {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-      </button>
+      </Button>
 
       {/* Mobile panel */}
       <div

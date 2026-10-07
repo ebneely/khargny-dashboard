@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
+import { FormActionBar } from './form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
@@ -45,12 +46,13 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
     { name: 'renewalWhatsapp', label: text('WhatsApp', 'واتساب'), value: whatsapp, update: setWhatsapp },
   ];
 
+  const formChanges = useFormChanges({ phone, whatsapp }, { phone: settings.renewalPhone ?? '', whatsapp: settings.renewalWhatsapp ?? '' });
   const reread = async () => {
     setBusy(true);
     try {
       const result = await adminApi.get<SubscriberSettings>('/v1/admin/subscribers/settings');
       setPhone(result.renewalPhone ?? ''); setWhatsapp(result.renewalWhatsapp ?? '');
-      setRefreshFailed(false); setSaved(true); setError('');
+      formChanges.markSaved({ phone: result.renewalPhone ?? '', whatsapp: result.renewalWhatsapp ?? '' }); setRefreshFailed(false); setSaved(true); setError('');
     } catch {
       setRefreshFailed(true); setSaved(false);
     } finally { setBusy(false); }
@@ -103,7 +105,7 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
       </Field>)}
     </fieldset>
     <div className="flex flex-wrap items-center gap-3">
-      <Button type="submit" disabled={busy || refreshFailed}>{busy ? text('Saving…', 'جارٍ الحفظ…') : text('Save renewal contact', 'حفظ جهة اتصال التجديد')}</Button>
+      <FormActionBar dirty={formChanges.dirty} saving={busy} error={error || (refreshFailed ? text('Saved, but could not refresh. Retry before saving again.', 'تم الحفظ لكن تعذر التحديث. أعد المحاولة قبل الحفظ مجدداً.') : '')} disabled={refreshFailed} cancelHref="/dashboard/subscribers" primaryLabel={text('Save renewal contact', 'حفظ جهة اتصال التجديد')} />
       {saved && <p role="status" className="text-sm text-green-700 dark:text-green-400">{text('Renewal contact saved', 'تم حفظ جهة اتصال التجديد')}</p>}
     </div>
     {error && <RequestError message={error} />}

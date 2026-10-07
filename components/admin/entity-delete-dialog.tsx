@@ -9,6 +9,7 @@
  * reassignment, soft-delete when places reference them).
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -83,7 +84,7 @@ export function EntityDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-trace-id={traceId}>
         <DialogHeader>
-          <DialogTitle>Delete {entityName || `this ${entityLabel}`}?</DialogTitle>
+          <DialogTitle><DashboardText>Delete</DashboardText> {entityName || `this ${entityLabel}`}?</DialogTitle>
           <DialogDescription>
             {consequence ?? `This removes the ${entityLabel} permanently.`}
           </DialogDescription>
@@ -91,7 +92,7 @@ export function EntityDeleteDialog({
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting}>
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}

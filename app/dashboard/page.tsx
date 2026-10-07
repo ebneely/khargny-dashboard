@@ -1,3 +1,4 @@
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { InsightsDashboard } from '@/components/admin/insights/insights-dashboard';
 
 /**
@@ -11,13 +12,13 @@ export default function DashboardHomePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground">Insights</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Insights</DashboardText></h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          What visitors are doing across the catalogue.
+          <DashboardText>What visitors are doing across the catalogue.</DashboardText>
         </p>
       </div>
       {/* Arabic is the product's primary language, so names lead in Arabic here too. */}
-      <InsightsDashboard lang="ar" />
+      <InsightsDashboard />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -35,8 +37,8 @@ function roleLabel(r: Admin['role']): string {
 }
 
 function statusBadge(s: Admin['status']) {
-  if (s === 'active') return <Badge variant="default">Active</Badge>;
-  return <Badge variant="secondary">Disabled</Badge>;
+  if (s === 'active') return <Badge variant="default"><DashboardText>Active</DashboardText></Badge>;
+  return <Badge variant="secondary"><DashboardText>Disabled</DashboardText></Badge>;
 }
 
 function formatDate(iso: string | null): string {
@@ -50,6 +52,7 @@ function formatDate(iso: string | null): string {
 }
 
 export default function AdminsPage() {
+  const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [pendingDisable, setPendingDisable] = useState<Admin | null>(null);
@@ -142,13 +145,13 @@ export default function AdminsPage() {
   if (!isLoading && session && !isSuperadmin) {
     return (
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground mb-6">Admins</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground mb-6"><DashboardText>Admins</DashboardText></h1>
         <Card>
           <CardContent className="py-12 text-center">
             <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-foreground font-medium">You don&apos;t have access to this page</p>
+            <p className="text-sm text-foreground font-medium"><DashboardText>You don&apos;t have access to this page</DashboardText></p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Admin management is restricted to super admins.
+              <DashboardText>Admin management is restricted to super admins.</DashboardText>
             </p>
           </CardContent>
         </Card>
@@ -161,16 +164,16 @@ export default function AdminsPage() {
       <div>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-foreground">Admins</h1>
+            <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Admins</DashboardText></h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage who can sign in to the dashboard and what they can do.
+              <DashboardText>Manage who can sign in to the dashboard and what they can do.</DashboardText>
             </p>
           </div>
           {isSuperadmin && (
             <Link href="/dashboard/admins/new">
               <Button className="gap-2" data-trace-id="admin-new-open">
                 <Plus className="w-4 h-4" />
-                Add admin
+                <DashboardText>Add admin</DashboardText>
               </Button>
             </Link>
           )}
@@ -192,20 +195,20 @@ export default function AdminsPage() {
               </div>
             ) : isError ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-3">Failed to load admins</p>
-                <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+                <p className="text-muted-foreground mb-3"><DashboardText>Failed to load admins</DashboardText></p>
+                <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
               </div>
             ) : data && data.items.length > 0 ? (
               <>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last login</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead><DashboardText>Email</DashboardText></TableHead>
+                      <TableHead><DashboardText>Role</DashboardText></TableHead>
+                      <TableHead><DashboardText>Status</DashboardText></TableHead>
+                      <TableHead><DashboardText>Last login</DashboardText></TableHead>
+                      <TableHead><DashboardText>Created</DashboardText></TableHead>
+                      <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -214,14 +217,14 @@ export default function AdminsPage() {
                       const disableButton = (
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
+                          size="icon-sm"
+                          className="hover:text-destructive focus-visible:text-destructive"
+                          aria-label={`${lang === 'ar' ? 'تعطيل' : 'Disable'} ${admin.email}`}
                           disabled={actionInFlight?.id === admin.id}
                           onClick={() => setPendingDisable(admin)}
                           data-trace-id={`admin-row-${admin.id}-disable`}
                         >
-                          <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                          Disable
+                          <ShieldOff className="size-4" aria-hidden="true" />
                         </Button>
                       );
                       return (
@@ -234,7 +237,7 @@ export default function AdminsPage() {
                             >
                               {admin.email}
                               {isSelf && (
-                                <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                                <span className="ml-2 text-xs text-muted-foreground"><DashboardText>(you)</DashboardText></span>
                               )}
                             </Link>
                           </TableCell>
@@ -253,44 +256,45 @@ export default function AdminsPage() {
                               <Link href={`/dashboard/admins/${admin.id}/edit`}>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="icon-sm"
+                                  aria-label={`${lang === 'ar' ? 'تعديل' : 'Edit'} ${admin.email}`}
                                   data-trace-id={`admin-row-${admin.id}-edit`}
                                 >
-                                  <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                                  Edit
+                                  <Pencil className="size-4" aria-hidden="true" />
                                 </Button>
                               </Link>
                               {isSelf ? (
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="text-destructive"
+                                  size="icon-sm"
+                                  className="hover:text-destructive focus-visible:text-destructive"
+                                  aria-label={`${lang === 'ar' ? 'تعطيل' : 'Disable'} ${admin.email}`}
                                   disabled
                                   title="You cannot disable your own account"
                                   data-trace-id={`admin-row-${admin.id}-disable-blocked`}
                                 >
-                                  <ShieldOff className="mr-1.5 h-3.5 w-3.5" />
-                                  Disable
+                                  <ShieldOff className="size-4" aria-hidden="true" />
                                 </Button>
                               ) : admin.status === 'active' ? (
                                 disableButton
                               ) : (
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="icon-sm"
+                                  aria-label={`${lang === 'ar' ? 'تفعيل' : 'Enable'} ${admin.email}`}
                                   className="text-primary"
                                   disabled={actionInFlight?.id === admin.id}
                                   onClick={() => setPendingEnable(admin)}
                                   data-trace-id={`admin-row-${admin.id}-enable`}
                                 >
-                                  <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-                                  Enable
+                                  <ShieldCheck className="size-4" aria-hidden="true" />
                                 </Button>
                               )}
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                className="text-destructive"
+                                size="icon-sm"
+                                className="hover:text-destructive focus-visible:text-destructive"
+                                aria-label={`${lang === 'ar' ? 'حذف' : 'Delete'} ${admin.email}`}
                                 disabled={isSelf || actionInFlight?.id === admin.id}
                                 title={
                                   isSelf ? 'You cannot delete your own account' : undefined
@@ -298,8 +302,7 @@ export default function AdminsPage() {
                                 onClick={() => setPendingDelete(admin)}
                                 data-trace-id={`admin-row-${admin.id}-delete`}
                               >
-                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                                Delete
+                                <Trash2 className="size-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </TableCell>
@@ -318,7 +321,7 @@ export default function AdminsPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm text-muted-foreground px-2">Page {page + 1}</span>
+                  <span className="text-sm text-muted-foreground px-2"><DashboardText>Page</DashboardText> {page + 1}</span>
                   <Button
                     variant="outline" size="sm"
                     disabled={!hasNext}
@@ -331,15 +334,15 @@ export default function AdminsPage() {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No admins yet</p>
+                <p className="text-muted-foreground"><DashboardText>No admins yet</DashboardText></p>
                 {isSuperadmin && (
                   <Button
-                    className="mt-4 gap-2"
+                    variant="outline" className="mt-4 gap-2"
                     onClick={() => router.push('/dashboard/admins/new')}
                     data-trace-id="admin-list-empty-cta"
                   >
                     <Plus className="w-4 h-4" />
-                    Add the first admin
+                    <DashboardText>Add the first admin</DashboardText>
                   </Button>
                 )}
               </div>
@@ -353,11 +356,9 @@ export default function AdminsPage() {
         >
           <DialogContent data-trace-id="admin-delete-confirm">
             <DialogHeader>
-              <DialogTitle>Delete {pendingDelete?.email}?</DialogTitle>
+              <DialogTitle><DashboardText>Delete</DashboardText> {pendingDelete?.email}?</DialogTitle>
               <DialogDescription>
-                The account is removed from this list, its sessions end immediately and its
-                email becomes available again. What they did stays in the audit log. This
-                cannot be undone — use Disable instead if you may want them back.
+                <DashboardText>The account is removed from this list, its sessions end immediately and its email becomes available again. What they did stays in the audit log. This cannot be undone — use Disable instead if you may want them back.</DashboardText>
               </DialogDescription>
             </DialogHeader>
             {actionError && (
@@ -370,7 +371,7 @@ export default function AdminsPage() {
                 disabled={!!actionInFlight}
                 data-trace-id="admin-delete-cancel"
               >
-                Cancel
+                <DashboardText>Cancel</DashboardText>
               </Button>
               <Button
                 variant="destructive"
@@ -379,7 +380,7 @@ export default function AdminsPage() {
                 data-trace-id="admin-delete-confirm-btn"
               >
                 {actionInFlight ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Delete admin
+                <DashboardText>Delete admin</DashboardText>
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -392,10 +393,9 @@ export default function AdminsPage() {
         >
           <DialogContent data-trace-id="admin-disable-confirm">
             <DialogHeader>
-              <DialogTitle>Disable {pendingDisable?.email}?</DialogTitle>
+              <DialogTitle><DashboardText>Disable</DashboardText> {pendingDisable?.email}?</DialogTitle>
               <DialogDescription>
-                The admin will be marked inactive and signed out within one request.
-                They won&apos;t be able to log in again until you re-enable them.
+                <DashboardText>The admin will be marked inactive and signed out within one request. They won&apos;t be able to log in again until you re-enable them.</DashboardText>
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -405,7 +405,7 @@ export default function AdminsPage() {
                 disabled={!!actionInFlight}
                 data-trace-id="admin-disable-cancel"
               >
-                Cancel
+                <DashboardText>Cancel</DashboardText>
               </Button>
               <Button
                 variant="destructive"
@@ -414,7 +414,7 @@ export default function AdminsPage() {
                 data-trace-id="admin-disable-confirm-btn"
               >
                 {actionInFlight ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Disable admin
+                <DashboardText>Disable admin</DashboardText>
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -427,9 +427,9 @@ export default function AdminsPage() {
         >
           <DialogContent data-trace-id="admin-enable-confirm">
             <DialogHeader>
-              <DialogTitle>Re-enable {pendingEnable?.email}?</DialogTitle>
+              <DialogTitle><DashboardText>Re-enable</DashboardText> {pendingEnable?.email}?</DialogTitle>
               <DialogDescription>
-                The admin will be able to sign in again immediately.
+                <DashboardText>The admin will be able to sign in again immediately.</DashboardText>
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -439,7 +439,7 @@ export default function AdminsPage() {
                 disabled={!!actionInFlight}
                 data-trace-id="admin-enable-cancel"
               >
-                Cancel
+                <DashboardText>Cancel</DashboardText>
               </Button>
               <Button
                 onClick={() => pendingEnable && handleEnable(pendingEnable)}
@@ -447,7 +447,7 @@ export default function AdminsPage() {
                 data-trace-id="admin-enable-confirm-btn"
               >
                 {actionInFlight ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Re-enable
+                <DashboardText>Re-enable</DashboardText>
               </Button>
             </DialogFooter>
           </DialogContent>

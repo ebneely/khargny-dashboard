@@ -1,5 +1,8 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
+import { translateDashboardCopy } from '@/lib/dashboard-copy';
 import * as React from 'react';
 import Link from 'next/link';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -103,16 +106,16 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
         title="Ad campaigns"
         description="Manage booked placements, serving state, advertiser records and performance."
         actions={
-          canWrite && <Button render={<Link href="/dashboard/ads/new" />}>
-            <Plus className="size-4" aria-hidden="true" />New campaign
+          canWrite && <Button nativeButton={false} render={<Link href="/dashboard/ads/new" />}>
+            <Plus className="size-4" aria-hidden="true" /><DashboardText>New campaign</DashboardText>
           </Button>
         }
       />
 
       {hasInventoryFilter && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-info-bg px-4 py-3 text-sm text-info">
-          <span>Showing campaigns linked from an inventory scope or day.</span>
-          <Link href="/dashboard/ads" className="font-medium underline underline-offset-4">Clear filter</Link>
+          <span><DashboardText>Showing campaigns linked from an inventory scope or day.</DashboardText></span>
+          <Link href="/dashboard/ads" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
         </div>
       )}
 
@@ -131,28 +134,28 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
           ) : error ? (
             <div className="py-10 text-center" role="alert">
               <p className="mb-3 text-sm text-destructive">{error}</p>
-              <Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button>
+              <Button data-ro-allow="true" variant="outline" onClick={() => void load()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : campaigns.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="font-medium">No campaigns in this view</p>
-              <p className="mt-1 text-sm text-muted-foreground">Try another state or create a campaign to book inventory.</p>
+              <p className="font-medium"><DashboardText>No campaigns in this view</DashboardText></p>
+              <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book inventory.</DashboardText></p>
             </div>
           ) : (
             <Table className="min-w-[1180px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Place</TableHead>
-                  <TableHead>Advertiser</TableHead>
-                  <TableHead>Placement</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead className="text-right">Impressions</TableHead>
-                  <TableHead className="text-right">Taps</TableHead>
-                  <TableHead className="text-right">CTR</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead><DashboardText>Place</DashboardText></TableHead>
+                  <TableHead><DashboardText>Advertiser</DashboardText></TableHead>
+                  <TableHead><DashboardText>Placement</DashboardText></TableHead>
+                  <TableHead><DashboardText>City</DashboardText></TableHead>
+                  <TableHead><DashboardText>Dates</DashboardText></TableHead>
+                  <TableHead><DashboardText>Amount</DashboardText></TableHead>
+                  <TableHead className="text-right"><DashboardText>Impressions</DashboardText></TableHead>
+                  <TableHead className="text-right"><DashboardText>Taps</DashboardText></TableHead>
+                  <TableHead className="text-right"><DashboardText>CTR</DashboardText></TableHead>
+                  <TableHead><DashboardText>State</DashboardText></TableHead>
+                  <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -178,6 +181,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
+                          nativeButton={false}
                           render={<Link href={`/dashboard/ads/${campaign.id}/report`} />}
                           variant="ghost"
                           size="icon-sm"
@@ -187,6 +191,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                           <FileText className="size-4" />
                         </Button>
                         {canWrite && <Button
+                          nativeButton={false}
                           render={<Link href={`/dashboard/ads/${campaign.id}`} />}
                           variant="ghost"
                           size="icon-sm"
@@ -219,6 +224,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
 }
 
 function LifecycleActions({ campaign, onAction }: { campaign: AdCampaign; onAction: (action: CampaignAction) => void }) {
+  const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const actionButton = (
     action: CampaignAction,
     label: string,
@@ -227,10 +233,11 @@ function LifecycleActions({ campaign, onAction }: { campaign: AdCampaign; onActi
   ) => (
     <Button
       type="button"
-      variant={destructive ? 'destructive' : 'ghost'}
+      variant="ghost"
+      className={destructive ? 'hover:text-destructive focus-visible:text-destructive' : undefined}
       size="icon-sm"
       onClick={() => onAction(action)}
-      aria-label={`${label} campaign for ${campaign.advertiserName}`}
+      aria-label={lang === 'ar' ? `${translateDashboardCopy(label, lang)} حملة ${campaign.advertiserName}` : `${label} campaign for ${campaign.advertiserName}`}
       title={label}
     >
       <Icon className="size-4" />

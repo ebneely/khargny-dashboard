@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -56,18 +57,15 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-trace-id="category-delete-dialog">
         <DialogHeader>
-          <DialogTitle>Delete {categoryName || 'this category'}?</DialogTitle>
+          <DialogTitle><DashboardText>Delete</DashboardText> {categoryName || 'this category'}?</DialogTitle>
           <DialogDescription>
-            Any child categories are reassigned to this category&apos;s parent. If places are
-            still assigned to it, those places are set to <strong>draft</strong> (hidden from
-            the site) and the category is removed from the dashboard rather than erased from
-            the database — places must keep pointing at a category that exists.
+            <DashboardText>Any child categories are reassigned to this category&apos;s parent. If places are still assigned to it, those places are set to</DashboardText> <strong><DashboardText>draft</DashboardText></strong> <DashboardText>(hidden from the site) and the category is removed from the dashboard rather than erased from the database — places must keep pointing at a category that exists.</DashboardText>
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting}>
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}

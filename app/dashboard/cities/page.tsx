@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -67,17 +68,17 @@ export default function CitiesPage() {
   return (
     <div>
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
-        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+        <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">Cities</span>
+        <span className="text-foreground"><DashboardText>Cities</DashboardText></span>
       </nav>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Cities</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Cities</DashboardText></h1>
         <Link href="/dashboard/cities/new">
           <Button className="gap-2" data-trace-id="city-list-add">
             <Plus className="w-4 h-4" />
-            Add City
+            <DashboardText>Add City</DashboardText>
           </Button>
         </Link>
       </div>
@@ -103,10 +104,10 @@ export default function CitiesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="deleted">Deleted</SelectItem>
+                <SelectItem value="all"><DashboardText>All</DashboardText></SelectItem>
+                <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
+                <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                <SelectItem value="deleted"><DashboardText>Deleted</DashboardText></SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -120,22 +121,22 @@ export default function CitiesPage() {
             </div>
           ) : isError ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-3" role="alert">Failed to load cities</p>
-              <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+              <p className="text-muted-foreground mb-3" role="alert"><DashboardText>Failed to load cities</DashboardText></p>
+              <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : filtered.length > 0 ? (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>English</TableHead>
-                    <TableHead>Slug</TableHead>
-                    <TableHead>Region</TableHead>
-                    <TableHead className="text-center">Places</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Featured</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead><DashboardText>Name</DashboardText></TableHead>
+                    <TableHead><DashboardText>English</DashboardText></TableHead>
+                    <TableHead><DashboardText>Slug</DashboardText></TableHead>
+                    <TableHead><DashboardText>Region</DashboardText></TableHead>
+                    <TableHead className="text-center"><DashboardText>Places</DashboardText></TableHead>
+                    <TableHead><DashboardText>Status</DashboardText></TableHead>
+                    <TableHead className="text-center"><DashboardText>Featured</DashboardText></TableHead>
+                    <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -159,7 +160,7 @@ export default function CitiesPage() {
                           {(city.placeCount ?? 0) > 0 ? (
                             <span title={`${city.activePlaceCount ?? 0} active of ${city.placeCount} total`}>
                               {city.placeCount}
-                              <span className="text-muted-foreground"> ({city.activePlaceCount ?? 0} active)</span>
+                              <span className="text-muted-foreground"> ({city.activePlaceCount ?? 0} <DashboardText>active)</DashboardText></span>
                             </span>
                           ) : (
                             <span className="text-muted-foreground">0</span>
@@ -167,7 +168,7 @@ export default function CitiesPage() {
                         </TableCell>
                         <TableCell>
                           {deletedAt ? (
-                            <Badge variant="destructive" data-trace-id={`city-list-status-deleted-${city.id}`}>Deleted</Badge>
+                            <Badge variant="destructive" data-trace-id={`city-list-status-deleted-${city.id}`}><DashboardText>Deleted</DashboardText></Badge>
                           ) : (
                             <Badge variant={city.status === 'active' ? 'default' : 'secondary'}>
                               {city.status}
@@ -213,7 +214,7 @@ export default function CitiesPage() {
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                 <p className="text-sm text-muted-foreground">
-                  Page {page + 1} of {totalPages} ({data?.total ?? 0} total)
+                  <DashboardText>Page</DashboardText> {page + 1} <DashboardText>of</DashboardText> {totalPages} ({data?.total ?? 0} <DashboardText>total)</DashboardText>
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -245,7 +246,7 @@ export default function CitiesPage() {
               {!search && (
                 <Link href="/dashboard/cities/new" className="inline-block mt-3">
                   <Button variant="outline" className="gap-2">
-                    <Plus className="w-4 h-4" /> Add your first city
+                    <Plus className="w-4 h-4" /> <DashboardText>Add your first city</DashboardText>
                   </Button>
                 </Link>
               )}

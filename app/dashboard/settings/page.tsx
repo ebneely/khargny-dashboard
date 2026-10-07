@@ -1,3 +1,4 @@
+import { DashboardText } from '@/components/admin/dashboard-text';
 import Link from 'next/link';
 import { ChevronRight, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,18 +30,18 @@ export default async function SettingsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-foreground">
-          Settings
+          <DashboardText>Settings</DashboardText>
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Manage your own account.
+          <DashboardText>Manage your own account.</DashboardText>
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
+          <CardTitle><DashboardText>Account</DashboardText></CardTitle>
           <CardDescription>
-            Settings specific to your admin account.
+            <DashboardText>Settings specific to your admin account.</DashboardText>
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col divide-y divide-border">
@@ -53,8 +54,8 @@ export default async function SettingsPage() {
             >
               <s.icon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">{s.title}</p>
-                <p className="text-xs text-muted-foreground">{s.description}</p>
+                <p className="text-sm font-medium text-foreground"><DashboardText>{s.title}</DashboardText></p>
+                <p className="text-xs text-muted-foreground"><DashboardText>{s.description}</DashboardText></p>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
             </Link>
@@ -65,9 +66,9 @@ export default async function SettingsPage() {
       {isSuperAdmin && (
         <Card className="border-destructive/30">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger zone</CardTitle>
+            <CardTitle className="text-destructive"><DashboardText>Danger zone</DashboardText></CardTitle>
             <CardDescription>
-              Irreversible actions affecting the entire site. Super admin only.
+              <DashboardText>Irreversible actions affecting the entire site. Super admin only.</DashboardText>
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,8 +1,10 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Loader2, MapPin, Trophy } from 'lucide-react';
+import { CheckCircle2, MapPin, Trophy } from 'lucide-react';
+import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,33 +69,33 @@ export function AdsTop10Page() {
 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-(--radius-ds-lg) bg-card p-4 shadow-(--shadow-ds-sm)">
         <div>
-          <label htmlFor="top10-city" className="mb-2 block text-sm font-medium">City scope</label>
+          <label htmlFor="top10-city" className="mb-2 block text-sm font-medium"><DashboardText>City scope</DashboardText></label>
           <Select value={citySlug} onValueChange={(value) => value && setCitySlug(value)}>
             <SelectTrigger data-ro-allow="true" id="top10-city" className="h-11 min-w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Egypt</SelectItem>
+              <SelectItem value="all"><DashboardText>All Egypt</DashboardText></SelectItem>
               {cities.map((city) => <SelectItem key={city.id} value={city.slug}>{displayName(city.name, city.nameEn)}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         {preview && (
           <div className="text-right">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Eligible candidates</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground"><DashboardText>Eligible candidates</DashboardText></p>
             <p className="font-display text-2xl font-semibold tabular-nums">{formatCount(preview.candidates)}</p>
           </div>
         )}
       </div>
 
       {loading ? (
-        <div className="flex min-h-64 items-center justify-center text-sm text-muted-foreground" aria-busy="true"><Loader2 className="mr-2 size-4 animate-spin" />Calculating preview…</div>
+        <ContentSkeleton />
       ) : error ? (
-        <Card><CardContent className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button></CardContent></Card>
+        <Card><CardContent className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}><DashboardText>Retry</DashboardText></Button></CardContent></Card>
       ) : preview ? (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Trophy className="size-4 text-primary" />Ranked list</CardTitle>
-              <p className="text-sm text-muted-foreground">Ranked by rating, saves, directions and views. Sponsored rows replace the rank number.</p>
+              <CardTitle className="flex items-center gap-2"><Trophy className="size-4 text-primary" /><DashboardText>Ranked list</DashboardText></CardTitle>
+              <p className="text-sm text-muted-foreground"><DashboardText>Ranked by rating, saves, directions and views. Sponsored rows replace the rank number.</DashboardText></p>
             </CardHeader>
             <CardContent className="space-y-2">
               {preview.items.length > 0 ? preview.items.map((item) => (
@@ -110,7 +112,7 @@ export function AdsTop10Page() {
                           <h2 className="font-medium">{displayName(item.place.name, item.place.nameEn)}</h2>
                           {item.place.region && <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{item.place.region}</p>}
                         </div>
-                        {item.sponsored ? <Badge className="bg-warning text-white">Sponsored slot {item.position}</Badge> : <span className="text-sm font-semibold tabular-nums">Score {item.score?.toFixed(1) ?? '—'}</span>}
+                        {item.sponsored ? <Badge className="bg-warning text-white"><DashboardText>Sponsored slot</DashboardText> {item.position}</Badge> : <span className="text-sm font-semibold tabular-nums"><DashboardText>Score</DashboardText> {item.score?.toFixed(1) ?? '—'}</span>}
                       </div>
                       {item.components && (
                         <div className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
@@ -120,14 +122,14 @@ export function AdsTop10Page() {
                     </div>
                   </div>
                 </article>
-              )) : <p className="py-10 text-center text-sm text-muted-foreground">No ranking candidates for this scope.</p>}
+              )) : <p className="py-10 text-center text-sm text-muted-foreground"><DashboardText>No ranking candidates for this scope.</DashboardText></p>}
             </CardContent>
           </Card>
 
           <Card className="h-fit">
             <CardHeader>
-              <CardTitle>Sponsored queue</CardTitle>
-              <p className="text-sm text-muted-foreground">All live Top 10 campaigns for this scope. “Shown now” reflects the current 10-minute bucket.</p>
+              <CardTitle><DashboardText>Sponsored queue</DashboardText></CardTitle>
+              <p className="text-sm text-muted-foreground"><DashboardText>All live Top 10 campaigns for this scope. “Shown now” reflects the current 10-minute bucket.</DashboardText></p>
             </CardHeader>
             <CardContent className="space-y-2">
               {preview.sponsoredQueue.length > 0 ? preview.sponsoredQueue.map((item) => (
@@ -141,7 +143,7 @@ export function AdsTop10Page() {
                   </span>
                   <Badge variant={item.shownNow ? 'default' : 'secondary'}>{item.shownNow ? 'Shown now' : 'Queued'}</Badge>
                 </Link>
-              )) : <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">No live sponsored campaigns in this scope.</p>}
+              )) : <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground"><DashboardText>No live sponsored campaigns in this scope.</DashboardText></p>}
             </CardContent>
           </Card>
         </div>

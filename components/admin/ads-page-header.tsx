@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { BarChart3, CalendarDays, ListChecks, Trophy } from 'lucide-react';
 import { tabsListVariants, tabsTriggerClassName } from '@/components/ui/tabs';
+import { DashboardText } from '@/components/admin/dashboard-text';
 
 const ADS_NAV = [
   { href: '/dashboard/ads', label: 'Campaigns', icon: ListChecks },
@@ -29,9 +30,9 @@ export function AdsPageHeader({
         <div className="max-w-2xl">
           <div className="flex items-center gap-2">
             <BarChart3 className="size-5 text-primary" aria-hidden="true" />
-            <h1 className="font-display text-2xl font-semibold text-foreground">{title}</h1>
+            <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>{title}</DashboardText></h1>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground"><DashboardText>{description}</DashboardText></p>
         </div>
         {actions && <div className="print-hide flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
@@ -51,7 +52,7 @@ export function AdsPageHeader({
               className={tabsTriggerClassName}
             >
               <Icon className="size-4" aria-hidden="true" />
-              {label}
+              <DashboardText>{label}</DashboardText>
             </Link>
           );
         })}

@@ -3,8 +3,11 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { translateDashboardCopy } from '@/lib/dashboard-copy'
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang'
 
 function Label({ className, ...props }: React.ComponentProps<"label">) {
+  const language = useOptionalDashboardLang()?.lang ?? 'en'
   return (
     <label
       data-slot="label"
@@ -13,7 +16,7 @@ function Label({ className, ...props }: React.ComponentProps<"label">) {
         className
       )}
       {...props}
-    />
+    >{typeof props.children === 'string' ? translateDashboardCopy(props.children, language) : props.children}</label>
   )
 }
 

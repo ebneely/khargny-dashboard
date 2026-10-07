@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Search, ChevronLeft, ChevronRight, Star, Eye, Navigation, Trash2, RotateCcw, Pencil, ExternalLink } from 'lucide-react';
@@ -125,7 +126,7 @@ export default function PlacesPage() {
             : 'flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border'
         }
       >
-        <p className="text-sm text-muted-foreground">{data?.total ?? 0} places</p>
+        <p className="text-sm text-muted-foreground">{data?.total ?? 0} <DashboardText>places</DashboardText></p>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)} aria-label="Previous page">
             <ChevronLeft className="w-4 h-4" />
@@ -157,12 +158,12 @@ export default function PlacesPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Places</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Places</DashboardText></h1>
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard/places/new">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
-            Add Place
+            <DashboardText>Add Place</DashboardText>
           </Button>
           </Link>
         </div>
@@ -185,10 +186,10 @@ export default function PlacesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="deleted">Deleted</SelectItem>
+                <SelectItem value="all"><DashboardText>Any status</DashboardText></SelectItem>
+                <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
+                <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                <SelectItem value="deleted"><DashboardText>Deleted</DashboardText></SelectItem>
               </SelectContent>
             </Select>
 
@@ -197,7 +198,7 @@ export default function PlacesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any city</SelectItem>
+                <SelectItem value="all"><DashboardText>Any city</DashboardText></SelectItem>
                 {(cityData?.items ?? []).map((c) => (
                   <SelectItem key={c.id} value={c.id}>{pickName(c.name, c.nameEn, lang)}</SelectItem>
                 ))}
@@ -209,7 +210,7 @@ export default function PlacesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any category</SelectItem>
+                <SelectItem value="all"><DashboardText>Any category</DashboardText></SelectItem>
                 {(categoryData ?? []).map((c) => (
                   <SelectItem key={c.id} value={c.id}>{pickName(c.nameAr, c.nameEn, lang)}</SelectItem>
                 ))}
@@ -223,9 +224,9 @@ export default function PlacesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any media</SelectItem>
-                <SelectItem value="with">Has media</SelectItem>
-                <SelectItem value="without">Needs media</SelectItem>
+                <SelectItem value="all"><DashboardText>Any media</DashboardText></SelectItem>
+                <SelectItem value="with"><DashboardText>Has media</DashboardText></SelectItem>
+                <SelectItem value="without"><DashboardText>Needs media</DashboardText></SelectItem>
               </SelectContent>
             </Select>
 
@@ -238,7 +239,7 @@ export default function PlacesPage() {
                   setCategoryFilter('all'); setMediaFilter('all'); setPage(0);
                 }}
               >
-                Clear
+                <DashboardText>Clear</DashboardText>
               </Button>
             )}
           </div>
@@ -252,8 +253,8 @@ export default function PlacesPage() {
             </div>
           ) : isError ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-3">Failed to load places</p>
-              <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+              <p className="text-muted-foreground mb-3"><DashboardText>Failed to load places</DashboardText></p>
+              <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : visibleItems.length > 0 ? (
             <>
@@ -264,10 +265,10 @@ export default function PlacesPage() {
               <Table className="min-w-[720px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead><DashboardText>Name</DashboardText></TableHead>
+                    <TableHead><DashboardText>City</DashboardText></TableHead>
+                    <TableHead><DashboardText>Category</DashboardText></TableHead>
+                    <TableHead><DashboardText>Status</DashboardText></TableHead>
                     {/* Four metrics, each with a tooltip — an unlabelled icon column is a
                         guessing game. Rating is deliberately absent: there is no review
                         system yet, so any number here would be invented. */}
@@ -288,10 +289,10 @@ export default function PlacesPage() {
                     </TableHead>
                     <TableHead className="text-center">
                       <span title="Media — whether this place has any photo or video.">
-                        Media
+                        <DashboardText>Media</DashboardText>
                       </span>
                     </TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -310,7 +311,7 @@ export default function PlacesPage() {
                       <TableCell className="text-muted-foreground">{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</TableCell>
                       <TableCell>
                         {deletedAt ? (
-                          <Badge variant="destructive" data-trace-id={`place-list-status-deleted-${place.id}`}>Deleted</Badge>
+                          <Badge variant="destructive" data-trace-id={`place-list-status-deleted-${place.id}`}><DashboardText>Deleted</DashboardText></Badge>
                         ) : (
                           <Badge variant={place.status === 'active' ? 'default' : 'secondary'}>
                             {place.status}
@@ -325,9 +326,9 @@ export default function PlacesPage() {
                             this place still need photos?", and "0i 0v" made that a reading
                             exercise. The exact counts live on the Media tab. */}
                         {(place.hasMedia ?? hasMedia(place)) ? (
-                          <Badge variant="secondary">Yes</Badge>
+                          <Badge variant="secondary"><DashboardText>Yes</DashboardText></Badge>
                         ) : (
-                          <Badge variant="destructive">No</Badge>
+                          <Badge variant="destructive"><DashboardText>No</DashboardText></Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

@@ -1,9 +1,12 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useEffect, useState } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,6 +41,7 @@ export default function EditCategoryPage() {
   const [sortOrder, setSortOrder] = useState('0');
   const [status, setStatus] = useState<'active' | 'draft'>('active');
 
+  const [originalValues, setOriginalValues] = useState<unknown>({ nameAr: '', nameEn: '', slug: '', icon: '', parentId: '', sortOrder: '0', status: 'active' });
   useEffect(() => {
     (async () => {
       try {
@@ -45,6 +49,7 @@ export default function EditCategoryPage() {
           adminApi.get<AdminCategory>(`/v1/admin/categories/${id}`),
           adminApi.get<ParentOption[]>('/v1/admin/categories'),
         ]);
+        setOriginalValues({ nameAr: cat.nameAr, nameEn: cat.nameEn ?? '', slug: cat.slug, icon: cat.icon ?? '', parentId: cat.parentId ?? '', sortOrder: String(cat.sortOrder ?? 0), status: cat.status });
         setNameAr(cat.nameAr);
         setNameEn(cat.nameEn ?? '');
         setSlug(cat.slug);
@@ -60,6 +65,8 @@ export default function EditCategoryPage() {
       }
     })();
   }, [id]);
+
+  const formChanges = useFormChanges({ nameAr, nameEn, slug, icon, parentId, sortOrder, status }, originalValues);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +92,7 @@ export default function EditCategoryPage() {
         status,
       });
       router.push('/dashboard/categories');
+      formChanges.markSaved();
     } catch (e: unknown) {
       const err = e as AdminApiError;
       if (err.status === 409) {
@@ -125,15 +133,15 @@ export default function EditCategoryPage() {
   return (
     <div>
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
-        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+        <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
-        <Link href="/dashboard/categories" className="hover:text-foreground">Categories</Link>
+        <Link href="/dashboard/categories" className="hover:text-foreground"><DashboardText>Categories</DashboardText></Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">Edit</span>
+        <span className="text-foreground"><DashboardText>Edit</DashboardText></span>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Edit Category</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Category</DashboardText></h1>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -141,16 +149,16 @@ export default function EditCategoryPage() {
             onClick={() => setConfirmDelete(true)}
             data-trace-id="edit-category-delete"
           >
-            <Trash2 className="w-4 h-4" /> Delete
+            <Trash2 className="w-4 h-4" /> <DashboardText>Delete</DashboardText>
           </Button>
           <Link href="/dashboard/categories">
-            <Button variant="outline" data-trace-id="edit-category-cancel-top">Cancel</Button>
+            <Button variant="outline" data-trace-id="edit-category-cancel-top"><DashboardText>Cancel</DashboardText></Button>
           </Link>
         </div>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Category Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Category Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -161,7 +169,7 @@ export default function EditCategoryPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="nameAr">Name (Arabic) *</Label>
+                <Label htmlFor="nameAr"><DashboardText>Name (Arabic) *</DashboardText></Label>
                 <Input
                   id="nameAr"
                   value={nameAr}
@@ -171,7 +179,7 @@ export default function EditCategoryPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English) *</Label>
+                <Label htmlFor="nameEn"><DashboardText>Name (English) *</DashboardText></Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
@@ -183,7 +191,7 @@ export default function EditCategoryPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
+                <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
                 <Input
                   id="slug"
                   value={slug}
@@ -201,14 +209,14 @@ export default function EditCategoryPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="icon">Icon</Label>
+                <Label htmlFor="icon"><DashboardText>Icon</DashboardText></Label>
                 <IconPicker value={icon} onChange={setIcon} traceId="edit-category-icon" scope="category" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="parentId">Parent category</Label>
+                <Label htmlFor="parentId"><DashboardText>Parent category</DashboardText></Label>
                 <Select
                   value={parentId || '__none__'}
                   onValueChange={(v) => setParentId(v === '__none__' ? '' : v)}
@@ -217,7 +225,7 @@ export default function EditCategoryPage() {
                     <SelectValue placeholder="(none — top-level)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">(none — top-level)</SelectItem>
+                    <SelectItem value="__none__"><DashboardText>(none — top-level)</DashboardText></SelectItem>
                     {parents
                       .filter((p) => p.id !== id) // a category cannot be its own parent
                       .map((p) => (
@@ -227,7 +235,7 @@ export default function EditCategoryPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sortOrder">Sort order</Label>
+                <Label htmlFor="sortOrder"><DashboardText>Sort order</DashboardText></Label>
                 <Input
                   id="sortOrder"
                   type="number"
@@ -240,31 +248,20 @@ export default function EditCategoryPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
               <Select value={status} onValueChange={(v) => v && setStatus(v as 'active' | 'draft')}>
                 <SelectTrigger className="w-32" data-trace-id="edit-category-status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
+                  <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving} data-trace-id="edit-category-save">
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
-              <Link href="/dashboard/categories">
-                <Button type="button" variant="outline" data-trace-id="edit-category-cancel">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={error || slugError} disabled={saving} cancelHref="/dashboard/categories" traceId="edit-category-save" />
             </div>
           </form>
         </CardContent>
@@ -281,13 +278,12 @@ export default function EditCategoryPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
-                Delete this category?
+                <DashboardText>Delete this category?</DashboardText>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                This will remove the category and break any place currently
-                filed under it. This cannot be undone.
+                <DashboardText>This will remove the category and break any place currently filed under it. This cannot be undone.</DashboardText>
               </p>
               <div className="flex justify-end gap-2">
                 <Button
@@ -297,7 +293,7 @@ export default function EditCategoryPage() {
                   disabled={deleting}
                   data-trace-id="edit-category-delete-cancel"
                 >
-                  Cancel
+                  <DashboardText>Cancel</DashboardText>
                 </Button>
                 <Button
                   type="button"

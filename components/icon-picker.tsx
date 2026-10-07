@@ -13,6 +13,7 @@
  * bundled in all three — nothing is fetched at runtime.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import {
@@ -116,7 +117,7 @@ export function IconPicker({
             onClick={() => onChange('')}
             data-trace-id={traceId ? `${traceId}-clear` : undefined}
           >
-            Clear
+            <DashboardText>Clear</DashboardText>
           </Button>
         )}
       </div>
@@ -124,7 +125,7 @@ export function IconPicker({
       <p className="text-xs text-muted-foreground">
         {selected ? (
           <>
-            Selected: <span className="font-medium">{selected.label}</span>{' '}
+            <DashboardText>Selected:</DashboardText> <span className="font-medium">{selected.label}</span>{' '}
             <code className="text-[11px]">{selected.value}</code>
           </>
         ) : (
@@ -135,7 +136,7 @@ export function IconPicker({
       <div className="max-h-72 overflow-y-auto rounded-md border p-2">
         {groups.length === 0 ? (
           <p className="p-4 text-center text-sm text-muted-foreground">
-            No icon matches “{query}”.
+            <DashboardText>No icon matches “</DashboardText>{query}”.
           </p>
         ) : (
           groups.map(([group, icons]) => (
@@ -147,7 +148,7 @@ export function IconPicker({
                 {icons.map((icon) => {
                   const isSelected = icon.value === value;
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={icon.value}
                       type="button"
                       title={`${icon.label} (${icon.value})`}
@@ -166,7 +167,7 @@ export function IconPicker({
                       <span className="line-clamp-2 text-[10px] leading-tight text-muted-foreground">
                         {icon.label}
                       </span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

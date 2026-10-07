@@ -1,6 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useState, useEffect } from 'react';
+import { FileUpload } from '@/components/ui/file-upload';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { ImagePlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -20,6 +25,7 @@ import type { AdminApiError } from '@/lib/api/admin-client';
 
 export default function NewCityPage() {
   const router = useRouter();
+  const { lang } = useDashboardLang();
   const [error, setError] = useState('');
   const [slugError, setSlugError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -38,7 +44,6 @@ export default function NewCityPage() {
   // uploaded right after the city is created (the image endpoint needs the city id).
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pickCover = (file: File | null) => {
     if (coverPreview) URL.revokeObjectURL(coverPreview);
@@ -51,6 +56,8 @@ export default function NewCityPage() {
     const generated = autoSlug(name, nameEn);
     setSlug(generated);
   }, [name, nameEn, slugTouched]);
+
+  const formChanges = useFormChanges({ name, nameEn, slug, areaKeys, descriptionAr, descriptionEn, featured, status, parentCityId, coverFile: coverFile ? [coverFile.name, coverFile.size, coverFile.lastModified] : null }, { name: '', nameEn: '', slug: '', areaKeys: [], descriptionAr: '', descriptionEn: '', featured: false, status: 'active', parentCityId: '', coverFile: null });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +95,7 @@ export default function NewCityPage() {
           /* keep the city; the edit screen shows the cover uploader to retry */
         }
       }
+      formChanges.markSaved();
       if (created?.id) router.push(`/dashboard/cities/${created.id}`);
       else router.push('/dashboard/cities');
     } catch (e: any) {
@@ -106,22 +114,22 @@ export default function NewCityPage() {
   return (
     <div>
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
-        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+        <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
-        <Link href="/dashboard/cities" className="hover:text-foreground">Cities</Link>
+        <Link href="/dashboard/cities" className="hover:text-foreground"><DashboardText>Cities</DashboardText></Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">New</span>
+        <span className="text-foreground"><DashboardText>New</DashboardText></span>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">New City</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>New City</DashboardText></h1>
         <Link href="/dashboard/cities">
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>City Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>City Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
@@ -129,43 +137,34 @@ export default function NewCityPage() {
             {/* Cover photo — visible and settable HERE, before saving. Buffered with a live
                 preview and uploaded right after the city is created. */}
             <div className="space-y-2">
-              <Label>Cover photo</Label>
+              <Label><DashboardText>Cover photo</DashboardText></Label>
               <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  data-ro-allow="true"
-                  className="relative flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-[var(--brand-600)] hover:text-foreground"
-                  aria-label={coverPreview ? 'Change cover photo' : 'Add cover photo'}
-                >
+                <div className="flex h-28 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted text-muted-foreground">
                   {coverPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={coverPreview} alt="Cover preview" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex flex-col items-center gap-1 text-xs">
                       <ImagePlus className="h-6 w-6" />
-                      Add photo
+                      <DashboardText>Add photo</DashboardText>
                     </span>
                   )}
-                </button>
+                </div>
                 <div className="min-w-0 text-sm text-muted-foreground">
-                  <p>{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2), min 800×600. Auto-optimized to WebP.'}</p>
+                  <p className="break-all">{coverFile ? coverFile.name : 'Recommended 1200×800 (3:2), min 800×600. Auto-optimized to WebP.'}</p>
                   {coverFile && (
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={() => pickCover(null)}
                       className="mt-1 text-xs font-medium text-destructive hover:underline"
                     >
-                      Remove
-                    </button>
+                      <DashboardText>Remove</DashboardText>
+                    </Button>
                   )}
                 </div>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
+              <FileUpload label={lang === 'ar' ? 'اختر صورة' : 'Choose a photo'} description={lang === 'ar' ? 'صورة للمدينة.' : 'A photo of the city.'}
                 accept="image/*"
-                className="hidden"
                 onChange={(e) => pickCover(e.target.files?.[0] ?? null)}
                 data-trace-id="create-city-cover-input"
               />
@@ -174,7 +173,7 @@ export default function NewCityPage() {
             {/* A city IS one of Egypt's 27 governorates. Picking one fills both name
                 fields, so the same governorate can't arrive spelled three different ways. */}
             <div className="space-y-2">
-              <Label>Governorate *</Label>
+              <Label><DashboardText>Governorate *</DashboardText></Label>
               <CityPicker
                 value={nameEn}
                 onSelect={(c) => { setNameEn(c.value); setName(c.nameAr); setAreaKeys([]); }}
@@ -186,13 +185,13 @@ export default function NewCityPage() {
                 — a district inside the governorate — so there is ONE control for it, not two.
                 A place created in this city picks its region from exactly this set. */}
             <div className="space-y-2">
-              <Label>Regions / areas in this city</Label>
+              <Label><DashboardText>Regions / areas in this city</DashboardText></Label>
               <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name (Arabic) *</Label>
+                <Label htmlFor="name"><DashboardText>Name (Arabic) *</DashboardText></Label>
                 <Input
                   id="name"
                   value={name}
@@ -202,7 +201,7 @@ export default function NewCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English) *</Label>
+                <Label htmlFor="nameEn"><DashboardText>Name (English) *</DashboardText></Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
@@ -214,7 +213,7 @@ export default function NewCityPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
+                <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
                 <Input
                   id="slug"
                   value={slug}
@@ -236,7 +235,7 @@ export default function NewCityPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+                <Label htmlFor="descriptionAr"><DashboardText>Description (Arabic)</DashboardText></Label>
                 <Input
                   id="descriptionAr"
                   value={descriptionAr}
@@ -245,7 +244,7 @@ export default function NewCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="descriptionEn">Description (English)</Label>
+                <Label htmlFor="descriptionEn"><DashboardText>Description (English)</DashboardText></Label>
                 <Input
                   id="descriptionEn"
                   value={descriptionEn}
@@ -263,29 +262,24 @@ export default function NewCityPage() {
                   onCheckedChange={(v) => setFeatured(v === true)}
                   data-trace-id="create-city-featured"
                 />
-                <Label htmlFor="featured">Featured</Label>
+                <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
                 <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                   <SelectTrigger className="w-32" data-trace-id="create-city-status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                    <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving} data-trace-id="create-city-save">
-                {saving ? 'Saving…' : 'Create City'}
-              </Button>
-              <Link href="/dashboard/cities">
-                <Button type="button" variant="outline" data-trace-id="create-city-cancel">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={error || slugError} disabled={saving} cancelHref="/dashboard/cities" traceId="create-city-save" />
             </div>
           </form>
         </CardContent>

@@ -1,9 +1,12 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useEffect, useState } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,6 +33,7 @@ export default function EditAdminPage() {
   const [saving, setSaving] = useState(false);
   const [formReady, setFormReady] = useState(false);
 
+  const formChanges = useFormChanges({ role, status }, { role: admin ? admin.role : 'admin', status: admin ? admin.status : 'active' });
   // Seed form once the admin loads. Mirrors the pattern in places/[id]/page.tsx.
   useEffect(() => {
     if (admin) {
@@ -48,16 +52,16 @@ export default function EditAdminPage() {
   if (!isLoading && session && !isSuperadmin) {
     return (
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground mb-6">Edit admin</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground mb-6"><DashboardText>Edit admin</DashboardText></h1>
         <Card>
           <CardContent className="py-12 text-center">
             <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-foreground font-medium">You don&apos;t have access to this page</p>
+            <p className="text-sm text-foreground font-medium"><DashboardText>You don&apos;t have access to this page</DashboardText></p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Admin management is restricted to super admins.
+              <DashboardText>Admin management is restricted to super admins.</DashboardText>
             </p>
             <Link href="/dashboard/admins" className="mt-4 inline-block">
-              <Button variant="outline">Back to admins</Button>
+              <Button variant="outline"><DashboardText>Back to admins</DashboardText></Button>
             </Link>
           </CardContent>
         </Card>
@@ -78,8 +82,8 @@ export default function EditAdminPage() {
   if (isError) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground mb-3">Failed to load admin</p>
-        <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+        <p className="text-muted-foreground mb-3"><DashboardText>Failed to load admin</DashboardText></p>
+        <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
       </div>
     );
   }
@@ -87,9 +91,9 @@ export default function EditAdminPage() {
   if (!admin) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Admin not found</p>
+        <p className="text-muted-foreground"><DashboardText>Admin not found</DashboardText></p>
         <Link href="/dashboard/admins" className="mt-4 inline-block">
-          <Button variant="outline">Back to admins</Button>
+          <Button variant="outline"><DashboardText>Back to admins</DashboardText></Button>
         </Link>
       </div>
     );
@@ -103,6 +107,7 @@ export default function EditAdminPage() {
     try {
       await adminApi.patch(`/v1/admin/admins/${id}`, { role, status });
       router.push('/dashboard/admins');
+      formChanges.markSaved();
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string };
       if (err.status === 403) {
@@ -125,10 +130,10 @@ export default function EditAdminPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground">
-          Edit admin
+          <DashboardText>Edit admin</DashboardText>
         </h1>
         <Link href="/dashboard/admins">
-          <Button variant="outline" data-trace-id="admin-edit-cancel">Cancel</Button>
+          <Button variant="outline" data-trace-id="admin-edit-cancel"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
@@ -150,7 +155,7 @@ export default function EditAdminPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="admin-edit-email">Email</Label>
+              <Label htmlFor="admin-edit-email"><DashboardText>Email</DashboardText></Label>
               <Input
                 id="admin-edit-email"
                 type="email"
@@ -160,12 +165,12 @@ export default function EditAdminPage() {
                 data-trace-id="admin-edit-email"
               />
               <p className="text-xs text-muted-foreground">
-                Email is set at creation and cannot be changed here.
+                <DashboardText>Email is set at creation and cannot be changed here.</DashboardText>
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="admin-edit-role">Role</Label>
+              <Label htmlFor="admin-edit-role"><DashboardText>Role</DashboardText></Label>
               <Select
                 value={role}
                 onValueChange={(v) => v && setRole(v as AdminRole)}
@@ -184,13 +189,13 @@ export default function EditAdminPage() {
               </Select>
               {isSelf && (
                 <p className="text-xs text-muted-foreground">
-                  You cannot change your own role.
+                  <DashboardText>You cannot change your own role.</DashboardText>
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="admin-edit-status">Status</Label>
+              <Label htmlFor="admin-edit-status"><DashboardText>Status</DashboardText></Label>
               <Select
                 value={status}
                 onValueChange={(v) => v && setStatus(v as AdminStatus)}
@@ -208,28 +213,21 @@ export default function EditAdminPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Set to &quot;Disabled&quot; to revoke this admin&apos;s access. Use the Disable action on the list
-                page for the recommended flow (it also handles the sign-out side effect).
+                <DashboardText>Set to &quot;Disabled&quot; to revoke this admin&apos;s access. Use the Disable action on the list page for the recommended flow (it also handles the sign-out side effect).</DashboardText>
               </p>
             </div>
 
             <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
               <p>
-                <strong>Created:</strong> {new Date(admin.createdAt).toLocaleString()}
+                <strong><DashboardText>Created:</DashboardText></strong> {new Date(admin.createdAt).toLocaleString()}
               </p>
               <p className="mt-1">
-                <strong>Last login:</strong> {admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString() : '—'}
+                <strong><DashboardText>Last login:</DashboardText></strong> {admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString() : '—'}
               </p>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving || !formReady} data-trace-id="admin-edit-submit">
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {saving ? 'Saving…' : 'Save changes'}
-              </Button>
-              <Link href="/dashboard/admins">
-                <Button type="button" variant="outline">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={serverError} disabled={saving || !formReady} cancelHref="/dashboard/admins" traceId="admin-edit-submit" />
             </div>
           </form>
         </CardContent>

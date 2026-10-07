@@ -1,9 +1,13 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
+import { FileUpload } from '@/components/ui/file-upload';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { X, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +53,6 @@ export default function EditPlacePage() {
   const media = usePlaceMedia(id);
   const [mediaError, setMediaError] = useState('');
   const [dragIdx, setDragIdx] = useState<number | null>(null);
-  const [dropActive, setDropActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -97,8 +100,8 @@ export default function EditPlacePage() {
         setName(place.name);
         setNameEn(place.nameEn || '');
         setSlug(place.slug);
-        setCityId(place.cityId);
-        setCategoryId(place.categoryId);
+        setCityId(place.cityId ?? '');
+        setCategoryId(place.categoryId ?? '');
         setDescription(place.description || '');
         setDescriptionEn(place.descriptionEn || '');
         setAddress(place.address || '');
@@ -110,8 +113,8 @@ export default function EditPlacePage() {
         setFacebook(place.facebook || '');
         setTiktok(place.tiktok || '');
         setPriceRange(place.priceRange ? String(place.priceRange) : '');
-        setFeatured(place.featured);
-        setStatus(place.status);
+        setFeatured(place.featured ?? false);
+        setStatus(place.status ?? 'draft');
 
         // Seed the amenity/tag pickers with what's ALREADY assigned. Without this
         // they started empty on every load, so a saved selection looked like it
@@ -125,6 +128,7 @@ export default function EditPlacePage() {
     return () => window.clearTimeout(timer);
   }, [place, markAmenitiesSaved, markTagsSaved]);
 
+  const formChanges = useFormChanges({ name, nameEn, slug, cityId, categoryId, description, descriptionEn, address, region, phone, website, mapsUrl, instagram, facebook, tiktok, priceRange, featured, status }, { name: place ? place.name : '', nameEn: place ? place.nameEn || '' : '', slug: place ? place.slug : '', cityId: place ? place.cityId ?? '' : '', categoryId: place ? place.categoryId ?? '' : '', description: place ? place.description || '' : '', descriptionEn: place ? place.descriptionEn || '' : '', address: place ? place.address || '' : '', region: place ? place.region || '' : '', phone: place ? place.phone || '' : '', website: place ? place.website || '' : '', mapsUrl: place ? place.mapsUrl || '' : '', instagram: place ? place.instagram || '' : '', facebook: place ? place.facebook || '' : '', tiktok: place ? place.tiktok || '' : '', priceRange: place ? place.priceRange ? String(place.priceRange) : '' : '', featured: place ? place.featured ?? false : false, status: place ? place.status ?? 'draft' : 'draft' });
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setError('');
@@ -190,15 +194,15 @@ export default function EditPlacePage() {
   };
 
   if (loadingPlace) return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-12 bg-muted animate-pulse rounded" />)}</div>;
-  if (loadError) return <div className="text-center py-8"><p className="text-muted-foreground mb-3">Failed to load place</p><Button variant="outline" onClick={() => window.location.reload()}>Retry</Button></div>;
-  if (!place) return <div className="text-center py-8"><p className="text-muted-foreground">Place not found</p></div>;
+  if (loadError) return <div className="text-center py-8"><p className="text-muted-foreground mb-3"><DashboardText>Failed to load place</DashboardText></p><Button variant="outline" onClick={() => window.location.reload()}><DashboardText>Retry</DashboardText></Button></div>;
+  if (!place) return <div className="text-center py-8"><p className="text-muted-foreground"><DashboardText>Place not found</DashboardText></p></div>;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Edit Place</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1>
         <Link href="/dashboard/places">
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
@@ -214,30 +218,30 @@ export default function EditPlacePage() {
 
         <TabsContent keepMounted value="details">
       <Card>
-        <CardHeader><CardTitle>Place Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Place Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form id="place-form" onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name (Arabic) *</Label>
+                <Label htmlFor="name"><DashboardText>Name (Arabic) *</DashboardText></Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English)</Label>
+                <Label htmlFor="nameEn"><DashboardText>Name (English)</DashboardText></Label>
                 <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
+              <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
               <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="cityId">City *</Label>
+                <Label htmlFor="cityId"><DashboardText>City *</DashboardText></Label>
                 <Select value={cityId} onValueChange={(v) => v && setCityId(v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -248,7 +252,7 @@ export default function EditPlacePage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="categoryId">Category *</Label>
+                <Label htmlFor="categoryId"><DashboardText>Category *</DashboardText></Label>
                 <Select value={categoryId} onValueChange={(v) => v && setCategoryId(v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -262,17 +266,17 @@ export default function EditPlacePage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="description">Description (Arabic)</Label>
+                <Label htmlFor="description"><DashboardText>Description (Arabic)</DashboardText></Label>
                 <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="descriptionEn">Description (English)</Label>
+                <Label htmlFor="descriptionEn"><DashboardText>Description (English)</DashboardText></Label>
                 <Input id="descriptionEn" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address"><DashboardText>Address</DashboardText></Label>
               <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
             </div>
 
@@ -284,7 +288,7 @@ export default function EditPlacePage() {
               const governorate = c?.nameEn || (c ? findCity(c.name)?.value : undefined) || undefined;
               return (
                 <div className="space-y-2">
-                  <Label>Area (region)</Label>
+                  <Label><DashboardText>Area (region)</DashboardText></Label>
                   <RegionPicker
                     value={region}
                     onChange={setRegion}
@@ -298,15 +302,15 @@ export default function EditPlacePage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone"><DashboardText>Phone</DashboardText></Label>
                 <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website"><DashboardText>Website</DashboardText></Label>
                 <Input id="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="mapsUrl">Google Maps link</Label>
+                <Label htmlFor="mapsUrl"><DashboardText>Google Maps link</DashboardText></Label>
                 <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />
               </div>
               <div className="space-y-2">
@@ -340,15 +344,15 @@ export default function EditPlacePage() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Checkbox id="featured" checked={featured} onCheckedChange={(v) => setFeatured(v === true)} />
-                <Label htmlFor="featured">Featured</Label>
+                <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
                 <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                   <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                    <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -361,9 +365,9 @@ export default function EditPlacePage() {
         <TabsContent keepMounted value="amenities">
       <Card data-trace-id="place-amenities-section">
         <CardHeader>
-          <CardTitle>Amenities</CardTitle>
+          <CardTitle><DashboardText>Amenities</DashboardText></CardTitle>
           <CardDescription>
-            Pick which amenities this place has. Changes are sent to the public detail on save.
+            <DashboardText>Pick which amenities this place has. Changes are sent to the public detail on save.</DashboardText>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -374,7 +378,7 @@ export default function EditPlacePage() {
               className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
             >
               <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Place is soft-deleted. Amenities are read-only.</span>
+              <span><DashboardText>Place is soft-deleted. Amenities are read-only.</DashboardText></span>
             </div>
           )}
 
@@ -397,16 +401,16 @@ export default function EditPlacePage() {
             </div>
           ) : loadAmenitiesError ? (
             <p data-trace-id="place-amenities-error" className="text-sm text-[var(--error)]">
-              Failed to load amenities catalog.
+              <DashboardText>Failed to load amenities catalog.</DashboardText>
             </p>
           ) : !allAmenities || allAmenities.length === 0 ? (
             <div
               data-trace-id="place-amenities-empty"
               className="rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground"
             >
-              <p className="mb-2">No amenities exist in the catalog yet.</p>
+              <p className="mb-2"><DashboardText>No amenities exist in the catalog yet.</DashboardText></p>
               <Link href="/dashboard/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
-                Create amenities in catalog →
+                <DashboardText>Create amenities in catalog →</DashboardText>
               </Link>
             </div>
           ) : (
@@ -420,7 +424,7 @@ export default function EditPlacePage() {
                 {allAmenities.map((a) => {
                   const checked = amenities.amenityIds.includes(a.id);
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={a.id}
                       type="button"
                       role="checkbox"
@@ -454,7 +458,7 @@ export default function EditPlacePage() {
                       {a.nameEn && (
                         <span className="ml-auto truncate text-xs text-muted-foreground">{a.nameEn}</span>
                       )}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -464,7 +468,7 @@ export default function EditPlacePage() {
                   data-trace-id="place-amenities-empty"
                   className="mt-3 text-sm text-muted-foreground"
                 >
-                  No amenities assigned yet — pick from the catalog.
+                  <DashboardText>No amenities assigned yet — pick from the catalog.</DashboardText>
                 </p>
               )}
 
@@ -481,9 +485,9 @@ export default function EditPlacePage() {
         <TabsContent keepMounted value="tags">
       <Card data-trace-id="place-tags-section">
         <CardHeader>
-          <CardTitle>Tags</CardTitle>
+          <CardTitle><DashboardText>Tags</DashboardText></CardTitle>
           <CardDescription>
-            Tag this place (family-friendly, outdoor…) so visitors can filter by vibe. Changes are sent to the public detail on save.
+            <DashboardText>Tag this place (family-friendly, outdoor…) so visitors can filter by vibe. Changes are sent to the public detail on save.</DashboardText>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -494,7 +498,7 @@ export default function EditPlacePage() {
               className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
             >
               <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Place is soft-deleted. Tags are read-only.</span>
+              <span><DashboardText>Place is soft-deleted. Tags are read-only.</DashboardText></span>
             </div>
           )}
 
@@ -517,16 +521,16 @@ export default function EditPlacePage() {
             </div>
           ) : loadTagsError ? (
             <p data-trace-id="place-tags-error" className="text-sm text-[var(--error)]">
-              Failed to load tags catalog.
+              <DashboardText>Failed to load tags catalog.</DashboardText>
             </p>
           ) : !allTags || allTags.length === 0 ? (
             <div
               data-trace-id="place-tags-empty"
               className="rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground"
             >
-              <p className="mb-2">No tags exist in the catalog yet.</p>
+              <p className="mb-2"><DashboardText>No tags exist in the catalog yet.</DashboardText></p>
               <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
-                Create tags in catalog →
+                <DashboardText>Create tags in catalog →</DashboardText>
               </Link>
             </div>
           ) : (
@@ -540,7 +544,7 @@ export default function EditPlacePage() {
                 {allTags.map((t) => {
                   const checked = tags.tagIds.includes(t.id);
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={t.id}
                       type="button"
                       role="checkbox"
@@ -574,7 +578,7 @@ export default function EditPlacePage() {
                       {t.nameEn && (
                         <span className="ml-auto truncate text-xs text-muted-foreground">{t.nameEn}</span>
                       )}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -584,7 +588,7 @@ export default function EditPlacePage() {
                   data-trace-id="place-tags-empty"
                   className="mt-3 text-sm text-muted-foreground"
                 >
-                  No tags assigned yet — pick from the catalog.
+                  <DashboardText>No tags assigned yet — pick from the catalog.</DashboardText>
                 </p>
               )}
 
@@ -599,9 +603,9 @@ export default function EditPlacePage() {
         <TabsContent keepMounted value="hours">
       <Card data-trace-id="place-hours-section">
         <CardHeader>
-          <CardTitle>Opening hours</CardTitle>
+          <CardTitle><DashboardText>Opening hours</DashboardText></CardTitle>
           <CardDescription>
-            Set when this place is open each day. Mark a day closed to hide its hours on the public detail. Saved with the place.
+            <DashboardText>Set when this place is open each day. Mark a day closed to hide its hours on the public detail. Saved with the place.</DashboardText>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -612,7 +616,7 @@ export default function EditPlacePage() {
               className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
             >
               <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Place is soft-deleted. Hours are read-only.</span>
+              <span><DashboardText>Place is soft-deleted. Hours are read-only.</DashboardText></span>
             </div>
           )}
           {hoursError && (
@@ -650,9 +654,9 @@ export default function EditPlacePage() {
         <TabsContent keepMounted value="photos">
       <Card data-trace-id="place-media-section">
         <CardHeader>
-          <CardTitle>Photos &amp; videos</CardTitle>
+          <CardTitle><DashboardText>Photos &amp; videos</DashboardText></CardTitle>
           <CardDescription>
-            The place&apos;s photo gallery — pick several at once or drag &amp; drop them in. Drag a photo (or use the arrows) to set the order they appear in the public carousel. The first photo is this place&apos;s cover (list thumbnail + detail hero); use &ldquo;Set cover&rdquo; to promote another one. Separate from a city&apos;s own cover photo, which lives in the Cities tab.
+            <DashboardText>The place&apos;s photo gallery — pick several at once or drag &amp; drop them in. Drag a photo (or use the arrows) to set the order they appear in the public carousel. The first photo is this place&apos;s cover (list thumbnail + detail hero); use &ldquo;Set cover&rdquo; to promote another one. Separate from a city&apos;s own cover photo, which lives in the Cities tab.</DashboardText>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -663,7 +667,7 @@ export default function EditPlacePage() {
               className="mb-4 flex items-start gap-2 rounded-(--radius-ds-md) border border-[var(--error)]/30 bg-[var(--error-bg)] px-3 py-2 text-sm text-[var(--error)]"
             >
               <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Place is soft-deleted. Photos are read-only.</span>
+              <span><DashboardText>Place is soft-deleted. Photos are read-only.</DashboardText></span>
             </div>
           )}
           {(mediaError || media.isError) && (
@@ -706,39 +710,9 @@ export default function EditPlacePage() {
 
           {!isSoftDeleted && (
             <div className="mb-4">
-              <label
-                onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
-                onDragLeave={() => setDropActive(false)}
-                onDrop={async (e) => {
-                  e.preventDefault();
-                  setDropActive(false);
-                  const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
-                  if (!files.length) return;
-                  setMediaError('');
-                  try {
-                    await media.uploadMany(files);
-                  } catch (err) {
-                    setMediaError(err instanceof AdminApiError ? err.message : 'Upload failed. Try again.');
-                  }
-                }}
-                className={
-                  'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-(--radius-ds-md) border border-dashed px-4 py-6 text-sm transition-colors ' +
-                  (dropActive ? 'border-[var(--brand-600)] bg-[var(--brand-50)]' : 'border-border bg-muted/40 hover:bg-muted')
-                }
-                data-trace-id="place-media-upload"
-              >
-                <Plus className="h-5 w-5" />
-                <span className="font-medium">
-                  {media.busy ? 'Uploading…' : 'Add photos'}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Click to pick several, or drag &amp; drop images here
-                </span>
-                <input
-                  type="file"
+              <FileUpload label={lang === 'ar' ? 'اختر صوراً' : 'Choose images'} description={lang === 'ar' ? 'صور للمكان.' : 'Photos of the place.'}
                   accept="image/*"
                   multiple
-                  className="hidden"
                   disabled={media.busy}
                   onChange={async (e) => {
                     const files = Array.from(e.target.files ?? []);
@@ -752,7 +726,6 @@ export default function EditPlacePage() {
                     }
                   }}
                 />
-              </label>
             </div>
           )}
 
@@ -764,7 +737,7 @@ export default function EditPlacePage() {
             </div>
           ) : media.images.length === 0 ? (
             <p data-trace-id="place-media-empty" className="text-sm text-muted-foreground">
-              No photos yet — add the first one above.
+              <DashboardText>No photos yet — add the first one above.</DashboardText>
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-trace-id="place-media-grid">
@@ -803,7 +776,7 @@ export default function EditPlacePage() {
                       whatever order the photos happen to be in. */}
                   {idx === 0 ? (
                     <span className="absolute left-1 top-1 rounded bg-[var(--brand-600)] px-1.5 py-0.5 text-[10px] text-[var(--white)]">
-                      Cover
+                      <DashboardText>Cover</DashboardText>
                     </span>
                   ) : (
                     <span className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">
@@ -844,7 +817,7 @@ export default function EditPlacePage() {
                           data-trace-id={`place-media-set-cover-${img.id}`}
                           className="h-7 px-2 text-[11px] text-white hover:text-white"
                         >
-                          Set cover
+                          <DashboardText>Set cover</DashboardText>
                         </Button>
                       )}
                       <Button
@@ -869,23 +842,14 @@ export default function EditPlacePage() {
 
           {/* Videos */}
           <div className="mt-8 border-t border-border pt-6">
-            <h3 className="mb-1 text-sm font-medium">Videos</h3>
+            <h3 className="mb-1 text-sm font-medium"><DashboardText>Videos</DashboardText></h3>
             <p className="mb-3 text-xs text-muted-foreground">
-              Upload short clips (MP4/WebM, up to 100MB each). They stream in the place&apos;s public gallery.
+              <DashboardText>Upload short clips (MP4/WebM, up to 100MB each). They stream in the place&apos;s public gallery.</DashboardText>
             </p>
             {!isSoftDeleted && (
-              <label
-                className="mb-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-sm hover:bg-muted"
-                data-trace-id="place-media-video-upload"
-              >
-                <Plus className="h-5 w-5" />
-                <span className="font-medium">{media.busy ? 'Uploading…' : 'Add videos'}</span>
-                <span className="text-xs text-muted-foreground">Click to pick one or more video files</span>
-                <input
-                  type="file"
+              <FileUpload label={lang === 'ar' ? 'اختر فيديوهات' : 'Choose videos'} description={lang === 'ar' ? 'MP4 / WebM · حتى 100 ميجابايت لكل ملف.' : 'MP4 / WebM · up to 100 MB per file.'}
                   accept="video/*"
                   multiple
-                  className="hidden"
                   disabled={media.busy}
                   onChange={async (e) => {
                     const files = Array.from(e.target.files ?? []);
@@ -899,11 +863,10 @@ export default function EditPlacePage() {
                     }
                   }}
                 />
-              </label>
             )}
             {media.videos.length === 0 ? (
               <p className="text-sm text-muted-foreground" data-trace-id="place-media-video-empty">
-                No videos yet.
+                <DashboardText>No videos yet.</DashboardText>
               </p>
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-trace-id="place-media-video-grid">
@@ -963,29 +926,19 @@ export default function EditPlacePage() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Preview" className="max-h-full max-w-full rounded-(--radius-ds-md) object-contain" />
-          <button
+          <Button variant="ghost"
             type="button"
             aria-label="Close preview"
             className="absolute right-4 top-4 rounded-full bg-black/60 p-2 text-white"
             onClick={(e) => { e.stopPropagation(); setPreview(null); }}
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
       )}
 
       <HiddenOnTab tab="menu">
-      <div className="mt-6 flex gap-3 sticky bottom-0 bg-background/80 backdrop-blur py-3 border-t border-border">
-        {/* Save directly from component state — do NOT go through the details <form>.
-            The form lives in the Details tab, and Radix unmounts inactive tabs, so on
-            the Amenities/Tags/Hours/Photos tabs document.getElementById('place-form')
-            was null and the click did nothing (the "Save Changes does nothing / no
-            network request" bug). handleSubmit reads state, which is always mounted. */}
-        <Button type="button" disabled={saving} onClick={() => handleSubmit()}>
-          {saving ? 'Saving…' : 'Save Changes'}
-        </Button>
-        <Link href="/dashboard/places"><Button type="button" variant="outline">Cancel</Button></Link>
-      </div>
+      <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />
       </HiddenOnTab>
     </div>
   );

@@ -1,6 +1,9 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -45,6 +48,8 @@ export default function EditTagPage() {
     }
   }, [tag]);
 
+  const formChanges = useFormChanges({ name, nameEn, slug }, { name: tag ? tag.name : '', nameEn: tag ? tag.nameEn || '' : '', slug: tag ? tag.slug : '' });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -54,6 +59,7 @@ export default function EditTagPage() {
         name, slug, nameEn: nameEn || undefined,
       });
       router.push('/dashboard/tags');
+      formChanges.markSaved();
     } catch (e: any) {
       setError(e.message || 'Failed to update tag');
     } finally {
@@ -62,42 +68,42 @@ export default function EditTagPage() {
   };
 
   if (isLoading) return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-12 bg-muted animate-pulse rounded" />)}</div>;
-  if (isError) return <div className="text-center py-8"><p className="text-muted-foreground mb-3">Failed to load tag</p><Button variant="outline" onClick={() => window.location.reload()}>Retry</Button></div>;
-  if (!tag) return <div className="text-center py-8"><p className="text-muted-foreground">Tag not found</p></div>;
+  if (isError) return <div className="text-center py-8"><p className="text-muted-foreground mb-3"><DashboardText>Failed to load tag</DashboardText></p><Button variant="outline" onClick={() => window.location.reload()}><DashboardText>Retry</DashboardText></Button></div>;
+  if (!tag) return <div className="text-center py-8"><p className="text-muted-foreground"><DashboardText>Tag not found</DashboardText></p></div>;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Edit Tag</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Tag</DashboardText></h1>
         <Link href="/dashboard/tags">
-          <Button variant="outline">Cancel</Button>
+          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Tag Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Tag Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name"><DashboardText>Name *</DashboardText></Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">English Name</Label>
+                <Label htmlFor="nameEn"><DashboardText>English Name</DashboardText></Label>
                 <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
+              <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
               <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
             </div>
 
             <div className="flex items-center justify-between pt-4">
-              <Button type="submit" disabled={saving || deleting}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={error} disabled={saving || deleting} cancelHref="/dashboard/tags" />
               <Button
                 type="button"
                 variant="destructive"

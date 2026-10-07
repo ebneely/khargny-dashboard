@@ -10,11 +10,13 @@
  * Cairo district, "الزمالك" finds Zamalek.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useMemo, useState } from 'react';
 import { Check, MapPin } from 'lucide-react';
 import { EGYPT_REGIONS, EGYPT_CITIES, findRegion, type EgyptRegion } from '@/lib/egypt-regions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 export function RegionPicker({
@@ -88,7 +90,7 @@ export function RegionPicker({
 
   return (
     <div className="space-y-2" data-trace-id={traceId}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -96,20 +98,13 @@ export function RegionPicker({
           aria-label="Search region"
         />
         {!city && (
-          <select
-            value={cityFilter}
-            onChange={(e) => setCityFilter(e.target.value)}
-            aria-label="Filter by city"
-            data-trace-id={traceId ? `${traceId}-city-filter` : undefined}
-            className="h-9 shrink-0 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            <option value="">All cities (27 governorates)</option>
-            {EGYPT_CITIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.value} — {c.nameAr}
-              </option>
-            ))}
-          </select>
+          <Select value={cityFilter} onValueChange={(value) => setCityFilter(value ?? '')}>
+            <SelectTrigger aria-label="Filter by city" data-trace-id={traceId ? `${traceId}-city-filter` : undefined} className="min-h-11 w-full sm:w-auto"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value=""><DashboardText>All cities (27 governorates)</DashboardText></SelectItem>
+              {EGYPT_CITIES.map((cityOption) => <SelectItem key={cityOption.value} value={cityOption.value}>{cityOption.value} — {cityOption.nameAr}</SelectItem>)}
+            </SelectContent>
+          </Select>
         )}
         {value && (
           <Button
@@ -119,7 +114,7 @@ export function RegionPicker({
             onClick={() => onChange('')}
             data-trace-id={traceId ? `${traceId}-clear` : undefined}
           >
-            Clear
+            <DashboardText>Clear</DashboardText>
           </Button>
         )}
       </div>
@@ -136,8 +131,7 @@ export function RegionPicker({
         ) : value ? (
           // A value typed before this picker existed — shown, not silently dropped.
           <span>
-            Current: <span className="font-medium">{value}</span> (not in the list — pick one
-            below to normalise it)
+            <DashboardText>Current:</DashboardText> <span className="font-medium">{value}</span> <DashboardText>(not in the list — pick one below to normalise it)</DashboardText>
           </span>
         ) : (
           'No region selected.'
@@ -147,7 +141,7 @@ export function RegionPicker({
       <div className="max-h-72 overflow-y-auto rounded-md border p-2">
         {groups.length === 0 ? (
           <p className="p-4 text-center text-sm text-muted-foreground">
-            No region matches “{query}”.
+            <DashboardText>No region matches “</DashboardText>{query}”.
           </p>
         ) : (
           groups.map(([cityName, regions]) => (
@@ -155,14 +149,14 @@ export function RegionPicker({
               <p className="px-1 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 {cityName}
                 <span className="ml-1.5 font-normal normal-case opacity-70">
-                  {regions.length} area{regions.length === 1 ? '' : 's'}
+                  {regions.length} <DashboardText>area</DashboardText>{regions.length === 1 ? '' : 's'}
                 </span>
               </p>
               <div className="grid grid-cols-2 gap-1 sm:grid-cols-3">
                 {regions.map((region) => {
                   const isSelected = region.value === value;
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={`${region.governorate}-${region.value}`}
                       type="button"
                       onClick={() => pick(region)}
@@ -174,7 +168,7 @@ export function RegionPicker({
                           : undefined
                       }
                       className={cn(
-                        'flex items-center justify-between gap-1 rounded-md border px-2 py-1.5 text-left text-xs transition-colors',
+                        'flex h-auto min-h-14 items-center justify-between gap-1 rounded-md border px-2 py-1.5 text-start text-sm transition-colors',
                         isSelected
                           ? 'border-[var(--brand-600)] bg-[var(--brand-50)] text-[var(--brand-700)]'
                           : 'border-transparent hover:border-[var(--gray-300)] hover:bg-[var(--gray-50)]',
@@ -187,7 +181,7 @@ export function RegionPicker({
                         </span>
                       </span>
                       {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

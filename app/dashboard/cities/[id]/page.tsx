@@ -1,6 +1,9 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { autoSlug } from '@/lib/utils/slug';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -74,6 +77,8 @@ export default function EditCityPage() {
     setSlug(autoSlug(name, nameEn));
   }, [name, nameEn, nameEdited, slugTouched]);
 
+  const formChanges = useFormChanges({ name, nameEn, slug, areaKeys, descriptionAr, descriptionEn, featured, status }, { name: city?.name, nameEn: city?.nameEn || '', slug: city?.slug, areaKeys: city?.areaKeys ?? [], descriptionAr: city?.descriptionAr || '', descriptionEn: city?.descriptionEn || '', featured: city?.featured, status: city?.status });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -92,6 +97,7 @@ export default function EditCityPage() {
       });
       setError('');
       await refetch();
+      formChanges.markSaved();
     } catch (e: any) {
       const err = e as AdminApiError;
       if (err.status === 409) {
@@ -117,9 +123,9 @@ export default function EditCityPage() {
   if (isError || !city) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground mb-3" role="alert">City not found</p>
+        <p className="text-muted-foreground mb-3" role="alert"><DashboardText>City not found</DashboardText></p>
         <Link href="/dashboard/cities">
-          <Button variant="outline">Back to cities</Button>
+          <Button variant="outline"><DashboardText>Back to cities</DashboardText></Button>
         </Link>
       </div>
     );
@@ -134,18 +140,18 @@ export default function EditCityPage() {
   return (
     <div>
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
-        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+        <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
-        <Link href="/dashboard/cities" className="hover:text-foreground">Cities</Link>
+        <Link href="/dashboard/cities" className="hover:text-foreground"><DashboardText>Cities</DashboardText></Link>
         <span className="mx-2">/</span>
         <span className="text-foreground">{city.name}</span>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold text-foreground">Edit City</h1>
+          <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit City</DashboardText></h1>
           {deletedAt ? (
-            <Badge variant="destructive" data-trace-id="edit-city-status-deleted">Deleted</Badge>
+            <Badge variant="destructive" data-trace-id="edit-city-status-deleted"><DashboardText>Deleted</DashboardText></Badge>
           ) : (
             <Badge variant={city.status === 'active' ? 'default' : 'secondary'}>
               {city.status}
@@ -160,7 +166,7 @@ export default function EditCityPage() {
               onClick={() => setRestoreOpen(true)}
               data-trace-id="edit-city-restore"
             >
-              <RotateCcw className="w-4 h-4" /> Restore
+              <RotateCcw className="w-4 h-4" /> <DashboardText>Restore</DashboardText>
             </Button>
           ) : !deletedAt ? (
             <Button
@@ -169,24 +175,24 @@ export default function EditCityPage() {
               onClick={() => setDeleteOpen(true)}
               data-trace-id="edit-city-delete"
             >
-              <Trash2 className="w-4 h-4" /> Delete
+              <Trash2 className="w-4 h-4" /> <DashboardText>Delete</DashboardText>
             </Button>
           ) : null}
           <Link href="/dashboard/cities">
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
           </Link>
         </div>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>City Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>City Details</DashboardText></CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name (Arabic) *</Label>
+                <Label htmlFor="name"><DashboardText>Name (Arabic) *</DashboardText></Label>
                 <Input
                   id="name"
                   value={name}
@@ -196,7 +202,7 @@ export default function EditCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nameEn">Name (English) *</Label>
+                <Label htmlFor="nameEn"><DashboardText>Name (English) *</DashboardText></Label>
                 <Input
                   id="nameEn"
                   value={nameEn}
@@ -208,7 +214,7 @@ export default function EditCityPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
+                <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
                 <Input
                   id="slug"
                   value={slug}
@@ -231,17 +237,17 @@ export default function EditCityPage() {
                 "Region (governorate)" picker was a confusing duplicate and is gone. A place
                 in the city picks its region from exactly this set. */}
             <div className="space-y-2">
-              <Label>Regions / areas in this city</Label>
+              <Label><DashboardText>Regions / areas in this city</DashboardText></Label>
               <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
             </div>
 
             <div className="space-y-2">
-              <Label>Cover photo</Label>
+              <Label><DashboardText>Cover photo</DashboardText></Label>
               <CityImageUpload cityId={id} imageUrl={imageUrl} onChange={setImageUrl} />
             </div>
 
             <div className="space-y-2">
-              <Label>Parent city</Label>
+              <Label><DashboardText>Parent city</DashboardText></Label>
               <p className="text-sm text-muted-foreground" data-trace-id="edit-city-parent-display">
                 {parentName}
                 {parentId && deletedAt ? ' (parent deleted; this area is now top-level)' : ''}
@@ -250,7 +256,7 @@ export default function EditCityPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+                <Label htmlFor="descriptionAr"><DashboardText>Description (Arabic)</DashboardText></Label>
                 <Input
                   id="descriptionAr"
                   value={descriptionAr}
@@ -259,7 +265,7 @@ export default function EditCityPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="descriptionEn">Description (English)</Label>
+                <Label htmlFor="descriptionEn"><DashboardText>Description (English)</DashboardText></Label>
                 <Input
                   id="descriptionEn"
                   value={descriptionEn}
@@ -277,29 +283,24 @@ export default function EditCityPage() {
                   onCheckedChange={(v) => setFeatured(v === true)}
                   data-trace-id="edit-city-featured"
                 />
-                <Label htmlFor="featured">Featured</Label>
+                <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
                 <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                   <SelectTrigger className="w-32" data-trace-id="edit-city-status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
+                    <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving} data-trace-id="edit-city-save">
-                {saving ? 'Saving…' : 'Save Changes'}
-              </Button>
-              <Link href="/dashboard/cities">
-                <Button type="button" variant="outline" data-trace-id="edit-city-cancel">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={error || slugError} disabled={saving} cancelHref="/dashboard/cities" traceId="edit-city-save" />
             </div>
           </form>
         </CardContent>

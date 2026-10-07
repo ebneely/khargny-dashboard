@@ -1,7 +1,11 @@
+"use client"
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { translateDashboardCopy } from '@/lib/dashboard-copy'
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang'
 
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-(--radius-ds-xl) border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -23,13 +27,13 @@ const buttonVariants = cva(
         default:
           "h-11 gap-1.5 px-5 has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
         xs: "h-7 gap-1 rounded-(--radius-ds-md) px-2 text-xs in-data-[slot=button-group]:rounded-(--radius-ds-xl) has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-9 gap-1 px-3.5 text-[0.8rem] has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "min-h-10 gap-1 px-3.5 text-sm has-data-[icon=inline-end]:pe-3 has-data-[icon=inline-start]:ps-3 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-[52px] gap-1.5 px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
         icon: "size-11",
         "icon-xs":
           "size-7 rounded-(--radius-ds-md) in-data-[slot=button-group]:rounded-(--radius-ds-xl) [&_svg:not([class*='size-'])]:size-3",
         "icon-sm":
-          "size-9",
+          "size-10",
         "icon-lg": "size-[52px]",
       },
     },
@@ -46,12 +50,15 @@ function Button({
   size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  const language = useOptionalDashboardLang()?.lang ?? 'en'
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+      aria-label={props['aria-label'] ? translateDashboardCopy(props['aria-label'], language) : undefined}
+      title={props.title ? translateDashboardCopy(props.title, language) : props['aria-label'] ? translateDashboardCopy(props['aria-label'], language) : undefined}
+    >{typeof props.children === 'string' ? translateDashboardCopy(props.children, language) : props.children}</ButtonPrimitive>
   )
 }
 

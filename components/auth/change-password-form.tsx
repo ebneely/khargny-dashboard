@@ -2,9 +2,10 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, AlertCircle, Check } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { request } from '@/lib/api/api-client';
@@ -27,6 +28,7 @@ function validateConfirm(value: string, next: string): string | undefined {
 
 export function ChangePasswordForm() {
   const router = useRouter();
+  const { lang } = useDashboardLang();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -167,21 +169,7 @@ export function ChangePasswordForm() {
       )}
 
       <div className="flex justify-end pt-2">
-        <Button
-          type="submit"
-          disabled={!isValid || submitting}
-          data-trace-id="auth-change-password-submit"
-          className="h-11 min-w-40"
-        >
-          {submitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Changing…
-            </>
-          ) : (
-            'Change password'
-          )}
-        </Button>
+        <FormActionBar dirty={Boolean(current || next || confirm)} saving={submitting} error={error || currentError || (showConfirm ? confirmError : undefined)} disabled={!isValid} cancelHref="/dashboard/settings" primaryLabel={lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'} traceId="auth-change-password-submit" />
       </div>
     </form>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -50,15 +51,15 @@ export function PlaceRestoreDialog({ placeId, placeName, open, onOpenChange, onR
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-trace-id="place-restore-dialog">
         <DialogHeader>
-          <DialogTitle>Restore {placeName || 'this place'}?</DialogTitle>
+          <DialogTitle><DashboardText>Restore</DashboardText> {placeName || 'this place'}?</DialogTitle>
           <DialogDescription>
-            The place returns as a draft — it stays hidden from the public list until you publish it again.
+            <DashboardText>The place returns as a draft — it stays hidden from the public list until you publish it again.</DashboardText>
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" onClick={handleRestore} disabled={submitting} data-trace-id="place-restore-confirm">
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}

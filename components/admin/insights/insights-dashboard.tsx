@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import {
   Eye,
@@ -15,6 +16,7 @@ import {
 import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { UrlTabs } from '@/components/ui/url-tabs';
 import { Button } from '@/components/ui/button';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { regionLabel } from '@/lib/egypt-regions';
 import { StatTile } from './stat-tile';
@@ -28,7 +30,9 @@ const MEASURES = [
 ] as const;
 type MeasureKey = (typeof MEASURES)[number]['key'];
 
-export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
+export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | 'en' }) {
+  const { lang: currentLanguage } = useDashboardLang();
+  const lang = requestedLanguage ?? currentLanguage;
   const { data, isLoading, isError, refetch } = useAnalyticsOverview();
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
 
@@ -42,7 +46,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
           key: c.key,
           label: label(c.labelAr, c.labelEn, c.key),
           value: c[measure],
-          meta: `${c.places.toLocaleString('en-US')} places`,
+          meta: `${c.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
         .sort((a, b) => b.value - a.value),
     [data, measure, lang],
@@ -57,7 +61,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
           // the shared catalog, the same way every other surface resolves it.
           label: regionLabel(r.key, lang) || r.key,
           value: r[measure],
-          meta: `${r.places.toLocaleString('en-US')} places`,
+          meta: `${r.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
         .sort((a, b) => b.value - a.value),
     [data, measure, lang],
@@ -68,15 +72,14 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
       <div className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-center gap-2 text-foreground">
           <TriangleAlert className="size-4 text-brand-700" aria-hidden="true" />
-          <p className="text-sm font-medium">Couldn&apos;t load insights.</p>
+          <p className="text-sm font-medium"><DashboardText>Couldn&apos;t load insights.</DashboardText></p>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          The analytics endpoint didn&apos;t respond. This is the only thing on this page that
-          failed — the rest of the dashboard is unaffected.
+          <DashboardText>The analytics endpoint didn&apos;t respond. This is the only thing on this page that failed — the rest of the dashboard is unaffected.</DashboardText>
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
           <RefreshCw className="size-4" aria-hidden="true" />
-          Try again
+          <DashboardText>Try again</DashboardText>
         </Button>
       </div>
     );
@@ -89,7 +92,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
       {/* Engagement first: the three numbers that describe what visitors did. */}
       <section aria-labelledby="insights-engagement">
         <h2 id="insights-engagement" className="sr-only">
-          Engagement
+          <DashboardText>Engagement</DashboardText>
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="Views" value={t?.views ?? 0} icon={Eye} loading={isLoading} />
@@ -103,7 +106,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
           <StatTile
             label="Live places"
             value={t?.places ?? 0}
-            hint={t?.draftPlaces ? `${t.draftPlaces} in draft` : undefined}
+            hint={t?.draftPlaces ? `${t.draftPlaces} ${lang === 'ar' ? 'في المسودة' : 'in draft'}` : undefined}
             icon={MapPin}
             loading={isLoading}
           />
@@ -113,7 +116,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
       {/* Catalogue size — context, deliberately quieter than engagement. */}
       <section aria-labelledby="insights-catalogue">
         <h2 id="insights-catalogue" className="sr-only">
-          Catalogue
+          <DashboardText>Catalogue</DashboardText>
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="Cities" value={t?.cities ?? 0} icon={Building2} loading={isLoading} />
@@ -121,7 +124,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
               many. Counted from the byRegion breakdown the endpoint already returns. */}
           <StatTile
             label="Areas"
-            value={data?.byRegion.length ?? 0}
+            value={data?.byRegion?.length ?? 0}
             hint="Across all cities"
             icon={Navigation}
             loading={isLoading}
@@ -146,10 +149,10 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <h2 id="insights-breakdown" className="font-display text-lg font-semibold text-foreground">
-              Where the engagement is
+              <DashboardText>Where the engagement is</DashboardText>
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Ranked by {MEASURES.find((m) => m.key === measure)?.label.toLowerCase()}.
+              <DashboardText>Ranked by</DashboardText> <DashboardText>{lang === 'ar' ? MEASURES.find((m) => m.key === measure)?.label : MEASURES.find((m) => m.key === measure)?.label.toLowerCase()}</DashboardText>.
             </p>
           </div>
           {/* One measure at a time: the three differ by an order of magnitude, so plotting
@@ -160,7 +163,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
             aria-label="Measure"
           >
             {MEASURES.map((m) => (
-              <button
+              <Button variant="ghost"
                 key={m.key}
                 type="button"
                 onClick={() => setMeasure(m.key)}
@@ -171,16 +174,16 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
                     : 'rounded px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground'
                 }
               >
-                {m.label}
-              </button>
+                <DashboardText>{m.label}</DashboardText>
+              </Button>
             ))}
           </div>
         </div>
 
         <UrlTabs values={["city", "region"]} className="p-4 sm:p-5">
           <TabsList>
-            <TabsTrigger value="city">By city</TabsTrigger>
-            <TabsTrigger value="region">By area</TabsTrigger>
+            <TabsTrigger value="city"><DashboardText>By city</DashboardText></TabsTrigger>
+            <TabsTrigger value="region"><DashboardText>By area</DashboardText></TabsTrigger>
           </TabsList>
           <TabsContent keepMounted value="city" className="mt-4">
             {isLoading ? (
@@ -211,19 +214,19 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
       <section className="rounded-lg border border-border bg-card" aria-labelledby="insights-top">
         <div className="border-b border-border p-4 sm:p-5">
           <h2 id="insights-top" className="font-display text-lg font-semibold text-foreground">
-            Most-viewed places
+            <DashboardText>Most-viewed places</DashboardText>
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[540px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th scope="col" className="px-4 py-2 font-medium sm:px-5">Place</th>
-                <th scope="col" className="px-4 py-2 font-medium">City</th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">Views</th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">Saves</th>
+                <th scope="col" className="px-4 py-2 font-medium sm:px-5"><DashboardText>Place</DashboardText></th>
+                <th scope="col" className="px-4 py-2 font-medium"><DashboardText>City</DashboardText></th>
+                <th scope="col" className="px-4 py-2 text-right font-medium"><DashboardText>Views</DashboardText></th>
+                <th scope="col" className="px-4 py-2 text-right font-medium"><DashboardText>Saves</DashboardText></th>
                 <th scope="col" className="px-4 py-2 pe-4 text-right font-medium sm:pe-5">
-                  Directions
+                  <DashboardText>Directions</DashboardText>
                 </th>
               </tr>
             </thead>
@@ -236,10 +239,10 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
                     </td>
                   </tr>
                 ))
-              ) : (data?.topPlaces.length ?? 0) === 0 ? (
+              ) : (data?.topPlaces?.length ?? 0) === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground sm:px-5">
-                    No places yet.
+                    <DashboardText>No places yet.</DashboardText>
                   </td>
                 </tr>
               ) : (

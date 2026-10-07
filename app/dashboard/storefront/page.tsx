@@ -1,7 +1,9 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, ArrowUp, ArrowDown, Trash2, Eye, EyeOff } from 'lucide-react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { ArrowUp, ArrowDown, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +45,7 @@ export default function StorefrontPage() {
   const [titleEn, setTitleEn] = useState('');
   const [kind, setKind] = useState<Section['kind']>('featured');
   const [creating, setCreating] = useState(false);
+  const [activeSaveForm, setActiveSaveForm] = useState('section');
   const [managing, setManaging] = useState<Section | null>(null);
 
   const load = useCallback(async () => {
@@ -105,9 +108,9 @@ export default function StorefrontPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-foreground">Storefront</h1>
+          <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Storefront</DashboardText></h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Control which sections appear on the public homepage and in what order.
+            <DashboardText>Control which sections appear on the public homepage and in what order.</DashboardText>
           </p>
         </div>
       </div>
@@ -115,7 +118,7 @@ export default function StorefrontPage() {
       {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
       <Card className="mb-6">
-        <CardHeader><CardTitle>Homepage sections</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Homepage sections</DashboardText></CardTitle></CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-3">
@@ -125,7 +128,7 @@ export default function StorefrontPage() {
             </div>
           ) : sections.length === 0 ? (
             <p className="text-muted-foreground py-6 text-center">
-              No sections yet. Add one below — it will show on the homepage.
+              <DashboardText>No sections yet. Add one below — it will show on the homepage.</DashboardText>
             </p>
           ) : (
             <div className="space-y-2">
@@ -136,7 +139,7 @@ export default function StorefrontPage() {
                   data-trace-id={`storefront-section-${s.key}`}
                 >
                   <div className="flex flex-col">
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       aria-label="Move up"
                       disabled={i === 0}
@@ -144,8 +147,8 @@ export default function StorefrontPage() {
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                     >
                       <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="ghost"
                       type="button"
                       aria-label="Move down"
                       disabled={i === sections.length - 1}
@@ -153,7 +156,7 @@ export default function StorefrontPage() {
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                     >
                       <ArrowDown className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -175,7 +178,7 @@ export default function StorefrontPage() {
                     data-trace-id={`storefront-manage-${s.key}`}
                   >
                     <ListChecks className="h-4 w-4" />
-                    Places
+                    <DashboardText>Places</DashboardText>
                   </Button>
                   <Button
                     variant={s.enabled ? 'outline' : 'secondary'}
@@ -203,46 +206,43 @@ export default function StorefrontPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Add a section</CardTitle></CardHeader>
+        <CardHeader><CardTitle><DashboardText>Add a section</DashboardText></CardTitle></CardHeader>
         <CardContent>
-          <form onSubmit={create} className="space-y-4">
+          <form onFocusCapture={() => setActiveSaveForm('section')} onSubmit={create} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="key">Key *</Label>
+                <Label htmlFor="key"><DashboardText>Key *</DashboardText></Label>
                 <Input id="key" value={key} onChange={(e) => setKey(e.target.value)} placeholder="popular" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kind">Kind *</Label>
+                <Label htmlFor="kind"><DashboardText>Kind *</DashboardText></Label>
                 <Select value={kind} onValueChange={(v) => v && setKind(v as Section['kind'])}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="featured">Featured</SelectItem>
-                    <SelectItem value="top_rated">Top rated</SelectItem>
-                    <SelectItem value="recommended">Recommended</SelectItem>
-                    <SelectItem value="custom">Custom (pinned)</SelectItem>
+                    <SelectItem value="featured"><DashboardText>Featured</DashboardText></SelectItem>
+                    <SelectItem value="top_rated"><DashboardText>Top rated</DashboardText></SelectItem>
+                    <SelectItem value="recommended"><DashboardText>Recommended</DashboardText></SelectItem>
+                    <SelectItem value="custom"><DashboardText>Custom (pinned)</DashboardText></SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="titleAr">Title (Arabic) *</Label>
+                <Label htmlFor="titleAr"><DashboardText>Title (Arabic) *</DashboardText></Label>
                 <Input id="titleAr" value={titleAr} onChange={(e) => setTitleAr(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="titleEn">Title (English)</Label>
+                <Label htmlFor="titleEn"><DashboardText>Title (English)</DashboardText></Label>
                 <Input id="titleEn" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} />
               </div>
             </div>
-            <Button type="submit" disabled={creating} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {creating ? 'Adding…' : 'Add section'}
-            </Button>
+            <FormActionBar active={activeSaveForm === 'section'} dirty={Boolean(key || titleAr || titleEn || kind !== 'featured')} saving={creating} error={error} cancelHref="/dashboard" />
           </form>
         </CardContent>
       </Card>
 
-      <FooterSettingsCard />
+      <FooterSettingsCard active={activeSaveForm === 'footer'} onActivate={() => setActiveSaveForm('footer')} />
 
       <SectionPlacesDialog
         sectionId={managing?.id ?? null}

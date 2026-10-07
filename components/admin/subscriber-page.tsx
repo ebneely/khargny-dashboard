@@ -59,7 +59,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
       <UrlTabsContent value="menus" lazy className="space-y-6">
         <h2 className="text-lg font-semibold">{text('Pricing', 'الأسعار')}</h2>
         {!subscriber.places.length && <Card><CardHeader><CardTitle>{text('No linked places', 'لا توجد أماكن مرتبطة')}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{text('Link a place in the Places tab to add its pricing.', 'اربط مكاناً في تبويب الأماكن لإضافة أسعاره.')}</p></CardContent></Card>}
-        {subscriber.places.map((place) => <section key={place.id} className="space-y-3"><h3 className="font-semibold">{pick(place.name, place.nameEn)}</h3><PlaceMenuEditor placeId={place.id} canWrite={canWrite} onChanged={resource.refreshAfterSave} /></section>)}
+        {subscriber.places.map((place, placeIndex) => <section key={place.id} className="space-y-3"><h3 className="font-semibold">{pick(place.name, place.nameEn)}</h3><PlaceMenuEditor placeId={place.id} canWrite={canWrite} primaryAction={placeIndex === 0} onChanged={resource.refreshAfterSave} /></section>)}
       </UrlTabsContent>
     </UrlTabs>}
   </div>;

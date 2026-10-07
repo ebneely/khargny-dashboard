@@ -11,6 +11,8 @@
  * Selecting one fills the Arabic and English name fields, so an editor types neither.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import { EGYPT_CITIES, regionsForCity } from '@/lib/egypt-regions';
@@ -49,14 +51,14 @@ export function CityPicker({
       <div className="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto rounded-md border p-2 sm:grid-cols-3">
         {matches.length === 0 ? (
           <p className="col-span-full p-3 text-center text-sm text-muted-foreground">
-            No governorate matches “{query}”.
+            <DashboardText>No governorate matches “</DashboardText>{query}”.
           </p>
         ) : (
           matches.map((c) => {
             const isSelected = c.value === value;
             const areaCount = regionsForCity(c.value).length;
             return (
-              <button
+              <Button variant="ghost"
                 key={c.value}
                 type="button"
                 onClick={() => onSelect(c)}
@@ -65,7 +67,7 @@ export function CityPicker({
                   traceId ? `${traceId}-${c.value.toLowerCase().replace(/\s+/g, '-')}` : undefined
                 }
                 className={cn(
-                  'flex items-center justify-between gap-1 rounded-md border px-2 py-1.5 text-left text-xs transition-colors',
+                  'flex h-auto min-h-14 items-center justify-between gap-1 rounded-md border px-2 py-1.5 text-start text-sm transition-colors',
                   isSelected
                     ? 'border-[var(--brand-600)] bg-[var(--brand-50)] text-[var(--brand-700)]'
                     : 'border-transparent hover:border-[var(--gray-300)] hover:bg-[var(--gray-50)]',
@@ -74,11 +76,11 @@ export function CityPicker({
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{c.value}</span>
                   <span className="block truncate text-[10px] text-muted-foreground">
-                    {c.nameAr} · {areaCount} area{areaCount === 1 ? '' : 's'}
+                    {c.nameAr} · {areaCount} <DashboardText>area</DashboardText>{areaCount === 1 ? '' : 's'}
                   </span>
                 </span>
                 {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
-              </button>
+              </Button>
             );
           })
         )}

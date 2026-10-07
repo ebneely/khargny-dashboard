@@ -14,6 +14,7 @@
  * again by the backend's RolesGuard, which is the actual authority.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -103,11 +104,9 @@ export function DangerZone() {
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
         <div className="min-w-0 flex-1">
-          <h3 className="font-medium text-foreground">Reset all content</h3>
+          <h3 className="font-medium text-foreground"><DashboardText>Reset all content</DashboardText></h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Permanently deletes every place, city, category, amenity, tag and uploaded photo
-            or video — a clean slate. Admin accounts, sign-ins and the audit log are kept.
-            This cannot be undone and no backup is taken.
+            <DashboardText>Permanently deletes every place, city, category, amenity, tag and uploaded photo or video — a clean slate. Admin accounts, sign-ins and the audit log are kept. This cannot be undone and no backup is taken.</DashboardText>
           </p>
           <Button
             type="button"
@@ -116,7 +115,7 @@ export function DangerZone() {
             onClick={openDialog}
             data-trace-id="settings-reset-content-open"
           >
-            Reset all content…
+            <DashboardText>Reset all content…</DashboardText>
           </Button>
         </div>
       </div>
@@ -132,22 +131,21 @@ export function DangerZone() {
       >
         <DialogContent data-trace-id="reset-content-dialog">
           <DialogHeader>
-            <DialogTitle>Delete all content?</DialogTitle>
+            <DialogTitle><DashboardText>Delete all content?</DashboardText></DialogTitle>
             <DialogDescription>
-              This is irreversible. Everything listed below is destroyed, including the files
-              in storage.
+              <DashboardText>This is irreversible. Everything listed below is destroyed, including the files in storage.</DashboardText>
             </DialogDescription>
           </DialogHeader>
 
           {loading && !preview ? (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Checking what would be deleted…
+              <Loader2 className="h-4 w-4 animate-spin" /> <DashboardText>Checking what would be deleted…</DashboardText>
             </p>
           ) : preview ? (
             <div className="space-y-3 text-sm">
               {nonEmpty.length === 0 && preview.storageObjects === 0 ? (
                 <p className="text-muted-foreground">
-                  There is no content to delete — everything is already empty.
+                  <DashboardText>There is no content to delete — everything is already empty.</DashboardText>
                 </p>
               ) : (
                 <>
@@ -159,14 +157,14 @@ export function DangerZone() {
                       </li>
                     ))}
                     <li className="flex justify-between gap-4 border-t pt-1">
-                      <span className="text-muted-foreground">files in storage</span>
+                      <span className="text-muted-foreground"><DashboardText>files in storage</DashboardText></span>
                       <span className="font-medium tabular-nums">
                         {preview.storageObjects}
                       </span>
                     </li>
                   </ul>
                   <p className="text-xs text-muted-foreground">
-                    Kept: {preview.preserved.join(', ')}.
+                    <DashboardText>Kept:</DashboardText> {preview.preserved.join(', ')}.
                   </p>
                 </>
               )}
@@ -175,7 +173,7 @@ export function DangerZone() {
 
           <div className="space-y-2">
             <label htmlFor="reset-confirm" className="text-sm font-medium">
-              Type <code className="rounded bg-muted px-1">{CONFIRM_PHRASE}</code> to confirm
+              <DashboardText>Type</DashboardText> <code className="rounded bg-muted px-1">{CONFIRM_PHRASE}</code> <DashboardText>to confirm</DashboardText>
             </label>
             <Input
               id="reset-confirm"
@@ -200,7 +198,7 @@ export function DangerZone() {
               onClick={() => setOpen(false)}
               disabled={loading}
             >
-              Cancel
+              <DashboardText>Cancel</DashboardText>
             </Button>
             <Button
               type="button"

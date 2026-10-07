@@ -1,14 +1,18 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, CheckCircle2, FileText, Loader2, LockKeyhole } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileText, LockKeyhole } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdPlacePicker } from '@/components/admin/ad-place-picker';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
 import { AdStateBadge } from '@/components/admin/ad-state-badge';
 import { Button } from '@/components/ui/button';
+import { FormActionBar } from './form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,6 +56,7 @@ const EMPTY_FORM: FormValues = {
 
 export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; canWrite: boolean }) {
   const router = useRouter();
+  const { lang } = useDashboardLang();
   const editing = Boolean(campaignId);
   const [campaign, setCampaign] = React.useState<AdCampaign | null>(null);
   const [selectedPlace, setSelectedPlace] = React.useState<AdPlaceSummary | null>(null);
@@ -105,6 +110,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
     setValues((current) => ({ ...current, [key]: value }));
   };
 
+  const formChanges = useFormChanges(values, campaign ? { placeId: campaign.placeId, placement: campaign.placement, cityId: campaign.cityId ?? '', startDate: campaign.startDate, endDate: campaign.endDate, advertiserName: campaign.advertiserName, advertiserPhone: campaign.advertiserPhone ?? '', amountPaid: String(campaign.amountPaid), currency: campaign.currency, notes: campaign.notes ?? '' } : EMPTY_FORM);
   const targetingLocked = editing && campaign?.state !== 'scheduled';
 
   const validate = (): string | null => {
@@ -164,6 +170,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         toast.success('Campaign created.');
         router.push(`/dashboard/ads/${result.id}`);
       }
+      formChanges.markSaved();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : `Could not ${editing ? 'save' : 'create'} the campaign.`);
     } finally {
@@ -188,7 +195,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         <AdsPageHeader title="Edit campaign" description="Review and update a booked placement." />
         <Card><CardContent className="py-10 text-center">
           <p className="mb-3 text-sm text-destructive" role="alert">{error ?? 'Campaign not found.'}</p>
-          <Button variant="outline" onClick={() => void load()}>Retry</Button>
+          <Button variant="outline" onClick={() => void load()}><DashboardText>Retry</DashboardText></Button>
         </CardContent></Card>
       </div>
     );
@@ -201,7 +208,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         description={editing ? 'Update the booking record and advertiser details.' : 'Book a Featured or Top 10 placement for an active place.'}
         actions={campaignId ? (
           <Button render={<Link href={`/dashboard/ads/${campaignId}/report`} />} variant="outline">
-            <FileText className="size-4" />Open report
+            <FileText className="size-4" /><DashboardText>Open report</DashboardText>
           </Button>
         ) : undefined}
       />
@@ -210,38 +217,38 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         {campaign && (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card px-4 py-3">
             <AdStateBadge state={campaign.state} />
-            <span className="text-sm text-muted-foreground">Campaign targeting can only change while scheduled.</span>
+            <span className="text-sm text-muted-foreground"><DashboardText>Campaign targeting can only change while scheduled.</DashboardText></span>
           </div>
         )}
 
         {targetingLocked && (
           <div className="flex gap-3 rounded-lg border bg-muted px-4 py-3 text-sm text-muted-foreground">
             <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            Place, placement and city are locked because this campaign is no longer scheduled.
+            <DashboardText>Place, placement and city are locked because this campaign is no longer scheduled.</DashboardText>
           </div>
         )}
 
         {warnings.length > 0 && (
           <div className="rounded-lg border border-warning bg-warning-bg p-4 text-warning" role="status">
-            <div className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" aria-hidden="true" />Inventory warning</div>
+            <div className="flex items-center gap-2 font-medium"><AlertTriangle className="size-4" aria-hidden="true" /><DashboardText>Inventory warning</DashboardText></div>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
               {warnings.map((warning) => <li key={warning}>{warning}</li>)}
             </ul>
-            <p className="mt-2 text-sm">The booking is saved. Oversold campaigns rotate fairly.</p>
+            <p className="mt-2 text-sm"><DashboardText>The booking is saved. Oversold campaigns rotate fairly.</DashboardText></p>
           </div>
         )}
 
         {createdId && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-success-bg px-4 py-3 text-success">
-            <span className="flex items-center gap-2 text-sm font-medium"><CheckCircle2 className="size-4" />Campaign created.</span>
-            <Button render={<Link href={`/dashboard/ads/${createdId}`} />} type="button" variant="outline" size="sm">Open campaign</Button>
+            <span className="flex items-center gap-2 text-sm font-medium"><CheckCircle2 className="size-4" /><DashboardText>Campaign created.</DashboardText></span>
+            <Button render={<Link href={`/dashboard/ads/${createdId}`} />} type="button" variant="outline" size="sm"><DashboardText>Open campaign</DashboardText></Button>
           </div>
         )}
 
         {error && <p className="rounded-lg border border-destructive/20 bg-error-bg px-4 py-3 text-sm text-destructive" role="alert">{error}</p>}
 
         <Card>
-          <CardHeader><CardTitle>Placement</CardTitle></CardHeader>
+          <CardHeader><CardTitle><DashboardText>Placement</DashboardText></CardTitle></CardHeader>
           <CardContent className="grid gap-5 md:grid-cols-2">
             <Field label="Place" htmlFor="ad-place-search" className="md:col-span-2">
               <AdPlacePicker
@@ -255,7 +262,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
                 disabled={targetingLocked}
               />
             </Field>
-            <Field label="Placement" htmlFor="ad-placement">
+            <Field label="Placement" htmlFor="campaign-placement">
               <Select
                 value={values.placement}
                 onValueChange={(value) => {
@@ -266,10 +273,10 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
                 }}
                 disabled={targetingLocked}
               >
-                <SelectTrigger id="ad-placement" className="min-h-11 w-full bg-background text-foreground"><SelectValue>{values.placement === 'featured' ? 'Featured · national' : 'Top 10'}</SelectValue></SelectTrigger>
+                <SelectTrigger id="campaign-placement" className="min-h-11 w-full bg-background text-foreground"><SelectValue>{values.placement === 'featured' ? 'Featured · national' : 'Top 10'}</SelectValue></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Featured · national</SelectItem>
-                  <SelectItem value="top10">Top 10</SelectItem>
+                  <SelectItem value="featured"><DashboardText>Featured · national</DashboardText></SelectItem>
+                  <SelectItem value="top10"><DashboardText>Top 10</DashboardText></SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -278,7 +285,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
                 <Select value={values.cityId || 'all'} onValueChange={(value) => value && setField('cityId', value === 'all' ? '' : value)} disabled={targetingLocked}>
                   <SelectTrigger id="ad-city" className="h-11 w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Egypt</SelectItem>
+                    <SelectItem value="all"><DashboardText>All Egypt</DashboardText></SelectItem>
                     {cities.map((city) => <SelectItem key={city.id} value={city.id}>{displayName(city.name, city.nameEn)}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -294,7 +301,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Advertiser and payment record</CardTitle></CardHeader>
+          <CardHeader><CardTitle><DashboardText>Advertiser and payment record</DashboardText></CardTitle></CardHeader>
           <CardContent className="grid gap-5 md:grid-cols-2">
             <Field label="Advertiser name" htmlFor="ad-advertiser">
               <Input id="ad-advertiser" value={values.advertiserName} onChange={(event) => setField('advertiserName', event.target.value)} maxLength={120} required />
@@ -322,11 +329,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
         </Card>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button render={<Link href="/dashboard/ads" />} type="button" variant="ghost"><ArrowLeft className="size-4" />Back to campaigns</Button>
-          <Button type="submit" disabled={!canWrite || saving || Boolean(createdId)}>
-            {saving && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
-            {saving ? 'Saving…' : editing ? 'Save changes' : 'Create campaign'}
-          </Button>
+          <FormActionBar dirty={formChanges.dirty} saving={saving} error={error} disabled={!canWrite || Boolean(createdId)} cancelHref="/dashboard/ads" primaryLabel={lang === 'ar' ? (editing ? 'حفظ التغييرات' : 'إنشاء حملة') : (editing ? 'Save changes' : 'Create campaign')} />
         </div>
       </form>
     </div>
@@ -350,7 +353,7 @@ function Field({
     <div className={className}>
       <Label htmlFor={htmlFor}>{label}</Label>
       <div className="mt-2">{children}</div>
-      {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-muted-foreground"><DashboardText>{hint}</DashboardText></p>}
     </div>
   );
 }

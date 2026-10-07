@@ -1,6 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
+import { translateDashboardCopy } from '@/lib/dashboard-copy';
 
 export type RankedRow = {
   key: string;
@@ -36,11 +39,13 @@ export function RankedBars({
   valueLabel: string;
   max?: number;
 }) {
+  const lang = useOptionalDashboardLang()?.lang ?? 'en';
+  const measureLabel = translateDashboardCopy(valueLabel.charAt(0).toUpperCase() + valueLabel.slice(1), lang);
   const max = maxOverride ?? Math.max(1, ...rows.map((r) => r.value));
 
   if (rows.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">{emptyLabel}</p>
+      <p className="py-8 text-center text-sm text-muted-foreground"><DashboardText>{emptyLabel}</DashboardText></p>
     );
   }
 
@@ -70,7 +75,7 @@ export function RankedBars({
             <div
               className="col-span-2 h-2 overflow-hidden rounded-full bg-muted"
               role="img"
-              aria-label={`${row.label}: ${row.value.toLocaleString('en-US')} ${valueLabel}`}
+              aria-label={`${row.label}: ${row.value.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${measureLabel}`}
             >
               <div
                 className="h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out"

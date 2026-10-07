@@ -1,8 +1,10 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,11 +68,11 @@ export function AdsInventoryPage() {
         actions={
           <>
             <Button data-ro-allow="true" variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label="Previous 4 weeks">
-              <ChevronLeft className="size-4" />4 weeks
+              <ChevronLeft className="size-4" /><DashboardText>4 weeks</DashboardText>
             </Button>
-            <Button data-ro-allow="true" variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}>Today</Button>
+            <Button data-ro-allow="true" variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}><DashboardText>Today</DashboardText></Button>
             <Button data-ro-allow="true" variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label="Next 4 weeks">
-              4 weeks<ChevronRight className="size-4" />
+              <DashboardText>4 weeks</DashboardText><ChevronRight className="size-4" />
             </Button>
           </>
         }
@@ -81,17 +83,17 @@ export function AdsInventoryPage() {
         <Legend className={CELL_STYLES.partial} label="Partly sold" />
         <Legend className={CELL_STYLES.full} label="Full" />
         <Legend className={CELL_STYLES.oversold} label="Oversold" />
-        <span>Each cell shows booked / capacity. Select a booked day to view those campaigns.</span>
+        <span><DashboardText>Each cell shows booked / capacity. Select a booked day to view those campaigns.</DashboardText></span>
       </div>
 
       <Card>
         <CardContent>
           {loading ? (
-            <div className="flex min-h-64 items-center justify-center text-sm text-muted-foreground" aria-busy="true"><Loader2 className="mr-2 size-4 animate-spin" />Loading inventory…</div>
+            <ContentSkeleton />
           ) : error ? (
-            <div className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}>Retry</Button></div>
+            <div className="py-12 text-center" role="alert"><p className="mb-3 text-sm text-destructive">{error}</p><Button data-ro-allow="true" variant="outline" onClick={() => void load()}><DashboardText>Retry</DashboardText></Button></div>
           ) : !inventory || inventory.scopes.length === 0 ? (
-            <div className="py-12 text-center"><p className="font-medium">No inventory scopes available</p><p className="mt-1 text-sm text-muted-foreground">Active city scopes will appear here when the API returns them.</p></div>
+            <div className="py-12 text-center"><p className="font-medium"><DashboardText>No inventory scopes available</DashboardText></p><p className="mt-1 text-sm text-muted-foreground"><DashboardText>Active city scopes will appear here when the API returns them.</DashboardText></p></div>
           ) : (
             <InventoryGrid inventory={inventory} />
           )}
@@ -108,7 +110,7 @@ function InventoryGrid({ inventory }: { inventory: AdInventory }) {
       <table className="w-max min-w-full border-collapse text-xs">
         <thead className="sticky top-0 z-20 bg-card">
           <tr>
-            <th className="sticky left-0 z-30 min-w-48 border-b border-r bg-card px-3 py-3 text-left font-medium">Scope</th>
+            <th className="sticky left-0 z-30 min-w-48 border-b border-r bg-card px-3 py-3 text-left font-medium"><DashboardText>Scope</DashboardText></th>
             {days.map((day) => (
               <th key={day.date} className="min-w-20 border-b px-2 py-3 text-center font-medium">
                 <span className="block text-muted-foreground">{weekday(day.date)}</span>
@@ -182,5 +184,5 @@ function weekday(date: string): string {
 }
 
 function Legend({ className, label }: { className: string; label: string }) {
-  return <span className="flex items-center gap-1.5"><span className={cn('size-3 rounded-sm', className)} aria-hidden="true" />{label}</span>;
+  return <span className="flex items-center gap-1.5"><span className={cn('size-3 rounded-sm', className)} aria-hidden="true" /><DashboardText>{label}</DashboardText></span>;
 }

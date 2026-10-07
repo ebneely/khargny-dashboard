@@ -1,8 +1,9 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -12,8 +13,10 @@ import {
 } from '@/components/ui/table';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { EntityDeleteDialog } from '@/components/admin/entity-delete-dialog';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 
 export default function TagsPage() {
+  const { lang, pick } = useDashboardLang();
   const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const { data, isLoading, isError, refetch } = useAdminTags();
@@ -33,11 +36,11 @@ export default function TagsPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Tags</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Tags</DashboardText></h1>
         <Link href="/dashboard/tags/new">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
-            Add Tag
+            <DashboardText>Add Tag</DashboardText>
           </Button>
         </Link>
       </div>
@@ -65,17 +68,17 @@ export default function TagsPage() {
             </div>
           ) : isError ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-3">Failed to load tags</p>
-              <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+              <p className="text-muted-foreground mb-3"><DashboardText>Failed to load tags</DashboardText></p>
+              <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : filtered.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>English Name</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead><DashboardText>Name</DashboardText></TableHead>
+                  <TableHead><DashboardText>English Name</DashboardText></TableHead>
+                  <TableHead><DashboardText>Slug</DashboardText></TableHead>
+                  <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -88,19 +91,17 @@ export default function TagsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{tag.nameEn || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{tag.slug}</TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/dashboard/tags/${tag.id}`}>
-                        <Button variant="ghost" size="sm">Edit</Button>
-                      </Link>
+                    <TableCell className="text-end">
+                      <Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href={`/dashboard/tags/${tag.id}`} />} aria-label={`${lang === 'ar' ? 'تعديل' : 'Edit'} ${pick(tag.name, tag.nameEn)}`}><Pencil aria-hidden="true" /></Button>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        aria-label={`Delete ${tag.name}`}
+                        size="icon-sm"
+                        className="hover:text-destructive focus-visible:text-destructive"
+                        aria-label={`${lang === 'ar' ? 'حذف' : 'Delete'} ${pick(tag.name, tag.nameEn)}`}
                         onClick={() => setPendingDelete({ id: tag.id, name: tag.name })}
                         data-trace-id={`tag-list-delete-${tag.id}`}
                       >
-                        Delete
+                        <Trash2 aria-hidden="true" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -109,7 +110,8 @@ export default function TagsPage() {
             </Table>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No tags found</p>
+              <p className="text-muted-foreground"><DashboardText>No tags found</DashboardText></p>
+              <Button variant="outline" nativeButton={false} render={<Link href="/dashboard/tags/new" />} className="mt-3"><DashboardText>Add Tag</DashboardText></Button>
             </div>
           )}
         </CardContent>

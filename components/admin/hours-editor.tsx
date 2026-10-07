@@ -18,11 +18,13 @@
  * always, and picking from a list is far quicker than typing HH:MM.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useMemo, useState } from 'react';
 import { Check, Clock, ClipboardPaste } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useDashboardLang, type DashLang } from '@/lib/dashboard-lang';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { parseHoursText } from '@/lib/parse-hours';
 import type { PlaceHour } from '@/lib/api/hooks/use-place-hours';
 
@@ -145,7 +147,7 @@ export function HoursEditor({
       {/* ── Presets: the whole week in one click ─────────────────────────────────────── */}
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Quick presets — applies to every day
+          <DashboardText>Quick presets — applies to every day</DashboardText>
         </p>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((p) => (
@@ -175,15 +177,13 @@ export function HoursEditor({
           data-trace-id="place-hours-paste-toggle"
         >
           <ClipboardPaste className="h-4 w-4" />
-          Paste hours from Google Maps
+          <DashboardText>Paste hours from Google Maps</DashboardText>
         </Button>
 
         {pasteOpen && (
           <div className="mt-2 space-y-2 rounded-md border p-3">
             <p className="text-xs text-muted-foreground">
-              On Google Maps, expand the opening hours, select the whole block and copy it.
-              Paste it here — English or Arabic, 12- or 24-hour, &ldquo;Closed&rdquo; and
-              &ldquo;Open 24 hours&rdquo; all work.
+              <DashboardText>On Google Maps, expand the opening hours, select the whole block and copy it. Paste it here — English or Arabic, 12- or 24-hour, &ldquo;Closed&rdquo; and &ldquo;Open 24 hours&rdquo; all work.</DashboardText>
             </p>
             <textarea
               value={pasteText}
@@ -202,21 +202,21 @@ export function HoursEditor({
                 disabled={disabled || !pasteText.trim()}
                 onClick={applyPaste}
                 data-trace-id="place-hours-paste-apply"
+                variant="outline"
               >
-                Fill hours from this
+                <DashboardText>Fill hours from this</DashboardText>
               </Button>
               {pasteResult && (
                 <span className="text-xs text-muted-foreground">
-                  Filled {pasteResult.applied} day{pasteResult.applied === 1 ? '' : 's'}.
+                  {lang === 'ar' ? `تم ملء ${pasteResult.applied} يوم.` : `Filled ${pasteResult.applied} day${pasteResult.applied === 1 ? '' : 's'}.`}
                   {pasteResult.unparsed.length > 0 &&
-                    ` Couldn't read: ${pasteResult.unparsed.slice(0, 3).join(' · ')}`}
+                    `${lang === 'ar' ? ' تعذرت قراءة: ' : " Couldn't read: "}${pasteResult.unparsed.slice(0, 3).join(' · ')}`}
                 </span>
               )}
             </div>
             {pasteResult && pasteResult.applied > 0 && (
               <p className="text-xs text-muted-foreground">
-                Check the week below before saving — pasted text is a starting point, not a
-                source of truth.
+                <DashboardText>Check the week below before saving — pasted text is a starting point, not a source of truth.</DashboardText>
               </p>
             )}
           </div>
@@ -226,12 +226,12 @@ export function HoursEditor({
       {/* ── Custom: pick days, pick times, apply ─────────────────────────────────────── */}
       <div className="rounded-md border p-3">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Or set specific days
+          <DashboardText>Or set specific days</DashboardText>
         </p>
 
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
           {DISPLAY_ORDER.map((d) => (
-            <button
+            <Button variant="ghost"
               key={d}
               type="button"
               disabled={disabled}
@@ -241,12 +241,12 @@ export function HoursEditor({
               className={cn(
                 'rounded-full border px-3 py-1 text-xs transition-colors',
                 selected.includes(d)
-                  ? 'border-[var(--brand-600)] bg-[var(--brand-600)] text-white'
+                  ? 'border-[var(--brand-700)] bg-muted text-foreground'
                   : 'border-border hover:bg-muted',
               )}
             >
-              {SHORT_LABELS[d]}
-            </button>
+              {lang === 'ar' ? <DashboardText>{FULL_LABELS[d]}</DashboardText> : SHORT_LABELS[d]}
+            </Button>
           ))}
           <span className="mx-1 text-muted-foreground">|</span>
           <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" disabled={disabled}
@@ -255,41 +255,25 @@ export function HoursEditor({
           </Button>
           <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" disabled={disabled}
             onClick={() => setSelected(WEEKDAYS)}>
-            Sun–Thu
+            <DashboardText>Sun–Thu</DashboardText>
           </Button>
           <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" disabled={disabled}
             onClick={() => setSelected(WEEKEND)}>
-            Fri–Sat
+            <DashboardText>Fri–Sat</DashboardText>
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          <select
-            value={open}
-            disabled={disabled}
-            onChange={(e) => setOpen(e.target.value)}
-            aria-label="Opening time"
-            data-trace-id="place-hours-bulk-open"
-            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            {TIME_OPTIONS.map((t) => (
-              <option key={t} value={t}>{label12h(t)}</option>
-            ))}
-          </select>
-          <span className="text-sm text-muted-foreground">to</span>
-          <select
-            value={close}
-            disabled={disabled}
-            onChange={(e) => setClose(e.target.value)}
-            aria-label="Closing time"
-            data-trace-id="place-hours-bulk-close"
-            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-          >
-            {TIME_OPTIONS.map((t) => (
-              <option key={t} value={t}>{label12h(t)}</option>
-            ))}
-          </select>
+          <Select value={open} disabled={disabled} onValueChange={(value) => { if (value) setOpen(value); }}>
+            <SelectTrigger aria-label={lang === 'ar' ? 'وقت الفتح' : 'Opening time'} data-trace-id="place-hours-bulk-open" className="min-h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>{TIME_OPTIONS.map((timeOption) => <SelectItem key={timeOption} value={timeOption}>{label12h(timeOption)}</SelectItem>)}</SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground"><DashboardText>to</DashboardText></span>
+          <Select value={close} disabled={disabled} onValueChange={(value) => { if (value) setClose(value); }}>
+            <SelectTrigger aria-label={lang === 'ar' ? 'وقت الإغلاق' : 'Closing time'} data-trace-id="place-hours-bulk-close" className="min-h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>{TIME_OPTIONS.map((timeOption) => <SelectItem key={timeOption} value={timeOption}>{label12h(timeOption)}</SelectItem>)}</SelectContent>
+          </Select>
 
           <Button
             type="button"
@@ -297,9 +281,10 @@ export function HoursEditor({
             disabled={disabled || selected.length === 0}
             onClick={applySelection}
             data-trace-id="place-hours-apply"
+            variant="outline"
           >
             <Check className="h-4 w-4" />
-            Apply to {selected.length === 7 ? 'all days' : `${selected.length} day${selected.length === 1 ? '' : 's'}`}
+            {lang === 'ar' ? `تطبيق على ${selected.length === 7 ? 'كل الأيام' : `${selected.length} يوم`}` : `Apply to ${selected.length === 7 ? 'all days' : `${selected.length} day${selected.length === 1 ? '' : 's'}`}`}
           </Button>
 
           <Button
@@ -310,7 +295,7 @@ export function HoursEditor({
             onClick={() => setDays(selected, { isClosed: true, openTime: null, closeTime: null })}
             data-trace-id="place-hours-mark-closed"
           >
-            Mark closed
+            <DashboardText>Mark closed</DashboardText>
           </Button>
         </div>
       </div>
@@ -318,7 +303,7 @@ export function HoursEditor({
       {/* ── The resulting week, as plain text ────────────────────────────────────────── */}
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          This week
+          <DashboardText>This week</DashboardText>
         </p>
         <div className="divide-y rounded-md border" data-trace-id="place-hours-grid">
           {DISPLAY_ORDER.map((d) => {
@@ -327,10 +312,10 @@ export function HoursEditor({
             return (
               <div
                 key={d}
-                className="flex items-center gap-3 px-3 py-2"
+                className="flex min-h-14 flex-wrap items-center gap-3 px-3 py-2 hover:bg-muted/50 focus-within:bg-muted/50"
                 data-trace-id={`place-hours-day-${d}`}
               >
-                <span className="w-24 shrink-0 text-sm font-medium">{FULL_LABELS[d]}</span>
+                <span className="w-24 shrink-0 text-sm font-medium"><DashboardText>{FULL_LABELS[d]}</DashboardText></span>
                 <span
                   className={cn(
                     'flex-1 text-sm',
@@ -356,7 +341,7 @@ export function HoursEditor({
                     }
                     data-trace-id={`place-hours-closed-${d}`}
                   />
-                  Closed
+                  <DashboardText>Closed</DashboardText>
                 </label>
               </div>
             );

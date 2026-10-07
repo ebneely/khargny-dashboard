@@ -57,11 +57,15 @@ export function DashboardLangProvider({ children }: { children: React.ReactNode 
     [lang, setLang],
   );
 
-  return <DashLangContext.Provider value={value}>{children}</DashLangContext.Provider>;
+  return <DashLangContext.Provider value={value}><div lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'} className="contents">{children}</div></DashLangContext.Provider>;
 }
 
 export function useDashboardLang(): DashLangValue {
   const ctx = React.useContext(DashLangContext);
   if (!ctx) throw new Error('useDashboardLang must be used within DashboardLangProvider');
   return ctx;
+}
+
+export function useOptionalDashboardLang(): DashLangValue | null {
+  return React.useContext(DashLangContext);
 }

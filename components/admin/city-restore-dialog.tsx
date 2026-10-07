@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -56,15 +57,15 @@ export function CityRestoreDialog({ cityId, cityName, open, onOpenChange, onRest
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-trace-id="city-restore-dialog">
         <DialogHeader>
-          <DialogTitle>Restore {cityName || 'this city'}?</DialogTitle>
+          <DialogTitle><DashboardText>Restore</DashboardText> {cityName || 'this city'}?</DialogTitle>
           <DialogDescription>
-            The city will be restored to its prior status and reappear on the public list.
+            <DashboardText>The city will be restored to its prior status and reappear on the public list.</DashboardText>
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" onClick={handleRestore} disabled={submitting}>
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}

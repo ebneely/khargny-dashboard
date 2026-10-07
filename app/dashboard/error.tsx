@@ -5,6 +5,7 @@
 // caught here instead of bubbling to Next's bare "This page couldn't load"
 // screen. The dashboard layout (sidebar + profile) stays mounted — only the
 // main content area shows this fallback, and Try again re-renders the segment.
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useEffect } from 'react';
 import { AlertTriangle, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ export default function DashboardError({
       <div className="mt-6 flex items-center gap-3">
         <Button onClick={reset} className="gap-2">
           <RotateCw className="h-4 w-4" />
-          Try again
+          <DashboardText>Try again</DashboardText>
         </Button>
         <Button variant="outline" onClick={() => (window.location.href = '/dashboard')}>
           Back to dashboard

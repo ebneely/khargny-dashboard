@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DashboardText } from '@/components/admin/dashboard-text';
 
 /**
  * A single headline number.
@@ -30,7 +31,7 @@ export function StatTile({
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <span className="text-xs font-medium tracking-wide text-muted-foreground">
-          {label}
+          <DashboardText>{label}</DashboardText>
         </span>
       </div>
       {loading ? (
@@ -43,7 +44,7 @@ export function StatTile({
         </p>
       )}
       {hint && (
-        <p className={cn('mt-1 text-xs text-muted-foreground', loading && 'opacity-0')}>{hint}</p>
+        <p className={cn('mt-1 text-xs text-muted-foreground', loading && 'opacity-0')}><DashboardText>{hint}</DashboardText></p>
       )}
     </div>
   );

@@ -1,7 +1,10 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
-import { Plus, Trash2, ImageIcon } from 'lucide-react';
+import { useDashboardLang } from '@/lib/dashboard-lang';
+import { FileUpload } from '@/components/ui/file-upload';
+import { Trash2, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 
@@ -19,6 +22,7 @@ type CityImageUploadProps = {
  * recommended source dimensions.
  */
 export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadProps) {
+  const { lang } = useDashboardLang();
   const [percent, setPercent] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
@@ -55,7 +59,7 @@ export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadP
 
   return (
     <div className="space-y-2" data-trace-id="city-image-upload">
-      <div className="flex items-start gap-4">
+      <div className="flex min-w-0 flex-wrap items-start gap-4">
         {/* Preview / placeholder */}
         <div className="relative h-28 w-40 shrink-0 overflow-hidden rounded-(--radius-ds-md) border border-border bg-muted">
           {imageUrl ? (
@@ -81,14 +85,9 @@ export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadP
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-2 text-sm hover:bg-muted">
-            <Plus className="h-4 w-4" />
-            {busy ? `Uploading… ${percent}%` : imageUrl ? 'Replace photo' : 'Upload photo'}
-            <input
-              type="file"
+        <div className="min-w-0 flex-1 space-y-2">
+          <FileUpload label={lang === 'ar' ? 'اختر صورة' : 'Choose a photo'} description={lang === 'ar' ? 'صورة للمدينة.' : 'A photo of the city.'}
               accept="image/*"
-              className="hidden"
               disabled={busy}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -96,14 +95,14 @@ export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadP
                 if (file) void upload(file);
               }}
             />
-          </label>
+          {busy && <p role="status" className="text-sm">{lang === 'ar' ? 'جارٍ الرفع' : 'Uploading'} · {percent}%</p>}
           {imageUrl && !busy && (
             <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-[var(--error)]" onClick={remove}>
-              <Trash2 className="h-4 w-4" /> Remove
+              <Trash2 className="h-4 w-4" /> <DashboardText>Remove</DashboardText>
             </Button>
           )}
           <p className="text-xs text-muted-foreground">
-            Recommended 1200×800 (3:2), min 800×600. 16:9 also works. Auto-optimized to WebP.
+            <DashboardText>Recommended 1200×800 (3:2), min 800×600. 16:9 also works. Auto-optimized to WebP.</DashboardText>
           </p>
         </div>
       </div>

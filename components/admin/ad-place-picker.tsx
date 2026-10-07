@@ -132,25 +132,25 @@ export function AdPlacePicker({
       {query.trim() && !loading && !error && (
         <div id="ad-place-results" className="max-h-56 overflow-y-auto rounded-lg border bg-card" role="listbox" aria-label={lang === 'ar' ? 'نتائج البحث عن الأماكن' : 'Place search results'}>
           {results.length > 0 ? results.map((place, index) => (
-            <button
+            <Button variant="ghost"
               id={`ad-place-option-${place.id}`}
               key={place.id}
               type="button"
               role="option"
-              aria-selected={index === activeIndex}
+              aria-selected={value === place.id}
               onMouseEnter={() => setActiveIndex(index)}
               onClick={() => choose(place)}
               className={index === activeIndex
-                ? 'flex w-full items-center gap-3 border-b bg-muted px-3 py-2.5 text-start last:border-b-0 focus-visible:outline-none'
-                : 'flex w-full items-center gap-3 border-b px-3 py-2.5 text-start last:border-b-0 hover:bg-muted focus-visible:bg-muted focus-visible:outline-none'}
+                ? 'flex h-auto min-h-14 w-full items-center gap-3 border-b bg-muted px-3 py-2.5 text-start last:border-b-0'
+                : 'flex h-auto min-h-14 w-full items-center gap-3 border-b px-3 py-2.5 text-start last:border-b-0 hover:bg-muted focus-visible:bg-muted'}
             >
               <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{pick(place.name, place.nameEn)}</span>
                 {place.nameEn && <span className="block truncate text-xs text-muted-foreground">{place.nameEn}</span>}
               </span>
-              {index === activeIndex && <Check className="size-4 text-primary" aria-hidden="true" />}
-            </button>
+              {value === place.id && <Check className="size-4 text-primary" aria-hidden="true" />}
+            </Button>
           )) : (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">{lang === 'ar' ? 'لا توجد أماكن نشطة تطابق البحث.' : 'No active places match this search.'}</p>
           )}

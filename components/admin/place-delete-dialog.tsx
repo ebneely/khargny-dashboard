@@ -1,5 +1,6 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -50,15 +51,15 @@ export function PlaceDeleteDialog({ placeId, placeName, open, onOpenChange, onDe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-trace-id="place-delete-dialog">
         <DialogHeader>
-          <DialogTitle>Delete {placeName || 'this place'}?</DialogTitle>
+          <DialogTitle><DashboardText>Delete</DashboardText> {placeName || 'this place'}?</DialogTitle>
           <DialogDescription>
-            This place will be hidden from the public list. You can restore it later from the Deleted filter.
+            <DashboardText>This place will be hidden from the public list. You can restore it later from the Deleted filter.</DashboardText>
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting} data-trace-id="place-delete-confirm">
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}

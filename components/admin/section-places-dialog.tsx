@@ -9,6 +9,7 @@
  * add places, reorder them, remove them, save.
  */
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2, Search, X, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -123,10 +124,9 @@ export function SectionPlacesDialog({
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent data-trace-id="section-places-dialog" className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Places in “{sectionTitle}”</DialogTitle>
+          <DialogTitle><DashboardText>Places in “</DashboardText>{sectionTitle}”</DialogTitle>
           <DialogDescription>
-            Search the catalog to add places, drag order with the arrows, and save. This
-            section shows exactly these places, in this order, on the homepage and app.
+            <DashboardText>Search the catalog to add places, drag order with the arrows, and save. This section shows exactly these places, in this order, on the homepage and app.</DashboardText>
           </DialogDescription>
         </DialogHeader>
 
@@ -147,7 +147,7 @@ export function SectionPlacesDialog({
               {results.map((p) => {
                 const already = pinnedIds.has(p.id);
                 return (
-                  <button
+                  <Button variant="ghost"
                     key={p.id}
                     type="button"
                     disabled={already}
@@ -158,11 +158,11 @@ export function SectionPlacesDialog({
                     <Thumb src={p.coverImage} />
                     <span className="min-w-0 flex-1 truncate">{label(p)}</span>
                     {already ? (
-                      <span className="text-xs text-muted-foreground">Added</span>
+                      <span className="text-xs text-muted-foreground"><DashboardText>Added</DashboardText></span>
                     ) : (
                       <Plus className="h-4 w-4 text-[var(--brand-600)]" />
                     )}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -172,15 +172,15 @@ export function SectionPlacesDialog({
         {/* Current pins */}
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            In this section ({pinned.length})
+            <DashboardText>In this section (</DashboardText>{pinned.length})
           </p>
           {loading ? (
             <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+              <Loader2 className="h-4 w-4 animate-spin" /> <DashboardText>Loading…</DashboardText>
             </p>
           ) : pinned.length === 0 ? (
             <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
-              No places yet — search above to add some.
+              <DashboardText>No places yet — search above to add some.</DashboardText>
             </p>
           ) : (
             <div className="max-h-56 space-y-1.5 overflow-y-auto">
@@ -193,15 +193,15 @@ export function SectionPlacesDialog({
                   <span className="w-5 text-center text-xs text-muted-foreground">{i + 1}</span>
                   <Thumb src={p.coverImage} />
                   <span className="min-w-0 flex-1 truncate text-sm">{label(p)}</span>
-                  <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  <Button variant="ghost" type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button type="button" aria-label="Move down" disabled={i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  </Button>
+                  <Button variant="ghost" type="button" aria-label="Move down" disabled={i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowDown className="h-4 w-4" />
-                  </button>
-                  <button type="button" aria-label="Remove" onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
+                  </Button>
+                  <Button variant="ghost" type="button" aria-label="Remove" onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
                     <X className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -210,11 +210,11 @@ export function SectionPlacesDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            <DashboardText>Cancel</DashboardText>
           </Button>
           <Button onClick={save} disabled={saving} data-trace-id="section-places-save">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save places
+            <DashboardText>Save places</DashboardText>
           </Button>
         </DialogFooter>
       </DialogContent>

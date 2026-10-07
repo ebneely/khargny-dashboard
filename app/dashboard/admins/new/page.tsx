@@ -1,9 +1,12 @@
 'use client';
 
+import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
+import { FormActionBar } from '@/components/admin/form-action-bar';
+import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -49,6 +52,8 @@ export default function NewAdminPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const formChanges = useFormChanges({ email, password, role }, { email: '', password: '', role: 'admin' });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
@@ -61,6 +66,7 @@ export default function NewAdminPage() {
     try {
       await adminApi.post('/v1/admin/admins', { email, password, role });
       router.push('/dashboard/admins');
+      formChanges.markSaved();
     } catch (e: unknown) {
       const err = e as { status?: number; code?: string; message?: string };
       // 409 (email taken), 422 (validation), 403 (forbidden) — all surface as card-level.
@@ -82,16 +88,16 @@ export default function NewAdminPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground">
-          Add admin
+          <DashboardText>Add admin</DashboardText>
         </h1>
         <Link href="/dashboard/admins">
-          <Button variant="outline" data-trace-id="admin-new-cancel">Cancel</Button>
+          <Button variant="outline" data-trace-id="admin-new-cancel"><DashboardText>Cancel</DashboardText></Button>
         </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Admin details</CardTitle>
+          <CardTitle><DashboardText>Admin details</DashboardText></CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -107,7 +113,7 @@ export default function NewAdminPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="admin-new-email">Email</Label>
+              <Label htmlFor="admin-new-email"><DashboardText>Email</DashboardText></Label>
               <Input
                 id="admin-new-email"
                 type="email"
@@ -129,7 +135,7 @@ export default function NewAdminPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="admin-new-password">Initial password</Label>
+              <Label htmlFor="admin-new-password"><DashboardText>Initial password</DashboardText></Label>
               <Input
                 id="admin-new-password"
                 type="password"
@@ -149,36 +155,29 @@ export default function NewAdminPage() {
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters. The admin should change this on first login.
+                <DashboardText>Must be at least 8 characters. The admin should change this on first login.</DashboardText>
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="admin-new-role">Role</Label>
+              <Label htmlFor="admin-new-role"><DashboardText>Role</DashboardText></Label>
               <Select value={role} onValueChange={(v) => v && setRole(v as AdminRole)}>
                 <SelectTrigger id="admin-new-role" data-trace-id="admin-new-role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="super_admin">Super admin</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="super_admin"><DashboardText>Super admin</DashboardText></SelectItem>
+                  <SelectItem value="admin"><DashboardText>Admin</DashboardText></SelectItem>
+                  <SelectItem value="viewer"><DashboardText>Viewer</DashboardText></SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                <strong>Super admin</strong>: full control. <strong>Editor</strong>: content
-                management. <strong>Viewer</strong>: read-only.
+                <strong><DashboardText>Super admin</DashboardText></strong><DashboardText>: full control.</DashboardText> <strong><DashboardText>Editor</DashboardText></strong><DashboardText>: content management.</DashboardText> <strong><DashboardText>Viewer</DashboardText></strong><DashboardText>: read-only.</DashboardText>
               </p>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={saving} data-trace-id="admin-new-submit">
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {saving ? 'Creating…' : 'Create admin'}
-              </Button>
-              <Link href="/dashboard/admins">
-                <Button type="button" variant="outline">Cancel</Button>
-              </Link>
+              <FormActionBar dirty={formChanges.dirty} saving={saving} error={serverError} disabled={saving} cancelHref="/dashboard/admins" traceId="admin-new-submit" />
             </div>
           </form>
         </CardContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,9 +35,9 @@ export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
   return lang === 'ar' ? 'تعذر إكمال الطلب. تحقق من الاتصال ثم أعد المحاولة.' : (error instanceof Error ? error.message : 'Request failed. Check your connection and retry.');
 }
 
-export function MoneyText({ value }: { value: Money }) {
+export function MoneyText({ value, mutedUnit = false }: { value: Money; mutedUnit?: boolean }) {
   const { text } = useSubscriberText();
-  return <span className="tabular-nums" dir="auto">{value === null ? text('Hidden', 'محجوب') : `${value} ${text('EGP', 'جنيه')}`}</span>;
+  return <span className="tabular-nums" dir="auto">{value === null ? text('Hidden', 'محجوب') : mutedUnit ? <>{value} <span className="text-muted-foreground">{text('EGP', 'جنيه')}</span></> : `${value} ${text('EGP', 'جنيه')}`}</span>;
 }
 
 export function subscriberValidation(error: unknown, fieldNames: string[], lang: 'en' | 'ar') {
@@ -72,7 +72,7 @@ export function RequestError({ message, retry }: { message: string; retry?: () =
 
 export function LoadingState() {
   const { text } = useSubscriberText();
-  return <p role="status" className="flex items-center gap-2 py-6 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" />{text('Loading…', 'جارٍ التحميل…')}</p>;
+  return <div role="status" className="space-y-3 py-6"><span className="sr-only">{text('Loading…', 'جارٍ التحميل…')}</span><Skeleton className="h-5 w-1/3" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div>;
 }
 
 export function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
