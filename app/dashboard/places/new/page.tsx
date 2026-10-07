@@ -1,5 +1,6 @@
 'use client';
 
+import { optionalText } from '@/lib/api/subscribers';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -17,11 +18,14 @@ import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
 import { useDashboardLang } from '@/lib/dashboard-lang';
+import { PRICE_BANDS } from '@/lib/price-bands';
+import { subscriberPlaceReturn, subscriberReturnPath } from '@/lib/subscriber-place-return';
+import { subscriberValidation } from '@/components/admin/subscriber-ui';
 import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import type { PlaceHour } from '@/lib/api/hooks/use-place-hours';
-import type { AdminCity, AdminCategory } from '@/lib/api/types';
+import type { AdminCity, AdminCategory, AdminOptions } from '@/lib/api/types';
 
 /**
  * Turn a place name into a URL slug: lowercase ASCII, hyphen-separated. Arabic characters
@@ -53,11 +57,16 @@ function blankWeek(): PlaceHour[] {
 
 export default function NewPlacePage() {
   const router = useRouter();
-  const { pick } = useDashboardLang();
+  const { pick, lang } = useDashboardLang();
   const [cities, setCities] = useState<AdminCity[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [fallbackSlug] = useState(() => `place-${randomSuffix()}`);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const fieldError = (field: string) => fieldErrors[field] ? <p id={`${field}-error`} className="text-sm text-destructive" role="alert">{fieldErrors[field]}</p> : null;
 
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
@@ -129,17 +138,19 @@ export default function NewPlacePage() {
 
   useEffect(() => {
     Promise.all([
-      adminApi.get<AdminCity[]>('/v1/admin/cities', { limit: 100 }),
-      adminApi.get<AdminCategory[]>('/v1/admin/categories'),
+      adminApi.get<AdminOptions<AdminCity>>('/v1/admin/cities', { limit: 100 }),
+      adminApi.get<AdminOptions<AdminCategory>>('/v1/admin/categories'),
     ]).then(([c, cats]) => {
-      setCities(Array.isArray(c) ? c : (c as any).data ?? (c as any).items ?? []);
-      setCategories(Array.isArray(cats) ? cats : (cats as any).data ?? (cats as any).items ?? []);
+      setCities(Array.isArray(c) ? c : c.data ?? c.items ?? []);
+      setCategories(Array.isArray(cats) ? cats : cats.data ?? cats.items ?? []);
     }).catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingRef.current) return;
     setError('');
+    setFieldErrors({});
     if (!name || !cityId || !categoryId) {
       setError('Name, city, and category are required (Details tab).');
       return;
@@ -156,20 +167,19 @@ export default function NewPlacePage() {
       setError('A cover photo is required — it is the card image visitors see first (Details tab).');
       return;
     }
-    let baseSlug = slug || slugify(nameEn) || slugify(name);
-    if (!baseSlug) baseSlug = `place-${randomSuffix()}`;
+    const baseSlug = slug || slugify(nameEn) || slugify(name) || fallbackSlug;
 
     const create = (slugToUse: string) =>
       adminApi.post<{ id: string }>('/v1/admin/places', {
-        name, nameEn: nameEn || undefined, slug: slugToUse,
-        cityId, region: region || undefined, categoryId,
-        description: description || undefined, descriptionEn: descriptionEn || undefined,
-        address: address || undefined, phone: phone || undefined,
-        website: website || undefined, mapsUrl: mapsUrl || undefined, instagram: instagram || undefined,
-        facebook: facebook || undefined, tiktok: tiktok || undefined,
+        name, nameEn: optionalText(nameEn), slug: slugToUse,
+        cityId, region: optionalText(region), categoryId,
+        description: optionalText(description), descriptionEn: optionalText(descriptionEn),
+        address: optionalText(address), phone: optionalText(phone),
+        website: optionalText(website), mapsUrl: optionalText(mapsUrl), instagram: optionalText(instagram),
+        facebook: optionalText(facebook), tiktok: optionalText(tiktok),
         priceRange: priceRange ? parseInt(priceRange) : undefined,
         featured, status,
-      });
+      }, { headers: { 'Idempotency-Key': idempotencyKey } });
 
     const uploadImage = async (file: File, order: number, placeId: string) => {
       const form = new FormData();
@@ -181,22 +191,9 @@ export default function NewPlacePage() {
     };
 
     setSaving(true);
+    savingRef.current = true;
     try {
-      let created: { id: string };
-      try {
-        created = await create(baseSlug);
-      } catch (err) {
-        const isDuplicate =
-          err instanceof AdminApiError &&
-          (err.status === 409 || /slug/i.test(err.message) || /exist|taken|duplicate|unique/i.test(err.message));
-        if (isDuplicate) {
-          const uniqueSlug = `${baseSlug}-${randomSuffix()}`;
-          setSlug(uniqueSlug);
-          created = await create(uniqueSlug);
-        } else {
-          throw err;
-        }
-      }
+      const created = await create(baseSlug);
 
       const id = created?.id;
       if (!id) {
@@ -213,13 +210,22 @@ export default function NewPlacePage() {
         if (tagIds.length) await adminApi.post(`/v1/admin/tags/place/${id}/assign`, { tagIds });
         if (hoursTouched) await adminApi.put(`/v1/admin/places/${id}/hours`, { hours });
       } catch {
-        router.push(`/dashboard/places/${id}`);
+        router.push(subscriberPlaceReturn(id, true) ?? `/dashboard/places/${id}`);
         return;
       }
-      router.push('/dashboard/places');
-    } catch (e: any) {
-      setError(e.message || 'Failed to create place');
+      router.push(subscriberPlaceReturn(id) ?? '/dashboard/places');
+    } catch (caught) {
+      const slugConflict = caught instanceof AdminApiError && caught.status === 409 &&
+        (['SLUG_ALREADY_EXISTS', 'SLUG_TAKEN', 'SLUG_CONFLICT', 'DUPLICATE_SLUG'].includes(caught.code) || (/slug/i.test(caught.message) && /exist|taken|duplicate|unique|conflict/i.test(caught.message)));
+      if (slugConflict) {
+        const message = lang === 'ar' ? 'هذا الرابط مستخدم بالفعل. اختر رابطاً آخر ثم احفظ مجدداً.' : 'This slug is already in use. Choose another slug and save again.';
+        setFieldErrors({ slug: message }); setError(message);
+      } else {
+        const validation = subscriberValidation(caught, ['name', 'nameEn', 'slug', 'cityId', 'categoryId', 'region', 'description', 'descriptionEn', 'address', 'phone', 'website', 'mapsUrl', 'instagram', 'facebook', 'tiktok', 'priceRange', 'featured', 'status'], lang);
+        setFieldErrors(validation.fields); setError(validation.message);
+      }
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
@@ -244,7 +250,7 @@ export default function NewPlacePage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-2xl font-semibold text-foreground">New Place</h1>
-        <Link href="/dashboard/places"><Button variant="outline">Cancel</Button></Link>
+        <Button variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}>Cancel</Button>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -302,17 +308,17 @@ export default function NewPlacePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name (Arabic) *</Label>
-                    <Input id="name" value={name} onChange={(e) => { setName(e.target.value); autoSlugFrom(e.target.value, nameEn); }} />
+                    <Input id="name" aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? 'name-error' : undefined} value={name} onChange={(e) => { setName(e.target.value); autoSlugFrom(e.target.value, nameEn); }} />{fieldError('name')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nameEn">Name (English)</Label>
-                    <Input id="nameEn" value={nameEn} onChange={(e) => { setNameEn(e.target.value); autoSlugFrom(name, e.target.value); }} />
+                    <Input id="nameEn" aria-invalid={Boolean(fieldErrors.nameEn)} aria-describedby={fieldErrors.nameEn ? 'nameEn-error' : undefined} value={nameEn} onChange={(e) => { setNameEn(e.target.value); autoSlugFrom(name, e.target.value); }} />{fieldError('nameEn')}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="slug">Slug *</Label>
-                  <Input id="slug" value={slug} onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }} placeholder="auto-generated from the name" />
+                  <Input id="slug" aria-invalid={Boolean(fieldErrors.slug)} aria-describedby={fieldErrors.slug ? 'slug-error' : undefined} value={slug} onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }} placeholder="auto-generated from the name" />{fieldError('slug')}
                   <p className="text-xs text-muted-foreground">Auto-filled from the name and kept unique on save. Edit it if you want a custom URL.</p>
                 </div>
 
@@ -324,7 +330,7 @@ export default function NewPlacePage() {
                       <SelectContent>
                         {cities.map((c) => (<SelectItem key={c.id} value={c.id}>{pick(c.name, c.nameEn)}</SelectItem>))}
                       </SelectContent>
-                    </Select>
+                    </Select>{fieldError('cityId')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="categoryId">Category *</Label>
@@ -333,7 +339,7 @@ export default function NewPlacePage() {
                       <SelectContent>
                         {categories.map((c) => (<SelectItem key={c.id} value={c.id}>{pick(c.nameAr, c.nameEn)}</SelectItem>))}
                       </SelectContent>
-                    </Select>
+                    </Select>{fieldError('categoryId')}
                   </div>
                 </div>
 
@@ -343,7 +349,7 @@ export default function NewPlacePage() {
                   return (
                     <div className="space-y-2">
                       <Label>Area *</Label>
-                      <RegionPicker value={region} onChange={setRegion} city={governorate} allowedKeys={c?.areaKeys ?? undefined} traceId="place-region" />
+                      <RegionPicker value={region} onChange={setRegion} city={governorate} allowedKeys={c?.areaKeys ?? undefined} traceId="place-region" />{fieldError('region')}
                     </div>
                   );
                 })()}
@@ -351,61 +357,61 @@ export default function NewPlacePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="description">Description (Arabic)</Label>
-                    <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                    <Input id="description" aria-invalid={Boolean(fieldErrors.description)} aria-describedby={fieldErrors.description ? 'description-error' : undefined} value={description} onChange={(e) => setDescription(e.target.value)} />{fieldError('description')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="descriptionEn">Description (English)</Label>
-                    <Input id="descriptionEn" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
+                    <Input id="descriptionEn" aria-invalid={Boolean(fieldErrors.descriptionEn)} aria-describedby={fieldErrors.descriptionEn ? 'descriptionEn-error' : undefined} value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />{fieldError('descriptionEn')}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
-                  <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  <Input id="address" aria-invalid={Boolean(fieldErrors.address)} aria-describedby={fieldErrors.address ? 'address-error' : undefined} value={address} onChange={(e) => setAddress(e.target.value)} />{fieldError('address')}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    <Input id="phone" aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? 'phone-error' : undefined} value={phone} onChange={(e) => setPhone(e.target.value)} />{fieldError('phone')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="website">Website</Label>
-                    <Input id="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                    <Input id="website" aria-invalid={Boolean(fieldErrors.website)} aria-describedby={fieldErrors.website ? 'website-error' : undefined} value={website} onChange={(e) => setWebsite(e.target.value)} />{fieldError('website')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mapsUrl">Google Maps link *</Label>
-                    <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />
+                    <Input id="mapsUrl" aria-invalid={Boolean(fieldErrors.mapsUrl)} aria-describedby={fieldErrors.mapsUrl ? 'mapsUrl-error' : undefined} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />{fieldError('mapsUrl')}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="priceRange">Price Range (1-4)</Label>
+                    <Label htmlFor="priceRange">{lang === 'ar' ? 'فئة السعر للفرد (جنيه)' : 'Price band per person (EGP)'}</Label>
                     <Select value={priceRange} onValueChange={(v) => v && setPriceRange(v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger id="priceRange" className="w-full bg-background text-foreground"><SelectValue placeholder={lang === 'ar' ? 'اختر الفئة' : 'Select band'} /></SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4].map((n) => (<SelectItem key={n} value={String(n)}>{'$'.repeat(n)} ({n})</SelectItem>))}
+                        {PRICE_BANDS.map((band) => (<SelectItem key={band.level} value={String(band.level)}>{lang === 'ar' ? band.labelAr : band.labelEn}</SelectItem>))}
                       </SelectContent>
-                    </Select>
+                    </Select>{fieldError('priceRange')}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="instagram">Instagram</Label>
-                    <Input id="instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+                    <Input id="instagram" aria-invalid={Boolean(fieldErrors.instagram)} aria-describedby={fieldErrors.instagram ? 'instagram-error' : undefined} value={instagram} onChange={(e) => setInstagram(e.target.value)} />{fieldError('instagram')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="facebook">Facebook</Label>
-                    <Input id="facebook" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
+                    <Input id="facebook" aria-invalid={Boolean(fieldErrors.facebook)} aria-describedby={fieldErrors.facebook ? 'facebook-error' : undefined} value={facebook} onChange={(e) => setFacebook(e.target.value)} />{fieldError('facebook')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="tiktok">TikTok</Label>
-                    <Input id="tiktok" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
+                    <Input id="tiktok" aria-invalid={Boolean(fieldErrors.tiktok)} aria-describedby={fieldErrors.tiktok ? 'tiktok-error' : undefined} value={tiktok} onChange={(e) => setTiktok(e.target.value)} />{fieldError('tiktok')}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
-                    <Checkbox id="featured" checked={featured} onCheckedChange={(v) => setFeatured(v === true)} />
+                    <Checkbox id="featured" aria-invalid={Boolean(fieldErrors.featured)} aria-describedby={fieldErrors.featured ? 'featured-error' : undefined} checked={featured} onCheckedChange={(v) => setFeatured(v === true)} />{fieldError('featured')}
                     <Label htmlFor="featured">Featured</Label>
                   </div>
                   <div className="space-y-2">
@@ -416,7 +422,7 @@ export default function NewPlacePage() {
                         <SelectItem value="draft">Draft</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                       </SelectContent>
-                    </Select>
+                    </Select>{fieldError('status')}
                   </div>
                 </div>
               </CardContent>
@@ -531,7 +537,7 @@ export default function NewPlacePage() {
 
         <div className="mt-6 flex gap-3">
           <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Create Place'}</Button>
-          <Link href="/dashboard/places"><Button type="button" variant="outline">Cancel</Button></Link>
+          <Button type="button" variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}>Cancel</Button>
         </div>
       </form>
     </div>

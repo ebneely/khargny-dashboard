@@ -12,10 +12,16 @@ export interface AdminPlace {
   lng: number | null;
   phone: string | null;
   website: string | null;
+  mapsUrl?: string | null;
+  amenities?: { id: string }[];
+  tags?: { id: string }[];
   instagram: string | null;
   facebook: string | null;
   tiktok: string | null;
   priceRange: number | null;
+  hasMenu?: boolean;
+  priceVerified?: boolean;
+  visitedByUs?: boolean;
   featured: boolean;
   rating: number;
   viewCount: number;
@@ -36,6 +42,8 @@ export interface AdminPlace {
   _count?: { images: number; videos: number };
   hasMedia?: boolean;
 }
+
+export type AdminOptions<T> = T[] | { data?: T[]; items?: T[] };
 
 export interface AdminPlaceList {
   items: AdminPlace[];

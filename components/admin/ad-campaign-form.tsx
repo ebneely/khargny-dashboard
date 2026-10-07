@@ -266,7 +266,7 @@ export function AdCampaignForm({ campaignId, canWrite }: { campaignId?: string; 
                 }}
                 disabled={targetingLocked}
               >
-                <SelectTrigger id="ad-placement" className="h-11 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="ad-placement" className="min-h-11 w-full bg-background text-foreground"><SelectValue>{values.placement === 'featured' ? 'Featured · national' : 'Top 10'}</SelectValue></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="featured">Featured · national</SelectItem>
                   <SelectItem value="top10">Top 10</SelectItem>

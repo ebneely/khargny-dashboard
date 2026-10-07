@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { useDashboardLang } from '@/lib/dashboard-lang';
+import { PRICE_BANDS } from '@/lib/price-bands';
+import { optionalText } from '@/lib/api/subscribers';
 import { useAdminPlace } from '@/lib/api/hooks/use-admin-places';
 import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
@@ -25,11 +27,11 @@ import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
 import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
-import type { AdminCity, AdminCategory } from '@/lib/api/types';
+import type { AdminCity, AdminCategory, AdminOptions } from '@/lib/api/types';
 
 export default function EditPlacePage() {
   const router = useRouter();
-  const { pick } = useDashboardLang();
+  const { pick, lang } = useDashboardLang();
   const params = useParams();
   const id = params.id as string;
 
@@ -38,6 +40,8 @@ export default function EditPlacePage() {
   const amenities = usePlaceAmenities(id, []);
   const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags();
   const tags = usePlaceTags(id, []);
+  const markAmenitiesSaved = amenities.markSaved;
+  const markTagsSaved = tags.markSaved;
   const hours = usePlaceHours(id);
   const [hoursError, setHoursError] = useState('');
   const media = usePlaceMedia(id);
@@ -75,48 +79,49 @@ export default function EditPlacePage() {
 
   useEffect(() => {
     Promise.all([
-      adminApi.get<AdminCity[]>('/v1/admin/cities', { limit: 100 }),
-      adminApi.get<AdminCategory[]>('/v1/admin/categories'),
+      adminApi.get<AdminOptions<AdminCity>>('/v1/admin/cities', { limit: 100 }),
+      adminApi.get<AdminOptions<AdminCategory>>('/v1/admin/categories'),
     ]).then(([c, cats]) => {
       // /v1/admin/cities is paginated ({ data, meta }); /v1/admin/categories is a raw
       // array. Accept either shape (data → items → array) so the City dropdown isn't empty.
-      setCities(Array.isArray(c) ? c : (c as any).data ?? (c as any).items ?? []);
-      setCategories(Array.isArray(cats) ? cats : (cats as any).data ?? (cats as any).items ?? []);
+      setCities(Array.isArray(c) ? c : c.data ?? c.items ?? []);
+      setCategories(Array.isArray(cats) ? cats : cats.data ?? cats.items ?? []);
     }).catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (place) {
-      setName(place.name);
-      setNameEn(place.nameEn || '');
-      setSlug(place.slug);
-      setCityId(place.cityId);
-      setCategoryId(place.categoryId);
-      setDescription(place.description || '');
-      setDescriptionEn(place.descriptionEn || '');
-      setAddress(place.address || '');
-      setRegion((place as any).region || '');
-      setPhone(place.phone || '');
-      setWebsite(place.website || '');
-      setMapsUrl((place as any).mapsUrl || '');
-      setInstagram(place.instagram || '');
-      setFacebook(place.facebook || '');
-      setTiktok(place.tiktok || '');
-      setPriceRange(place.priceRange ? String(place.priceRange) : '');
-      setFeatured(place.featured);
-      setStatus(place.status);
+    const timer = window.setTimeout(() => {
+      if (place) {
+        setName(place.name);
+        setNameEn(place.nameEn || '');
+        setSlug(place.slug);
+        setCityId(place.cityId);
+        setCategoryId(place.categoryId);
+        setDescription(place.description || '');
+        setDescriptionEn(place.descriptionEn || '');
+        setAddress(place.address || '');
+        setRegion(place.region || '');
+        setPhone(place.phone || '');
+        setWebsite(place.website || '');
+        setMapsUrl(place.mapsUrl || '');
+        setInstagram(place.instagram || '');
+        setFacebook(place.facebook || '');
+        setTiktok(place.tiktok || '');
+        setPriceRange(place.priceRange ? String(place.priceRange) : '');
+        setFeatured(place.featured);
+        setStatus(place.status);
 
-      // Seed the amenity/tag pickers with what's ALREADY assigned. Without this
-      // they started empty on every load, so a saved selection looked like it
-      // never applied (and "dirty" was computed against an empty baseline).
-      const assignedAmenities = ((place as any).amenities ?? []).map((a: { id: string }) => a.id);
-      const assignedTags = ((place as any).tags ?? []).map((t: { id: string }) => t.id);
-      amenities.markSaved(assignedAmenities);
-      tags.markSaved(assignedTags);
-    }
-    // markSaved identities are stable (useCallback with no deps)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [place]);
+        // Seed the amenity/tag pickers with what's ALREADY assigned. Without this
+        // they started empty on every load, so a saved selection looked like it
+        // never applied (and "dirty" was computed against an empty baseline).
+        const assignedAmenities = (place.amenities ?? []).map((a: { id: string }) => a.id);
+        const assignedTags = (place.tags ?? []).map((t: { id: string }) => t.id);
+        markAmenitiesSaved(assignedAmenities);
+        markTagsSaved(assignedTags);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [place, markAmenitiesSaved, markTagsSaved]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -125,12 +130,12 @@ export default function EditPlacePage() {
     setSaving(true);
     try {
       await adminApi.patch(`/v1/admin/places/${id}`, {
-        name, nameEn: nameEn || undefined, slug,
+        name, nameEn: optionalText(nameEn), slug,
         cityId, categoryId,
-        description: description || undefined, descriptionEn: descriptionEn || undefined,
-        address: address || undefined, region: region || undefined, phone: phone || undefined,
-        website: website || undefined, mapsUrl: mapsUrl || undefined, instagram: instagram || undefined,
-        facebook: facebook || undefined, tiktok: tiktok || undefined,
+        description: optionalText(description), descriptionEn: optionalText(descriptionEn),
+        address: optionalText(address), region: optionalText(region), phone: optionalText(phone),
+        website: optionalText(website), mapsUrl: optionalText(mapsUrl), instagram: optionalText(instagram),
+        facebook: optionalText(facebook), tiktok: optionalText(tiktok),
         priceRange: priceRange ? parseInt(priceRange) : undefined,
         featured, status,
       });
@@ -182,19 +187,6 @@ export default function EditPlacePage() {
     }
   };
 
-  const handleHoursSave = async () => {
-    setHoursError('');
-    try {
-      await hours.save();
-    } catch (e) {
-      if (e instanceof AdminApiError) {
-        setHoursError(e.message);
-      } else {
-        setHoursError('Connection error. Try again.');
-      }
-    }
-  };
-
   if (loadingPlace) return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-12 bg-muted animate-pulse rounded" />)}</div>;
   if (loadError) return <div className="text-center py-8"><p className="text-muted-foreground mb-3">Failed to load place</p><Button variant="outline" onClick={() => window.location.reload()}>Retry</Button></div>;
   if (!place) return <div className="text-center py-8"><p className="text-muted-foreground">Place not found</p></div>;
@@ -203,6 +195,7 @@ export default function EditPlacePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground">Edit Place</h1>
+        <Button nativeButton={false} data-ro-allow="true" variant="outline" render={<Link href={`/dashboard/places/${id}/menu`} />}>{lang === 'ar' ? 'القائمة' : 'Menu'}</Button>
         <Link href="/dashboard/places">
           <Button variant="outline">Cancel</Button>
         </Link>
@@ -315,12 +308,12 @@ export default function EditPlacePage() {
                 <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="priceRange">Price Range (1-4)</Label>
+                <Label htmlFor="priceRange">{lang === 'ar' ? 'فئة السعر للفرد (جنيه)' : 'Price band per person (EGP)'}</Label>
                 <Select value={priceRange} onValueChange={(v) => v && setPriceRange(v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectTrigger id="priceRange" className="w-full bg-background text-foreground"><SelectValue placeholder={lang === 'ar' ? 'اختر الفئة' : 'Select band'} /></SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4].map((n) => (
-                      <SelectItem key={n} value={String(n)}>{'$'.repeat(n)} ({n})</SelectItem>
+                    {PRICE_BANDS.map((band) => (
+                      <SelectItem key={band.level} value={String(band.level)}>{lang === 'ar' ? band.labelAr : band.labelEn}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -918,7 +911,6 @@ export default function EditPlacePage() {
                     className="group relative overflow-hidden rounded-(--radius-ds-md) border border-border"
                     data-trace-id={`place-media-video-item-${vid.id}`}
                   >
-                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <video
                       src={vid.url}
                       poster={vid.posterUrl || vid.thumbnailUrl || undefined}

@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", iconName: "home" },
   { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront" },
   { href: "/dashboard/ads", label: "Ads", iconName: "ads" },
+  { href: "/dashboard/subscribers", label: "Subscribers", iconName: "subscribers" },
   { href: "/dashboard/places", label: "Places", iconName: "places" },
   { href: "/dashboard/cities", label: "Cities", iconName: "cities" },
   { href: "/dashboard/categories", label: "Categories", iconName: "categories" },

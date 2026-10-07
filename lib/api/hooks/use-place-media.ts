@@ -10,6 +10,7 @@ import { adminApi, AdminApiError } from '../admin-client';
 // POST   /v1/admin/media/reorder { type, items:[{id,order}] }
 export interface PlaceImage {
   id: string;
+  visitId?: string | null;
   url: string;
   order: number;
   altText: string | null;
@@ -18,6 +19,7 @@ export interface PlaceImage {
 
 export interface PlaceVideo {
   id: string;
+  visitId?: string | null;
   url: string;
   posterUrl?: string | null;
   thumbnailUrl?: string | null;
@@ -37,6 +39,11 @@ export interface UploadItem {
 // Max simultaneous uploads — the rest wait in the queue.
 const MAX_CONCURRENT = 2;
 
+export interface MediaUploadResult {
+  uploaded: boolean;
+  refreshed: boolean;
+}
+
 export interface UsePlaceMediaResult {
   images: PlaceImage[];
   videos: PlaceVideo[];
@@ -45,22 +52,22 @@ export interface UsePlaceMediaResult {
   busy: boolean;
   /** Live per-file upload progress (animated bars in the UI). */
   queue: UploadItem[];
-  refetch: () => Promise<void>;
-  upload: (file: File) => Promise<void>;
+  refetch: () => Promise<boolean>;
+  upload: (file: File) => Promise<MediaUploadResult>;
   /** Upload several files in one go (multi-select / drag-drop onto the dropzone). */
-  uploadMany: (files: File[]) => Promise<void>;
+  uploadMany: (files: File[]) => Promise<MediaUploadResult>;
   remove: (imageId: string) => Promise<void>;
   move: (imageId: string, dir: -1 | 1) => Promise<void>;
   /** Reorder by index (drag-drop) and persist the new order. */
   reorder: (fromIdx: number, toIdx: number) => Promise<void>;
   /** Upload video files (POST /v1/admin/media/video). */
-  uploadVideos: (files: File[]) => Promise<void>;
+  uploadVideos: (files: File[]) => Promise<MediaUploadResult>;
   removeVideo: (videoId: string) => Promise<void>;
 }
 
 let uploadSeq = 0;
 
-export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
+export function usePlaceMedia(placeId: string, visitId?: string): UsePlaceMediaResult {
   const [images, setImages] = useState<PlaceImage[]>([]);
   const [videos, setVideos] = useState<PlaceVideo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +80,7 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
   }, []);
 
   const refetch = useCallback(async () => {
-    if (!placeId) return;
+    if (!placeId) return false;
     setLoading(true);
     setIsError(false);
     try {
@@ -84,15 +91,18 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
       const list = (result.images ?? []).slice().sort((a, b) => a.order - b.order);
       setImages(list);
       setVideos(result.videos ?? []);
+      return true;
     } catch {
       setIsError(true);
+      return false;
     } finally {
       setLoading(false);
     }
   }, [placeId]);
 
   useEffect(() => {
-    void refetch();
+    const timer = window.setTimeout(() => { void refetch(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [refetch]);
 
   // Upload a batch (image or video) with per-file animated progress and a
@@ -101,7 +111,7 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
   // from the queue shortly after so the UI doesn't accumulate.
   const runBatch = useCallback(
     async (files: File[], kind: 'image' | 'video', startOrder: number) => {
-      if (!files.length) return;
+      if (!files.length) return { uploaded: false, refreshed: true };
       const items: (UploadItem & { file: File; order: number })[] = files.map(
         (file, i) => ({
           id: `up-${++uploadSeq}`,
@@ -113,10 +123,11 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
           order: startOrder + i,
         }),
       );
-      setQueue((q) => [...q, ...items.map(({ file: _f, order: _o, ...rest }) => rest)]);
+      setQueue((current) => [...current, ...items.map((item) => ({ id: item.id, name: item.name, kind: item.kind, percent: item.percent, status: item.status }))]);
       setBusy(true);
 
       let cursor = 0;
+      let uploaded = false;
       const worker = async () => {
         while (cursor < items.length) {
           const item = items[cursor++];
@@ -125,6 +136,7 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
             const form = new FormData();
             form.append('file', item.file);
             form.append('placeId', placeId);
+            if (visitId) form.append('visitId', visitId);
             form.append('type', kind);
             if (kind === 'image') form.append('order', String(item.order));
             await adminApi.uploadWithProgress(
@@ -132,6 +144,7 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
               form,
               (percent) => patchItem(item.id, { percent }),
             );
+            uploaded = true;
             patchItem(item.id, { status: 'done', percent: 100 });
           } catch (err) {
             patchItem(item.id, {
@@ -145,15 +158,16 @@ export function usePlaceMedia(placeId: string): UsePlaceMediaResult {
       await Promise.all(
         Array.from({ length: Math.min(MAX_CONCURRENT, items.length) }, worker),
       );
-      await refetch();
+      const refreshed = await refetch();
       setBusy(false);
       // Drop finished rows after a beat; keep errored ones so they can retry/see.
       const doneIds = items.map((i) => i.id);
       setTimeout(() => {
         setQueue((q) => q.filter((it) => !(doneIds.includes(it.id) && it.status === 'done')));
       }, 1500);
+      return { uploaded, refreshed };
     },
-    [placeId, patchItem, refetch],
+    [placeId, visitId, patchItem, refetch],
   );
 
   const upload = useCallback(

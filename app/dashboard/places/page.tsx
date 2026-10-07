@@ -17,6 +17,7 @@ import { useAdminPlaces } from '@/lib/api/hooks/use-admin-places';
 import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
 import { useAdminCategories } from '@/lib/api/hooks/use-admin-categories';
 import { useDashboardLang } from '@/lib/dashboard-lang';
+import { priceBandLabel } from '@/lib/price-bands';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { Badge } from '@/components/ui/badge';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
@@ -302,6 +303,8 @@ export default function PlacesPage() {
                         <Link href={`/dashboard/places/${place.id}`} className="hover:text-orange-600 font-medium" data-trace-id={`place-list-name-${place.id}`}>
                           {pickName(place.name, place.nameEn, lang)}
                         </Link>
+                        <p className="mt-1 text-xs text-muted-foreground">{priceBandLabel(place.priceRange, lang)}</p>
+                        <Link href={`/dashboard/places/${place.id}/menu`} className="mt-1 inline-block text-xs underline underline-offset-4">{lang === 'ar' ? 'القائمة' : 'Menu'}</Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{pickName(place.city?.name, place.city?.nameEn, lang)}</TableCell>
                       <TableCell className="text-muted-foreground">{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</TableCell>

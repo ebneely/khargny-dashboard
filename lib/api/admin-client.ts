@@ -3,12 +3,14 @@ import { API_BASE_URL } from '@/lib/config';
 export class AdminApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly fields: Record<string, string>;
 
-  constructor(status: number, body: { error?: { code?: string; message?: string } } | null) {
+  constructor(status: number, body: { error?: { code?: string; message?: string; fields?: Record<string, string> } } | null) {
     super(body?.error?.message || `Request failed with status ${status}`);
     this.name = 'AdminApiError';
     this.status = status;
     this.code = body?.error?.code || 'UNKNOWN_ERROR';
+    this.fields = body?.error?.fields ?? {};
   }
 }
 
@@ -69,8 +71,21 @@ function handleSessionExpired(): void {
   window.location.assign(`/login?reason=expired&redirect=${redirect}`);
 }
 
-async function doFetch(method: string, url: string, opts?: { body?: unknown }) {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+interface RequestOptions {
+  body?: unknown;
+  params?: Record<string, string | number | undefined | null>;
+  envelope?: boolean;
+  headers?: Record<string, string>;
+}
+
+interface ApiEnvelope<T> {
+  success?: boolean;
+  data?: T;
+  error?: { code?: string; message?: string; fields?: Record<string, string> };
+}
+
+async function doFetch(method: string, url: string, opts?: RequestOptions) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...opts?.headers };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return fetch(url, {
@@ -81,7 +96,7 @@ async function doFetch(method: string, url: string, opts?: { body?: unknown }) {
   });
 }
 
-async function request<T>(method: string, path: string, opts?: { body?: unknown; params?: Record<string, string | number | undefined | null> }): Promise<T> {
+async function request<T>(method: string, path: string, opts?: RequestOptions): Promise<T> {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (opts?.params) {
     for (const [k, v] of Object.entries(opts.params)) {
@@ -103,14 +118,15 @@ async function request<T>(method: string, path: string, opts?: { body?: unknown;
     }
   }
 
-  let payload: T | { success: false; error: { code: string; message: string } } | null = null;
+  let payload: unknown = null;
   try { payload = await res.json(); } catch { payload = null; }
 
-  if (!res.ok || !payload || (payload as any).success === false) {
-    throw new AdminApiError(res.status, payload as any);
+  const envelope = payload as ApiEnvelope<T> | null;
+  if (!res.ok || !payload || envelope?.success === false) {
+    throw new AdminApiError(res.status, envelope);
   }
 
-  return (payload as any).data ?? payload;
+  return (opts?.envelope ? payload : envelope?.data ?? payload) as T;
 }
 
 // Backend paginated list endpoints return { data: T[], meta: { page, limit,
@@ -127,7 +143,7 @@ export interface NormalizedList<T> {
 
 export function toList<T>(raw: unknown): NormalizedList<T> {
   const r = raw as
-    | { data?: T[]; meta?: { page?: number; limit?: number; total?: number } }
+    | { data?: T[]; meta?: { page?: number; skip?: number; limit?: number; total?: number } }
     | T[]
     | { items?: T[]; total?: number; skip?: number; limit?: number }
     | null
@@ -135,13 +151,13 @@ export function toList<T>(raw: unknown): NormalizedList<T> {
 
   // Paginated backend shape: { data: [...], meta: {...} }
   if (r && !Array.isArray(r) && Array.isArray((r as { data?: T[] }).data)) {
-    const paged = r as { data: T[]; meta?: { page?: number; limit?: number; total?: number } };
+    const paged = r as { data: T[]; meta?: { page?: number; skip?: number; limit?: number; total?: number } };
     const limit = Number(paged.meta?.limit ?? paged.data.length);
     const page = Number(paged.meta?.page ?? 0);
     return {
       items: paged.data,
       total: Number(paged.meta?.total ?? paged.data.length),
-      skip: page * limit,
+      skip: paged.meta?.skip ?? page * limit,
       limit,
     };
   }
@@ -163,13 +179,13 @@ export function toList<T>(raw: unknown): NormalizedList<T> {
 
 // Multipart upload — sends FormData with the auth token but lets the browser
 // set the multipart Content-Type/boundary. Used for media image/video uploads.
-async function upload<T>(path: string, form: FormData): Promise<T> {
+async function upload<T>(path: string, form: FormData, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
   const send = () => {
     const headers: Record<string, string> = {};
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
     return fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
+      method,
       credentials: 'include',
       headers,
       body: form,
@@ -210,11 +226,12 @@ async function uploadWithProgress<T>(
   path: string,
   form: FormData,
   onProgress?: (percent: number) => void,
+  method: 'POST' | 'PUT' = 'POST',
 ): Promise<T> {
   const send = () =>
     new Promise<{ status: number; body: unknown }>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE_URL}${path}`);
+      xhr.open(method, `${API_BASE_URL}${path}`);
       xhr.withCredentials = true;
       const token = getToken();
       if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
@@ -255,10 +272,14 @@ async function uploadWithProgress<T>(
 }
 
 export const adminApi = {
+  list: async <T>(path: string, params?: Record<string, string | number | undefined | null>) => {
+    const payload = await request<{ data?: unknown }>('GET', path, { params, envelope: true });
+    return toList<T>(payload.data && !Array.isArray(payload.data) ? payload.data : payload);
+  },
   get: <T>(path: string, params?: Record<string, string | number | undefined | null>) =>
     request<T>('GET', path, { params }),
-  post: <T>(path: string, body?: unknown) =>
-    request<T>('POST', path, { body }),
+  post: <T>(path: string, body?: unknown, options?: { headers?: Record<string, string> }) =>
+    request<T>('POST', path, { body, ...options }),
   upload,
   uploadWithProgress,
   put: <T>(path: string, body?: unknown) =>

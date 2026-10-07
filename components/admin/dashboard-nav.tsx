@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { animate, stagger } from 'animejs';
 import {
   Menu,
@@ -39,6 +40,7 @@ const ICONS = {
   amenities: Sparkles,
   tags: Tags,
   admins: Users,
+  subscribers: Users,
   settings: Settings,
 } satisfies Record<string, LucideIcon>;
 
@@ -182,6 +184,7 @@ function NavLink({
   onNavigate?: () => void;
 }) {
   const Icon = ICONS[item.iconName];
+  const { lang } = useDashboardLang();
   return (
     <Link
       href={item.href}
@@ -198,7 +201,7 @@ function NavLink({
       ].join(' ')}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      {item.label}
+      {item.iconName === 'subscribers' && lang === 'ar' ? 'المشتركون' : item.label}
     </Link>
   );
 }
