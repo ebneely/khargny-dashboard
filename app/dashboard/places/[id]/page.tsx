@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { HiddenOnTab, UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -23,6 +24,7 @@ import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
 import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
+import { PlaceMenuTab } from '@/components/admin/place-menu-page';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
@@ -195,22 +197,22 @@ export default function EditPlacePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground">Edit Place</h1>
-        <Button nativeButton={false} data-ro-allow="true" variant="outline" render={<Link href={`/dashboard/places/${id}/menu`} />}>{lang === 'ar' ? 'القائمة' : 'Menu'}</Button>
         <Link href="/dashboard/places">
           <Button variant="outline">Cancel</Button>
         </Link>
       </div>
 
-      <Tabs defaultValue="details">
+      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu"]}>
         <TabsList className="mb-6">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="amenities">Amenities</TabsTrigger>
-          <TabsTrigger value="tags">Tags</TabsTrigger>
-          <TabsTrigger value="hours">Hours</TabsTrigger>
-          <TabsTrigger value="photos">Media</TabsTrigger>
+          <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
+          <TabsTrigger value="amenities">{lang === 'ar' ? 'المرافق' : 'Amenities'}</TabsTrigger>
+          <TabsTrigger value="tags">{lang === 'ar' ? 'الوسوم' : 'Tags'}</TabsTrigger>
+          <TabsTrigger value="hours">{lang === 'ar' ? 'المواعيد' : 'Hours'}</TabsTrigger>
+          <TabsTrigger value="photos">{lang === "ar" ? "الوسائط" : "Media"}</TabsTrigger>
+          <TabsTrigger value="menu">{lang === "ar" ? "الأسعار" : "Pricing"}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="details">
+        <TabsContent keepMounted value="details">
       <Card>
         <CardHeader><CardTitle>Place Details</CardTitle></CardHeader>
         <CardContent>
@@ -356,7 +358,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="amenities">
+        <TabsContent keepMounted value="amenities">
       <Card data-trace-id="place-amenities-section">
         <CardHeader>
           <CardTitle>Amenities</CardTitle>
@@ -476,7 +478,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="tags">
+        <TabsContent keepMounted value="tags">
       <Card data-trace-id="place-tags-section">
         <CardHeader>
           <CardTitle>Tags</CardTitle>
@@ -594,7 +596,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="hours">
+        <TabsContent keepMounted value="hours">
       <Card data-trace-id="place-hours-section">
         <CardHeader>
           <CardTitle>Opening hours</CardTitle>
@@ -645,7 +647,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="photos">
+        <TabsContent keepMounted value="photos">
       <Card data-trace-id="place-media-section">
         <CardHeader>
           <CardTitle>Photos &amp; videos</CardTitle>
@@ -947,7 +949,8 @@ export default function EditPlacePage() {
         </CardContent>
       </Card>
         </TabsContent>
-      </Tabs>
+        <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
+      </UrlTabs>
 
       {/* Image preview lightbox — click any photo to view it large. */}
       {preview && (
@@ -971,6 +974,7 @@ export default function EditPlacePage() {
         </div>
       )}
 
+      <HiddenOnTab tab="menu">
       <div className="mt-6 flex gap-3 sticky bottom-0 bg-background/80 backdrop-blur py-3 border-t border-border">
         {/* Save directly from component state — do NOT go through the details <form>.
             The form lives in the Details tab, and Radix unmounts inactive tabs, so on
@@ -982,6 +986,7 @@ export default function EditPlacePage() {
         </Button>
         <Link href="/dashboard/places"><Button type="button" variant="outline">Cancel</Button></Link>
       </div>
+      </HiddenOnTab>
     </div>
   );
 }

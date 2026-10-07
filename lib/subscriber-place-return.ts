@@ -5,7 +5,10 @@ export function subscriberReturnPath(): string | null {
   if (!/^\/dashboard\/subscribers\/(new|[a-f0-9-]{36})$/.test(pathname)) return null;
   const token = new URLSearchParams(query).get('placeReturn');
   if (token && !/^[a-f0-9-]{36}$/.test(token)) return null;
-  return token ? `${pathname}?placeReturn=${token}` : pathname;
+  const params = new URLSearchParams();
+  if (token) params.set('placeReturn', token);
+  if (!pathname.endsWith('/new')) params.set('tab', 'places');
+  return params.size ? `${pathname}?${params}` : pathname;
 }
 
 export function subscriberPlaceReturn(placeId: string, incomplete = false): string | null {

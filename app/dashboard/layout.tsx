@@ -18,16 +18,16 @@ import { DashboardLangToggle } from "@/components/admin/dashboard-lang-toggle";
 // throws a Server Components render error. The client maps the name to a component.
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", iconName: "home" },
-  { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront" },
-  { href: "/dashboard/ads", label: "Ads", iconName: "ads" },
-  { href: "/dashboard/subscribers", label: "Subscribers", iconName: "subscribers" },
-  { href: "/dashboard/places", label: "Places", iconName: "places" },
-  { href: "/dashboard/cities", label: "Cities", iconName: "cities" },
-  { href: "/dashboard/categories", label: "Categories", iconName: "categories" },
-  { href: "/dashboard/amenities", label: "Amenities", iconName: "amenities" },
-  { href: "/dashboard/tags", label: "Tags", iconName: "tags" },
-  { href: "/dashboard/admins", label: "Admins", iconName: "admins", superAdminOnly: true },
-  { href: "/dashboard/settings", label: "Settings", iconName: "settings" },
+  { href: "/dashboard/subscribers", label: "Subscribers", iconName: "subscribers", group: "sales" },
+  { href: "/dashboard/ads", label: "Ads", iconName: "ads", group: "sales" },
+  { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront", group: "sales" },
+  { href: "/dashboard/places", label: "Places", iconName: "places", group: "content" },
+  { href: "/dashboard/cities", label: "Cities", iconName: "cities", group: "content" },
+  { href: "/dashboard/categories", label: "Categories", iconName: "categories", group: "content" },
+  { href: "/dashboard/amenities", label: "Amenities", iconName: "amenities", group: "content" },
+  { href: "/dashboard/tags", label: "Tags", iconName: "tags", group: "content" },
+  { href: "/dashboard/admins", label: "Admins", iconName: "admins", group: "team", superAdminOnly: true },
+  { href: "/dashboard/settings", label: "Settings", iconName: "settings", group: "team" },
 ] as const;
 
 export default async function DashboardLayout({
@@ -42,7 +42,7 @@ export default async function DashboardLayout({
   const isViewer = session?.user?.role === "viewer";
   const navItems: NavItem[] = NAV_ITEMS.filter(
     (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
-  ).map(({ href, label, iconName }) => ({ href, label, iconName }));
+  ).map((item) => ({ href: item.href, label: item.label, iconName: item.iconName, group: "group" in item ? item.group : undefined }));
 
   return (
     // The whole dashboard is wrapped in the language provider so the global EN/ع toggle and
@@ -66,7 +66,7 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <aside className="print-hide hidden w-60 shrink-0 flex-col border-r border-border bg-card px-4 py-6 lg:flex">
+        <aside className="print-hide sticky top-0 h-dvh hidden w-60 shrink-0 flex-col self-start overflow-y-auto border-e border-border bg-card px-4 py-6 lg:flex">
           <Link href="/dashboard" className="mb-6 flex items-center gap-2">
             <Image
               src="/khargny-logo.png"

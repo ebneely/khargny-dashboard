@@ -6,18 +6,20 @@ import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
 import type { AdPlaceSummary } from '@/lib/api/ads';
 import { optionalText, type PlaceDetailResponse, type Subscriber, type SubscriberDetail, type SubscriberPlace } from '@/lib/api/subscribers';
 import { consumeSubscriberDraft, sameSubscriberPlaces } from '@/lib/subscriber-draft';
 import { AdPlacePicker } from './ad-place-picker';
-import { ActionDialog, type ActionSpec, Field, LoadingState, RequestError, selectClass, subscriberValidation, textareaClass, useSubscriberText } from './subscriber-ui';
+import { ActionDialog, type ActionSpec, Field, LoadingState, RequestError, SubscriberSelect, subscriberValidation, textareaClass, useSubscriberText } from './subscriber-ui';
 
-export function SubscriberProfileForm({ subscriber, canWrite, onSaved }: { subscriber?: SubscriberDetail; canWrite: boolean; onSaved: () => Promise<boolean> }) {
+export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesContent }: { subscriber?: SubscriberDetail; canWrite: boolean; onSaved: () => Promise<boolean>; placesContent?: React.ReactNode }) {
   const { text, lang, pick } = useSubscriberText();
   const router = useRouter();
+  const formId = React.useId();
   const [idempotencyKey] = React.useState(() => crypto.randomUUID());
   const subscriberId = subscriber?.id;
   const [values, setValues] = React.useState({ name: subscriber?.name ?? '', phone: subscriber?.phone ?? '', whatsapp: subscriber?.whatsapp ?? '', email: subscriber?.email ?? '', notes: subscriber?.notes ?? '', status: subscriber?.status ?? 'active' });
@@ -74,13 +76,13 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved }: { subsc
             setPlaces((current) => current.some((entry) => entry.id === place.id) ? current : [...current, place]);
           }
           if (params.has('placeSetupIncomplete')) setPlaceError(text('Place created, but its media or details need attention. Open Edit place to finish setup.', 'تم إنشاء المكان لكن بعض الوسائط أو التفاصيل لم تُحفظ. افتح تعديل المكان لإكمالها.'));
-          router.replace(returnTo, { scroll: false });
+          router.replace(subscriberId ? `${returnTo}?tab=places` : returnTo, { scroll: false });
           if (subscriberId && canWrite) {
             const refreshed = await onSaved();
             if (!refreshed && active) setPlacesSaved(false);
           }
         } else if (params.has('placeReturn')) {
-          router.replace(returnTo, { scroll: false });
+          router.replace(subscriberId ? `${returnTo}?tab=places` : returnTo, { scroll: false });
         }
       } catch (caught) { if (active) { setPlaceError(subscriberValidation(caught, [], lang).message); setReturnFailed(Boolean(linkedPlace)); } }
       finally { if (active) setReturnLoading(false); }
@@ -151,7 +153,8 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved }: { subsc
     }} disabled={busy || returnLoading}>{text('Save linked places', 'حفظ الأماكن المرتبطة')}</Button>}</div></>}
     {subscriber && !sameSubscriberPlaces(places, persistedPlaces) && <p role="status" className="text-sm text-amber-700 dark:text-amber-400">{text('Unsaved linked-place changes. Save linked places to apply them.', 'توجد تغييرات غير محفوظة للأماكن المرتبطة. احفظ الأماكن المرتبطة لتطبيقها.')}</p>}{placesSaved && sameSubscriberPlaces(places, persistedPlaces) && <p role="status" className="text-sm text-success">{text('Linked places saved.', 'تم حفظ الأماكن المرتبطة.')}</p>}{returnLoading && <LoadingState />}{placeError && <RequestError message={placeError} retry={returnFailed ? () => setReturnRetry((current) => current + 1) : undefined} />}
   </div>;
-  return <div className="space-y-6"><Card><CardHeader><CardTitle>{text('Subscriber details', 'بيانات المشترك')}</CardTitle></CardHeader><CardContent><form onSubmit={saveProfile} className="space-y-5"><fieldset disabled={!canWrite || busy || returnLoading} className="grid gap-4 sm:grid-cols-2">{([
+  const details = <Card><CardHeader className="flex flex-wrap items-start justify-between gap-3"><div><CardTitle>{text('Subscriber details', 'بيانات المشترك')}</CardTitle><CardDescription className="mt-1">{text('Contact information and internal notes.', 'بيانات الاتصال والملاحظات الداخلية.')}</CardDescription></div>{canWrite && <Button type="submit" form={formId} disabled={busy || returnLoading}>{busy ? text('Saving…', 'جارٍ الحفظ…') : text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')}</Button>}</CardHeader><CardContent><form id={formId} onSubmit={saveProfile} className="space-y-5"><fieldset disabled={!canWrite || busy || returnLoading} className="grid gap-4 sm:grid-cols-2">{([
     ['name', text('Name', 'الاسم'), 'text'], ['phone', text('Phone', 'الهاتف'), 'tel'], ['whatsapp', text('WhatsApp', 'واتساب'), 'tel'], ['email', text('Email', 'البريد الإلكتروني'), 'email'],
-  ] as const).map(([name, label, type]) => <Field key={name} label={label} error={fieldErrors[name]}><Input type={type} value={values[name]} required={name === 'name' || name === 'phone'} dir={type === 'tel' || type === 'email' ? 'ltr' : undefined} onChange={(event) => { setValues({ ...values, [name]: event.target.value }); setSaved(false); }} /></Field>)}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><select className={selectClass} value={values.status} onChange={(event) => { setValues({ ...values, status: event.target.value as 'active' | 'inactive' }); setSaved(false); }}><option value="active">{text('Active', 'نشط')}</option><option value="inactive">{text('Inactive', 'غير نشط')}</option></select></Field>}<div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}{canWrite && <Button type="submit" disabled={busy || returnLoading}>{busy ? text('Saving…', 'جارٍ الحفظ…') : text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')}</Button>}</form></CardContent></Card>{subscriber && <Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>}<ActionDialog action={action} onClose={() => setAction(null)} /></div>;
+  ] as const).map(([name, label, type]) => <Field key={name} label={label} error={fieldErrors[name]}><Input type={type} value={values[name]} required={name === 'name' || name === 'phone'} dir={type === 'tel' || type === 'email' ? 'ltr' : undefined} onChange={(event) => { setValues({ ...values, [name]: event.target.value }); setSaved(false); }} /></Field>)}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><SubscriberSelect value={values.status} disabled={!canWrite || busy || returnLoading} options={[{ value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} onValueChange={(value) => { setValues({ ...values, status: value as 'active' | 'inactive' }); setSaved(false); }} /></Field>}<div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}</form></CardContent></Card>;
+  return <>{subscriber ? <><TabsContent value="details" keepMounted>{details}</TabsContent><TabsContent value="places" keepMounted className="space-y-6"><Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>{placesContent}</TabsContent></> : details}<ActionDialog action={action} onClose={() => setAction(null)} /></>;
 }

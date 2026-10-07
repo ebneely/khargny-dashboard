@@ -4,6 +4,8 @@ import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -78,7 +80,24 @@ export function Field({ label, children, error }: { label: string; children: Rea
   return <div className="space-y-2"><Label htmlFor={id}>{label}</Label>{React.isValidElement<{ id?: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>(children) ? React.cloneElement(children, { id, 'aria-invalid': error ? true : undefined, 'aria-describedby': error ? `${id}-error` : undefined }) : children}{error && <p id={`${id}-error`} className="text-sm text-destructive" role="alert">{error}</p>}</div>;
 }
 
-export const selectClass = 'h-11 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50';
+type SubscriberSelectProps = {
+  value: string;
+  options: { value: string; label: string }[];
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  required?: boolean;
+  id?: string;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string;
+  'data-ro-allow'?: string;
+};
+
+export function SubscriberSelect({ value, options, onValueChange, disabled, required, ...triggerProps }: SubscriberSelectProps) {
+  return <Select value={value} onValueChange={(next) => onValueChange(next ?? '')} disabled={disabled} required={required}>
+    <SelectTrigger {...triggerProps} className="w-full"><SelectValue /></SelectTrigger>
+    <SelectContent>{options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent>
+  </Select>;
+}
 export const textareaClass = 'min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring';
 
 export interface ActionField {
@@ -90,6 +109,7 @@ export interface ActionField {
   options?: { value: string; label: string }[];
   min?: string;
   minLength?: number;
+  placeholder?: string;
 }
 export interface ActionSpec {
   title: string;
@@ -135,10 +155,10 @@ function ActiveActionDialog({ action, onClose }: { action: ActionSpec; onClose: 
       <form onSubmit={submit} className="space-y-4">
         <fieldset disabled={busy} className="max-h-[60vh] space-y-4 overflow-y-auto px-1">
           {action?.fields?.map((field) => <Field key={field.name} label={field.label} error={fieldErrors[field.name]}>
-            {field.type === 'select' ? <select className={selectClass} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })}>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+            {field.type === 'select' ? <SubscriberSelect value={String(values[field.name] ?? '')} options={field.options ?? []} disabled={busy} required={field.required} onValueChange={(value) => setValues({ ...values, [field.name]: value })} />
               : field.type === 'textarea' ? <textarea className={textareaClass} value={String(values[field.name] ?? '')} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />
-              : field.type === 'checkbox' ? <input type="checkbox" className="size-5 accent-primary" checked={Boolean(values[field.name])} onChange={(event) => setValues({ ...values, [field.name]: event.target.checked })} />
-              : <Input type={field.type === 'money' ? 'text' : field.type ?? 'text'} inputMode={field.type === 'money' ? 'decimal' : undefined} pattern={field.type === 'money' ? '[0-9٠-٩]+([.٫][0-9٠-٩]{1,2})?' : undefined} min={field.min} minLength={field.minLength} autoComplete={field.type === 'password' ? 'new-password' : 'off'} dir={field.type === 'money' || field.type === 'tel' ? 'ltr' : undefined} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />}
+              : field.type === 'checkbox' ? <Checkbox checked={Boolean(values[field.name])} disabled={busy} onCheckedChange={(checked) => setValues({ ...values, [field.name]: checked })} />
+              : <Input placeholder={field.placeholder} type={field.type === 'money' ? 'text' : field.type ?? 'text'} inputMode={field.type === 'money' ? 'decimal' : undefined} pattern={field.type === 'money' ? '[0-9٠-٩]+([.٫][0-9٠-٩]{1,2})?' : undefined} min={field.min} minLength={field.minLength} autoComplete={field.type === 'password' ? 'new-password' : 'off'} dir={field.type === 'money' || field.type === 'tel' ? 'ltr' : undefined} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />}
           </Field>)}
         </fieldset>
         {error && <RequestError message={error} />}

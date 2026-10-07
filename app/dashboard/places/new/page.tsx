@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { UrlTabs } from '@/components/ui/url-tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -259,16 +260,16 @@ export default function NewPlacePage() {
         {/* Same tabs as the edit screen, so a place can be built completely in one pass:
             details + cover, amenities, tags, hours and extra photos are all set here and
             attached to the place the moment it's created. */}
-        <Tabs defaultValue="details">
+        <UrlTabs values={["details", "amenities", "tags", "hours", "photos"]}>
           <TabsList className="mb-6 flex-wrap">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="amenities">Amenities</TabsTrigger>
-            <TabsTrigger value="tags">Tags</TabsTrigger>
-            <TabsTrigger value="hours">Hours</TabsTrigger>
-            <TabsTrigger value="photos">Media</TabsTrigger>
+            <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
+            <TabsTrigger value="amenities">{lang === 'ar' ? 'المرافق' : 'Amenities'}</TabsTrigger>
+            <TabsTrigger value="tags">{lang === 'ar' ? 'الوسوم' : 'Tags'}</TabsTrigger>
+            <TabsTrigger value="hours">{lang === 'ar' ? 'المواعيد' : 'Hours'}</TabsTrigger>
+            <TabsTrigger value="photos">{lang === 'ar' ? 'الوسائط' : 'Media'}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="details">
+          <TabsContent keepMounted value="details">
             <Card>
               <CardHeader><CardTitle>Place Details</CardTitle></CardHeader>
               <CardContent className="space-y-6">
@@ -429,7 +430,7 @@ export default function NewPlacePage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="amenities">
+          <TabsContent keepMounted value="amenities">
             <Card>
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
@@ -461,7 +462,7 @@ export default function NewPlacePage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="tags">
+          <TabsContent keepMounted value="tags">
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
@@ -493,7 +494,7 @@ export default function NewPlacePage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="hours">
+          <TabsContent keepMounted value="hours">
             <Card>
               <CardHeader>
                 <CardTitle>Opening hours</CardTitle>
@@ -505,7 +506,7 @@ export default function NewPlacePage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="photos">
+          <TabsContent keepMounted value="photos">
             <Card>
               <CardHeader>
                 <CardTitle>Media</CardTitle>
@@ -533,7 +534,7 @@ export default function NewPlacePage() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+        </UrlTabs>
 
         <div className="mt-6 flex gap-3">
           <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Create Place'}</Button>

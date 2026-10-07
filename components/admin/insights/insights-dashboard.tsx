@@ -12,7 +12,8 @@ import {
   RefreshCw,
   TriangleAlert,
 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { UrlTabs } from '@/components/ui/url-tabs';
 import { Button } from '@/components/ui/button';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { regionLabel } from '@/lib/egypt-regions';
@@ -176,12 +177,12 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
           </div>
         </div>
 
-        <Tabs defaultValue="city" className="p-4 sm:p-5">
+        <UrlTabs values={["city", "region"]} className="p-4 sm:p-5">
           <TabsList>
             <TabsTrigger value="city">By city</TabsTrigger>
             <TabsTrigger value="region">By area</TabsTrigger>
           </TabsList>
-          <TabsContent value="city" className="mt-4">
+          <TabsContent keepMounted value="city" className="mt-4">
             {isLoading ? (
               <BarsSkeleton />
             ) : (
@@ -192,7 +193,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
               />
             )}
           </TabsContent>
-          <TabsContent value="region" className="mt-4">
+          <TabsContent keepMounted value="region" className="mt-4">
             {isLoading ? (
               <BarsSkeleton />
             ) : (
@@ -203,7 +204,7 @@ export function InsightsDashboard({ lang }: { lang: 'ar' | 'en' }) {
               />
             )}
           </TabsContent>
-        </Tabs>
+        </UrlTabs>
       </section>
 
       {/* A table, not a chart: ten named rows across three measures is what a table is for. */}

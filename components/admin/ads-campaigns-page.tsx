@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useUrlTab } from '@/lib/use-url-tab';
 import { CircleStop, FileText, Pause, Pencil, Play, Plus } from 'lucide-react';
 import { AdCampaignActionDialog, type CampaignAction } from '@/components/admin/ad-campaign-action-dialog';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
@@ -39,7 +40,11 @@ export interface CampaignListInitialFilters {
 }
 
 export function AdsCampaignsPage({ initialFilters, canWrite }: { initialFilters: CampaignListInitialFilters; canWrite: boolean }) {
-  const [tab, setTab] = React.useState<ListTab>(initialFilters.campaignIds?.length ? 'all' : 'live');
+  return <React.Suspense fallback={null}><CampaignsContent initialFilters={initialFilters} canWrite={canWrite} /></React.Suspense>;
+}
+
+function CampaignsContent({ initialFilters, canWrite }: { initialFilters: CampaignListInitialFilters; canWrite: boolean }) {
+  const { value: tab, onValueChange } = useUrlTab(TABS.map((item) => item.value), initialFilters.campaignIds?.length ? 'all' : 'live');
   const [campaigns, setCampaigns] = React.useState<AdCampaign[]>([]);
   const requestRef = React.useRef(0);
   const [loading, setLoading] = React.useState(true);
@@ -113,7 +118,7 @@ export function AdsCampaignsPage({ initialFilters, canWrite }: { initialFilters:
 
       <Card>
         <CardContent className="space-y-4">
-          <Tabs value={tab} onValueChange={(value) => setTab(value as ListTab)}>
+          <Tabs value={tab} onValueChange={onValueChange}>
             <TabsList className="h-auto max-w-full flex-wrap justify-start" aria-label="Campaign state">
               {TABS.map((item) => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}
             </TabsList>

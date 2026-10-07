@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { BarChart3, CalendarDays, ListChecks, Trophy } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { tabsListVariants, tabsTriggerClassName } from '@/components/ui/tabs';
 
 const ADS_NAV = [
   { href: '/dashboard/ads', label: 'Campaigns', icon: ListChecks },
@@ -36,28 +36,26 @@ export function AdsPageHeader({
         {actions && <div className="print-hide flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
 
-      <nav className="print-hide flex max-w-full gap-1 overflow-x-auto border-b" aria-label="Ads dashboard">
+      <nav data-orientation="horizontal" data-horizontal="" className="print-hide group/tabs" aria-label="Ads dashboard">
+        <div data-variant="default" className={tabsListVariants()}>
         {ADS_NAV.map(({ href, label, icon: Icon }) => {
           const active = href === '/dashboard/ads'
-            ? !pathname.startsWith('/dashboard/ads/inventory') && !pathname.startsWith('/dashboard/ads/top-10')
-            : pathname.startsWith(href);
+            ? !(pathname === '/dashboard/ads/inventory' || pathname.startsWith('/dashboard/ads/inventory/')) && !(pathname === '/dashboard/ads/top-10' || pathname.startsWith('/dashboard/ads/top-10/'))
+            : pathname === href || pathname.startsWith(href + '/');
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className={cn(
-                'flex min-h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors',
-                active
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
+              data-active={active ? '' : undefined}
+              className={tabsTriggerClassName}
             >
               <Icon className="size-4" aria-hidden="true" />
               {label}
             </Link>
           );
         })}
+        </div>
       </nav>
     </div>
   );

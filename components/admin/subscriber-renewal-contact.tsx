@@ -87,7 +87,7 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
   if (!canWrite) return <dl className="grid gap-4 sm:grid-cols-2">
     {fields.map((field) => <div key={field.name}>
       <dt className="text-sm text-muted-foreground">{field.label}</dt>
-      <dd className="mt-1 font-medium"><span dir="ltr">{field.value || text('Not set', 'غير محدد')}</span></dd>
+      <dd className="mt-1 font-medium"><span dir={field.value ? "ltr" : undefined} className={field.value ? undefined : "text-muted-foreground"}>{field.value || `${field.label}: ${text('not set', 'غير محدد')}`}</span></dd>
     </div>)}
   </dl>;
 

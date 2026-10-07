@@ -11,3 +11,8 @@ export function priceBandLabel(level: number | null | undefined, lang: DashLang)
   const band = PRICE_BANDS.find((entry) => entry.level === level);
   return band ? (lang === 'ar' ? band.labelAr : band.labelEn) : (lang === 'ar' ? 'غير محدد' : 'Not set');
 }
+
+export function priceRangeLabel(level: number | null | undefined, lang: DashLang): string {
+  const label = priceBandLabel(level, lang);
+  return lang === 'ar' ? `نطاق السعر: ${label}` : `Price range: ${label === 'Not set' ? 'not set' : label}`;
+}

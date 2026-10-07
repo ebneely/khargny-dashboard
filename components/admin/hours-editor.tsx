@@ -22,6 +22,7 @@ import { useMemo, useState } from 'react';
 import { Check, Clock, ClipboardPaste } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useDashboardLang, type DashLang } from '@/lib/dashboard-lang';
 import { parseHoursText } from '@/lib/parse-hours';
 import type { PlaceHour } from '@/lib/api/hooks/use-place-hours';
 
@@ -75,9 +76,9 @@ const PRESETS: Preset[] = [
   { label: 'Closed all week', open: null, close: null, closed: true },
 ];
 
-function summarize(h: PlaceHour): string {
+function summarize(h: PlaceHour, lang: DashLang): string {
   if (h.isClosed) return 'Closed';
-  if (!h.openTime || !h.closeTime) return 'Not set';
+  if (!h.openTime || !h.closeTime) return lang === 'ar' ? 'ساعات العمل: غير محدد' : 'Opening hours: not set';
   if (h.openTime === '00:00' && (h.closeTime === '23:59' || h.closeTime === '00:00')) {
     return 'Open 24 hours';
   }
@@ -95,6 +96,7 @@ export function HoursEditor({
   setDay: (day: number, patch: Partial<PlaceHour>) => void;
   setDays: (days: number[], patch: Partial<PlaceHour>) => void;
 }) {
+  const { lang } = useDashboardLang();
   const [selected, setSelected] = useState<number[]>([...WEEKDAYS, ...WEEKEND]);
   const [open, setOpen] = useState('10:00');
   const [close, setClose] = useState('22:00');
@@ -339,7 +341,7 @@ export function HoursEditor({
                         : 'text-foreground',
                   )}
                 >
-                  {summarize(h)}
+                  {summarize(h, lang)}
                 </span>
                 <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                   <input

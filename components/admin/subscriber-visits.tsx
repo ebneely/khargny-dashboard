@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
@@ -32,7 +33,7 @@ function VisitCreatives({ visit, placeName, canWrite, refresh }: { visit: Visit;
   const videos = media.videos.filter((video) => video.visitId === visit.id);
   return <section className="space-y-3 border-t pt-4"><header className="flex flex-wrap justify-between gap-3"><div><h3 className="font-semibold">{placeName} · <span className="tabular-nums">{visit.visitedAt}</span></h3><p className="mt-1 text-sm text-muted-foreground">{visit.imageCount} {text('images', 'صور')} · {visit.videoCount} {text('videos', 'فيديوهات')} · {visit.consent ? text('Consent recorded', 'الموافقة مسجلة') : text('No photo consent recorded', 'لم تُسجل موافقة التصوير')}</p></div></header>{visit.notes && <p className="whitespace-pre-wrap text-sm">{visit.notes}</p>}
     {media.loading ? <LoadingState /> : media.isError ? savedRefreshFailed ? <SavedRefreshError retry={() => { void retryMedia(); }} /> : <RequestError message={text('Could not load visit media.', 'تعذر تحميل وسائط الزيارة.')} retry={() => { void retryMedia(); }} /> : !images.length && !videos.length ? <p className="text-sm text-muted-foreground">{text('No creatives uploaded for this visit.', 'لم تُرفع مواد إبداعية لهذه الزيارة.')}</p> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{images.map((image) => <a key={image.id} href={image.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border focus-visible:ring-2 focus-visible:ring-ring"><Image src={image.urls?.small ?? image.url} alt={image.altText || text('Visit photo', 'صورة الزيارة')} width={320} height={220} unoptimized className="aspect-video w-full object-cover" /></a>)}{videos.map((video) => <video key={video.id} src={video.url} poster={video.posterUrl ?? video.thumbnailUrl ?? undefined} controls preload="metadata" className="aspect-video w-full rounded-lg bg-muted" aria-label={text('Visit video', 'فيديو الزيارة')} />)}</div>}
-    {canWrite && <Field label={text('Upload images and videos', 'رفع صور وفيديوهات')}><input type="file" multiple accept="image/*,video/*" className="block w-full rounded-lg border border-input p-3 text-sm file:me-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 focus-visible:ring-2 focus-visible:ring-ring" disabled={uploading || media.busy || media.loading || media.isError || savedRefreshFailed} onChange={async (event) => {
+    {canWrite && <Field label={text('Upload images and videos', 'رفع صور وفيديوهات')}><Input type="file" multiple accept="image/*,video/*" className="block w-full rounded-lg border border-input p-3 text-sm file:me-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 focus-visible:ring-2 focus-visible:ring-ring" disabled={uploading || media.busy || media.loading || media.isError || savedRefreshFailed} onChange={async (event) => {
       const files = Array.from(event.target.files ?? []); event.target.value = '';
       if (!canWrite || !files.length || media.loading || media.isError || savedRefreshFailed) return;
       setUploading(true); setError('');
