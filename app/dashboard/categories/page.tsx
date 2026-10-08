@@ -1,23 +1,29 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
+import { RowActions } from '@/components/admin/row-actions';
+import { FilterBar, FilterSearch } from '@/components/admin/filter-bar';
+import { RecordCell } from '@/components/admin/record-cell';
+import { Pager } from '@/components/admin/pager';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useAdminCategories } from '@/lib/api/hooks/use-admin-categories';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
 import { CategoryDeleteDialog } from '@/components/admin/category-delete-dialog';
 
 const PAGE_SIZE = 20;
 
 export default function CategoriesPage() {
+  const controlCopy = useDashboardCopy();
+  const readOnly = useDashboardReadOnly();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
@@ -43,7 +49,7 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <span className="text-foreground"><DashboardText>Categories</DashboardText></span>
@@ -60,20 +66,7 @@ export default function CategoriesPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search categories..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                className="pl-9"
-                data-trace-id="category-list-search"
-              />
-            </div>
-          </div>
-        </CardHeader>
+        <CardHeader><FilterBar filters={0}><FilterSearch label="Search categories..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} /></FilterBar></CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
@@ -88,15 +81,14 @@ export default function CategoriesPage() {
             </div>
           ) : paged.length > 0 ? (
             <>
-              <Table>
+              <Table layout="list">
                 <TableHeader>
                   <TableRow>
-                    <TableHead><DashboardText>Arabic Name</DashboardText></TableHead>
-                    <TableHead><DashboardText>English Name</DashboardText></TableHead>
+                    <TableHead><DashboardText>Name</DashboardText></TableHead>
                     <TableHead><DashboardText>Slug</DashboardText></TableHead>
                     <TableHead><DashboardText>Icon</DashboardText></TableHead>
-                    <TableHead><DashboardText>Status</DashboardText></TableHead>
-                    <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                    <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
+                    <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -105,73 +97,26 @@ export default function CategoriesPage() {
                       <TableCell>
                         <Link
                           href={`/dashboard/categories/${cat.id}/edit`}
-                          className="hover:text-orange-600 font-medium"
+                          className="hover:text-primary font-medium"
                           data-trace-id={`category-list-name-${cat.id}`}
                         >
-                          {cat.nameAr}
+                          <RecordCell nameAr={cat.nameAr} nameEn={cat.nameEn} />
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{cat.nameEn || '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
                       <TableCell className="text-muted-foreground">{cat.icon || '—'}</TableCell>
-                      <TableCell>
-                        <Badge variant={cat.status === 'active' ? 'default' : 'secondary'}>
-                          {cat.status}
-                        </Badge>
+                      <TableCell column="status"><StatusBadge status={cat.status} />
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Link href={`/dashboard/categories/${cat.id}/edit`}>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label="Edit"
-                              data-trace-id={`category-list-edit-${cat.id}`}
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Delete"
-                            onClick={() => setPendingDelete({ id: cat.id, name: cat.nameAr })}
-                            data-trace-id={`category-list-delete-${cat.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                      <TableCell column="actions" className="text-end"><RowActions recordName={cat.nameAr} actions={[
+                        { label: readOnly ? 'View' : 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/categories/${cat.id}/edit`, traceId: `category-list-edit-${cat.id}` },
+                        ...(!readOnly ? [{ label: 'Delete', icon: <Trash2 aria-hidden="true" />, destructive: true, onClick: () => setPendingDelete({ id: cat.id, name: cat.nameAr }), traceId: `category-list-delete-${cat.id}` }] : []),
+                      ]} /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
 
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  <DashboardText>Page</DashboardText> {page + 1} <DashboardText>of</DashboardText> {totalPages} ({filtered.length} <DashboardText>total)</DashboardText>
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => p - 1)}
-                    aria-label="Previous page"
-                  >
-                    <DashboardText>Prev</DashboardText>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                    aria-label="Next page"
-                  >
-                    <DashboardText>Next</DashboardText>
-                  </Button>
-                </div>
-              </div>
+              <Pager skip={page * PAGE_SIZE} pageSize={PAGE_SIZE} total={filtered.length} count={paged.length} onPrevious={() => setPage((current) => Math.max(0, current - 1))} onNext={() => setPage((current) => current + 1)} nextDisabled={page >= totalPages - 1} />
             </>
           ) : (
             <div className="text-center py-8">

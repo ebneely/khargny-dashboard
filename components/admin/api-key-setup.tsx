@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import { API_BASE_URL } from '@/lib/config';
 import { mcpConfig, validMcpConnection, type McpClient } from '@/lib/api/mcp-config';
 
 export function ApiKeySetup({ secret }: { secret: string }) {
+  const controlCopy = useDashboardCopy();
   const [client, setClient] = useState<McpClient>('Claude Code');
   const [entrypoint, setEntrypoint] = useState('');
   const [apiUrl, setApiUrl] = useState(API_BASE_URL ? `${API_BASE_URL.replace(/\/$/, '')}/v1` : '');
@@ -36,7 +37,7 @@ export function ApiKeySetup({ secret }: { secret: string }) {
         <Label htmlFor="one-time-api-key"><DashboardText>Your API key</DashboardText></Label>
         <div className="flex gap-2">
           <Input id="one-time-api-key" value={secret} readOnly autoComplete="off" spellCheck={false} className="font-mono text-xs" />
-          <Button type="button" variant="outline" onClick={() => copy(secret)} aria-label="Copy API key"><Copy className="h-4 w-4" /></Button>
+          <Button type="button" variant="outline" onClick={() => copy(secret)} aria-label={controlCopy("Copy API key")}><Copy className="h-4 w-4" /></Button>
         </div>
       </div>
       <div className="space-y-2">
@@ -48,11 +49,11 @@ export function ApiKeySetup({ secret }: { secret: string }) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="mcp-entrypoint"><DashboardText>MCP entrypoint on the AI&apos;s computer</DashboardText></Label>
-        <Input id="mcp-entrypoint" value={entrypoint} onChange={(event) => setEntrypoint(event.target.value)} placeholder="/absolute/path/to/mcp/src/index.mjs" spellCheck={false} />
+        <Input id="mcp-entrypoint" value={entrypoint} onChange={(event) => setEntrypoint(event.target.value)} placeholder={controlCopy("/absolute/path/to/mcp/src/index.mjs")} spellCheck={false} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="mcp-api-url"><DashboardText>API base URL (including /v1)</DashboardText></Label>
-        <Input id="mcp-api-url" value={apiUrl} onChange={(event) => setApiUrl(event.target.value)} placeholder="https://your-api-host/v1" spellCheck={false} />
+        <Input id="mcp-api-url" value={apiUrl} onChange={(event) => setApiUrl(event.target.value)} placeholder={controlCopy("https://your-api-host/v1")} spellCheck={false} />
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">

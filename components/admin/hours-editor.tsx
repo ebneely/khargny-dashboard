@@ -18,7 +18,7 @@
  * always, and picking from a list is far quicker than typing HH:MM.
  */
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useMemo, useState } from 'react';
 import { Check, Clock, ClipboardPaste } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,6 +99,7 @@ export function HoursEditor({
   setDays: (days: number[], patch: Partial<PlaceHour>) => void;
 }) {
   const { lang } = useDashboardLang();
+  const controlCopy = useDashboardCopy();
   const [selected, setSelected] = useState<number[]>([...WEEKDAYS, ...WEEKEND]);
   const [open, setOpen] = useState('10:00');
   const [close, setClose] = useState('22:00');
@@ -190,7 +191,7 @@ export function HoursEditor({
               onChange={(e) => setPasteText(e.target.value)}
               rows={7}
               dir="auto"
-              placeholder={'Monday  9 AM–10 PM\nTuesday  9 AM–10 PM\nWednesday  Closed'}
+              placeholder={controlCopy('Monday  9 AM–10 PM\nTuesday  9 AM–10 PM\nWednesday  Closed')}
               disabled={disabled}
               data-trace-id="place-hours-paste-input"
               className="w-full rounded-md border border-input bg-background p-2 font-mono text-xs"

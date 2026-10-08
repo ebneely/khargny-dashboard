@@ -58,11 +58,12 @@ export function SavedRefreshError({ retry }: { retry: () => void }) {
   return <RequestError message={text('Saved, but the page could not refresh', 'تم الحفظ، لكن تعذر تحديث الصفحة')} retry={retry} />;
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, children, ...props }: { status: string } & React.ComponentProps<typeof Badge>) {
   const { text } = useSubscriberText();
-  const labels: Record<string, [string, string]> = { active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'] };
+  const labels: Record<string, [string, string]> = { expiring: ['Expiring', 'ينتهي قريباً'], revoked: ['Revoked', 'ملغى'], draft: ['Draft', 'مسودة'], disabled: ['Disabled', 'معطل'], deleted: ['Deleted', 'محذوف'], live: ['Live', 'مباشر'], paused: ['Paused', 'متوقفة'], ended: ['Ended', 'منتهية'], active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'] };
   const label = labels[status] ?? [status, status];
-  return <Badge variant={status === 'active' ? 'default' : 'secondary'}>{text(...label)}</Badge>;
+  const tone = ['active', 'live'].includes(status) ? 'success' : ['paused', 'expiring'].includes(status) ? 'warning' : ['deleted', 'cancelled'].includes(status) ? 'danger' : status === 'scheduled' ? 'info' : 'neutral';
+  return <Badge {...props} variant="secondary" data-slot="status-chip" data-tone={tone} title={props.title ?? (typeof children === 'string' ? children : text(...label))}>{children ?? text(...label)}</Badge>;
 }
 
 export function RequestError({ message, retry }: { message: string; retry?: () => void }) {
@@ -87,6 +88,7 @@ type SubscriberSelectProps = {
   disabled?: boolean;
   required?: boolean;
   id?: string;
+  'aria-label'?: string;
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
   'data-ro-allow'?: string;

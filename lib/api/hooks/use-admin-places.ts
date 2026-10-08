@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { adminApi, toList } from '../admin-client';
 import type { AdminPlaceList, AdminPlaceFilters, AdminPlace } from '../types';
 
@@ -10,22 +10,28 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const { subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit } = filters;
+  const generation = useRef(0);
   const fetch = useCallback(async () => {
+    const request = ++generation.current;
     setIsLoading(true);
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<unknown>('/v1/admin/places', filters as any);
-      setData(toList<AdminPlace>(result) as AdminPlaceList);
+      const result = await adminApi.get<unknown>('/v1/admin/places', { subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit });
+      if (request === generation.current) setData(toList<AdminPlace>(result) as AdminPlaceList);
     } catch (e) {
-      setIsError(true);
-      setError(e as Error);
+      if (request === generation.current) { setIsError(true); setError(e as Error); }
     } finally {
-      setIsLoading(false);
+      if (request === generation.current) setIsLoading(false);
     }
-  }, [JSON.stringify(filters)]);
+  }, [subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    const state = generation;
+    const timer = window.setTimeout(() => { void fetch(); }, 0);
+    return () => { state.current++; window.clearTimeout(timer); };
+  }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }

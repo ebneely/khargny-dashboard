@@ -1,12 +1,12 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useEffect, useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Trash2, AlertTriangle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { CategoryDeleteDialog } from '@/components/admin/category-delete-dialog';
 import { IconPicker } from '@/components/icon-picker';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import type { AdminCategory } from '@/lib/api/types';
@@ -21,6 +22,7 @@ import type { AdminCategory } from '@/lib/api/types';
 type ParentOption = { id: string; nameAr: string };
 
 export default function EditCategoryPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -31,7 +33,6 @@ export default function EditCategoryPage() {
   const [loading, setLoading] = useState(true);
   const [parents, setParents] = useState<ParentOption[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
@@ -105,21 +106,6 @@ export default function EditCategoryPage() {
     }
   };
 
-  const handleDelete = async () => {
-    setError('');
-    setDeleting(true);
-    try {
-      await adminApi.delete(`/v1/admin/categories/${id}`);
-      router.push('/dashboard/categories');
-    } catch (e: unknown) {
-      const err = e as AdminApiError;
-      setError(err.message || 'Failed to delete category');
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="space-y-3">
@@ -132,7 +118,7 @@ export default function EditCategoryPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <Link href="/dashboard/categories" className="hover:text-foreground"><DashboardText>Categories</DashboardText></Link>
@@ -196,7 +182,7 @@ export default function EditCategoryPage() {
                   id="slug"
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setSlugError(''); }}
-                  placeholder="category-slug"
+                  placeholder={controlCopy("category-slug")}
                   data-trace-id="edit-category-slug"
                   aria-invalid={!!slugError}
                   aria-describedby={slugError ? 'edit-category-slug-error' : undefined}
@@ -222,7 +208,7 @@ export default function EditCategoryPage() {
                   onValueChange={(v) => setParentId(v === '__none__' ? '' : v)}
                 >
                   <SelectTrigger data-trace-id="edit-category-parent">
-                    <SelectValue placeholder="(none — top-level)" />
+                    <SelectValue placeholder={controlCopy("(none — top-level)")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__"><DashboardText>(none — top-level)</DashboardText></SelectItem>
@@ -267,48 +253,7 @@ export default function EditCategoryPage() {
         </CardContent>
       </Card>
 
-      {confirmDelete && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          data-trace-id="edit-category-delete-confirm"
-          role="dialog"
-          aria-modal="true"
-        >
-          <Card className="max-w-md w-full mx-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <DashboardText>Delete this category?</DashboardText>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <DashboardText>This will remove the category and break any place currently filed under it. This cannot be undone.</DashboardText>
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setConfirmDelete(false)}
-                  disabled={deleting}
-                  data-trace-id="edit-category-delete-cancel"
-                >
-                  <DashboardText>Cancel</DashboardText>
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  data-trace-id="edit-category-delete-confirm-btn"
-                >
-                  {deleting ? 'Deleting…' : 'Delete category'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <CategoryDeleteDialog categoryId={id} categoryName={nameAr} open={confirmDelete} onOpenChange={setConfirmDelete} onDeleted={() => { setConfirmDelete(false); router.push('/dashboard/categories'); }} />
     </div>
   );
 }

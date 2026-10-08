@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -24,10 +24,11 @@ import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
 import { CityAreasPicker } from '@/components/admin/city-areas-picker';
 import { CityImageUpload } from '@/components/admin/city-image-upload';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
 import type { AdminApiError } from '@/lib/api/admin-client';
 
 export default function EditCityPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -139,7 +140,7 @@ export default function EditCityPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <Link href="/dashboard/cities" className="hover:text-foreground"><DashboardText>Cities</DashboardText></Link>
@@ -151,11 +152,9 @@ export default function EditCityPage() {
         <div className="flex items-center gap-3">
           <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit City</DashboardText></h1>
           {deletedAt ? (
-            <Badge variant="destructive" data-trace-id="edit-city-status-deleted"><DashboardText>Deleted</DashboardText></Badge>
+            <StatusBadge status="deleted" data-trace-id="edit-city-status-deleted" />
           ) : (
-            <Badge variant={city.status === 'active' ? 'default' : 'secondary'}>
-              {city.status}
-            </Badge>
+            <StatusBadge status={city.status} />
           )}
         </div>
         <div className="flex gap-2">

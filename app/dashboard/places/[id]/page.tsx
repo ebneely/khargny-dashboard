@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FormActionBar } from '@/components/admin/form-action-bar';
@@ -36,6 +36,7 @@ import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory, AdminOptions } from '@/lib/api/types';
 
 export default function EditPlacePage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const { pick, lang } = useDashboardLang();
   const params = useParams();
@@ -311,7 +312,7 @@ export default function EditPlacePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mapsUrl"><DashboardText>Google Maps link</DashboardText></Label>
-                <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />
+                <Input id="mapsUrl" value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder={controlCopy("https://maps.app.goo.gl/…")} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priceRange">{lang === 'ar' ? 'فئة السعر للفرد (جنيه)' : 'Price band per person (EGP)'}</Label>
@@ -419,7 +420,7 @@ export default function EditPlacePage() {
                 data-trace-id="place-amenities-picker"
                 className="grid grid-cols-1 gap-2 md:grid-cols-2"
                 role="group"
-                aria-label="Amenities"
+                aria-label={controlCopy("Amenities")}
               >
                 {allAmenities.map((a) => {
                   const checked = amenities.amenityIds.includes(a.id);
@@ -539,7 +540,7 @@ export default function EditPlacePage() {
                 data-trace-id="place-tags-picker"
                 className="grid grid-cols-1 gap-2 md:grid-cols-2"
                 role="group"
-                aria-label="Tags"
+                aria-label={controlCopy("Tags")}
               >
                 {allTags.map((t) => {
                   const checked = tags.tagIds.includes(t.id);
@@ -788,7 +789,7 @@ export default function EditPlacePage() {
                       <div className="flex gap-1">
                         <Button
                           type="button" variant="ghost" size="icon-sm"
-                          aria-label="Move left" disabled={idx === 0 || media.busy}
+                          aria-label={controlCopy("Move left")} disabled={idx === 0 || media.busy}
                           onClick={() => media.move(img.id, -1)}
                           data-trace-id={`place-media-move-left-${img.id}`}
                           className="text-white hover:text-white"
@@ -797,7 +798,7 @@ export default function EditPlacePage() {
                         </Button>
                         <Button
                           type="button" variant="ghost" size="icon-sm"
-                          aria-label="Move right" disabled={idx === media.images.length - 1 || media.busy}
+                          aria-label={controlCopy("Move right")} disabled={idx === media.images.length - 1 || media.busy}
                           onClick={() => media.move(img.id, 1)}
                           data-trace-id={`place-media-move-right-${img.id}`}
                           className="text-white hover:text-white"
@@ -808,7 +809,7 @@ export default function EditPlacePage() {
                       {idx !== 0 && (
                         <Button
                           type="button" variant="ghost" size="sm"
-                          aria-label="Set as cover" disabled={media.busy}
+                          aria-label={controlCopy("Set as cover")} disabled={media.busy}
                           onClick={async () => {
                             setMediaError('');
                             try { await media.reorder(idx, 0); }
@@ -822,7 +823,7 @@ export default function EditPlacePage() {
                       )}
                       <Button
                         type="button" variant="ghost" size="icon-sm"
-                        aria-label="Delete photo" disabled={media.busy}
+                        aria-label={controlCopy("Delete photo")} disabled={media.busy}
                         onClick={async () => {
                           setMediaError('');
                           try { await media.remove(img.id); }
@@ -888,7 +889,7 @@ export default function EditPlacePage() {
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        aria-label="Delete video"
+                        aria-label={controlCopy("Delete video")}
                         disabled={media.busy}
                         onClick={async () => {
                           setMediaError('');
@@ -919,7 +920,7 @@ export default function EditPlacePage() {
       {preview && (
         <div
           role="dialog"
-          aria-label="Image preview"
+          aria-label={controlCopy("Image preview")}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
           onClick={() => setPreview(null)}
           data-trace-id="place-media-preview"
@@ -928,7 +929,7 @@ export default function EditPlacePage() {
           <img src={preview} alt="Preview" className="max-h-full max-w-full rounded-(--radius-ds-md) object-contain" />
           <Button variant="ghost"
             type="button"
-            aria-label="Close preview"
+            aria-label={controlCopy("Close preview")}
             className="absolute right-4 top-4 rounded-full bg-black/60 p-2 text-white"
             onClick={(e) => { e.stopPropagation(); setPreview(null); }}
           >

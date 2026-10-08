@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -14,6 +14,7 @@ import { IconPicker } from '@/components/icon-picker';
 import { adminApi } from '@/lib/api/admin-client';
 
 export default function NewAmenityPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -67,7 +68,7 @@ export default function NewAmenityPage() {
 
             <div className="space-y-2">
               <Label htmlFor="nameEn"><DashboardText>English Name</DashboardText></Label>
-              <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Free WiFi" />
+              <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder={controlCopy("Free WiFi")} />
             </div>
 
             {/* Was a free-text input: an admin could save "wifi ", "WiFi" or any name no

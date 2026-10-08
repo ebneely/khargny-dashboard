@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
 
 export default function NewTagPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,13 +67,13 @@ export default function NewTagPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nameEn"><DashboardText>English Name</DashboardText></Label>
-                <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Restaurant" />
+                <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder={controlCopy("Restaurant")} />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
-              <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="restaurant" />
+              <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={controlCopy("restaurant")} />
             </div>
 
             <div className="flex gap-3 pt-4">

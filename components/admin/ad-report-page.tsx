@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CalendarDays, Printer } from 'lucide-react';
@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/ads';
 
 export function AdReportPage({ campaignId }: { campaignId: string }) {
+  const controlCopy = useDashboardCopy();
   const { lang, pick } = useDashboardLang();
   const [report, setReport] = React.useState<AdCampaignReport | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -86,7 +87,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
         <span><strong><DashboardText>Timezone:</DashboardText></strong> {report.timezone}</span>
       </div>
 
-      <section className="mb-5 grid grid-cols-2 divide-x divide-y overflow-hidden rounded-(--radius-ds-lg) bg-card shadow-(--shadow-ds-sm) md:grid-cols-4 md:divide-y-0" aria-label="Campaign totals">
+      <section className="mb-5 grid grid-cols-2 divide-x divide-y overflow-hidden rounded-(--radius-ds-lg) bg-card shadow-(--shadow-ds-sm) md:grid-cols-4 md:divide-y-0" aria-label={controlCopy("Campaign totals")}>
         <ReportMetric label="Impressions" value={formatCount(totals.impressions)} />
         <ReportMetric label="Taps" value={formatCount(totals.taps)} />
         <ReportMetric label="CTR" value={formatCtr(totals.ctr)} />

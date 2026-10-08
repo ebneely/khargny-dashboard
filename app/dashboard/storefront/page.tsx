@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useEffect, useState, useCallback } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { ArrowUp, ArrowDown, Trash2, Eye, EyeOff } from 'lucide-react';
@@ -35,6 +35,7 @@ const KIND_LABEL: Record<Section['kind'], string> = {
 };
 
 export default function StorefrontPage() {
+  const controlCopy = useDashboardCopy();
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -141,7 +142,7 @@ export default function StorefrontPage() {
                   <div className="flex flex-col">
                     <Button variant="ghost"
                       type="button"
-                      aria-label="Move up"
+                      aria-label={controlCopy("Move up")}
                       disabled={i === 0}
                       onClick={() => move(i, -1)}
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
@@ -150,7 +151,7 @@ export default function StorefrontPage() {
                     </Button>
                     <Button variant="ghost"
                       type="button"
-                      aria-label="Move down"
+                      aria-label={controlCopy("Move down")}
                       disabled={i === sections.length - 1}
                       onClick={() => move(i, 1)}
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
@@ -193,7 +194,7 @@ export default function StorefrontPage() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Delete section"
+                    aria-label={controlCopy("Delete section")}
                     onClick={() => remove(s.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -212,7 +213,7 @@ export default function StorefrontPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="key"><DashboardText>Key *</DashboardText></Label>
-                <Input id="key" value={key} onChange={(e) => setKey(e.target.value)} placeholder="popular" />
+                <Input id="key" value={key} onChange={(e) => setKey(e.target.value)} placeholder={controlCopy("popular")} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kind"><DashboardText>Kind *</DashboardText></Label>

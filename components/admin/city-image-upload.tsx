@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -22,6 +22,7 @@ type CityImageUploadProps = {
  * recommended source dimensions.
  */
 export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadProps) {
+  const controlCopy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const [percent, setPercent] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -112,7 +113,7 @@ export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadP
       {preview && imageUrl && (
         <div
           role="dialog"
-          aria-label="Image preview"
+          aria-label={controlCopy("Image preview")}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
           onClick={() => setPreview(false)}
         >

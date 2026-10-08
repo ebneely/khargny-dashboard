@@ -1,8 +1,9 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
-import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
-import { translateDashboardCopy } from '@/lib/dashboard-copy';
+import { RecordCell } from './record-cell';
+import { DateRange } from './date-cell';
+import { RowActions, type RowAction } from './row-actions';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -12,14 +13,13 @@ import { AdsPageHeader } from '@/components/admin/ads-page-header';
 import { AdStateBadge } from '@/components/admin/ad-state-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SegmentedControl } from './segmented-control';
+import { useSubscriberText } from './subscriber-ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { adminApi } from '@/lib/api/admin-client';
 import {
-  displayName,
   formatCount,
   formatCtr,
-  formatDate,
   formatMoney,
   type AdCampaign,
   type AdPlacement,
@@ -47,6 +47,8 @@ export function AdsCampaignsPage({ initialFilters, canWrite }: { initialFilters:
 }
 
 function CampaignsContent({ initialFilters, canWrite }: { initialFilters: CampaignListInitialFilters; canWrite: boolean }) {
+  const controlCopy = useDashboardCopy();
+  const { text, pick } = useSubscriberText();
   const { value: tab, onValueChange } = useUrlTab(TABS.map((item) => item.value), initialFilters.campaignIds?.length ? 'all' : 'live');
   const [campaigns, setCampaigns] = React.useState<AdCampaign[]>([]);
   const requestRef = React.useRef(0);
@@ -121,14 +123,10 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
 
       <Card>
         <CardContent className="space-y-4">
-          <Tabs value={tab} onValueChange={onValueChange}>
-            <TabsList className="h-auto max-w-full flex-wrap justify-start" aria-label="Campaign state">
-              {TABS.map((item) => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
+          <SegmentedControl label="Campaign state" value={tab} onValueChange={onValueChange} options={TABS} />
 
           {loading ? (
-            <div className="space-y-3" aria-busy="true" aria-label="Loading campaigns">
+            <div className="space-y-3" aria-busy="true" aria-label={controlCopy("Loading campaigns")}>
               {Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded-lg bg-muted" />)}
             </div>
           ) : error ? (
@@ -142,20 +140,19 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
               <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book inventory.</DashboardText></p>
             </div>
           ) : (
-            <Table className="min-w-[1180px]">
+            <Table layout="campaigns">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Place</DashboardText></TableHead>
                   <TableHead><DashboardText>Advertiser</DashboardText></TableHead>
                   <TableHead><DashboardText>Placement</DashboardText></TableHead>
-                  <TableHead><DashboardText>City</DashboardText></TableHead>
                   <TableHead><DashboardText>Dates</DashboardText></TableHead>
-                  <TableHead><DashboardText>Amount</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>Impressions</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>Taps</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>CTR</DashboardText></TableHead>
-                  <TableHead><DashboardText>State</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Amount</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Impr.</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Taps</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>CTR</DashboardText></TableHead>
+                  <TableHead column="status"><DashboardText>State</DashboardText></TableHead>
+                  <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -163,45 +160,25 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                   <TableRow key={campaign.id}>
                     <TableCell>
                       <Link href={canWrite ? `/dashboard/ads/${campaign.id}` : `/dashboard/ads/${campaign.id}/report`} className="font-medium hover:text-primary">
-                        {displayName(campaign.place.name, campaign.place.nameEn)}
+                        <RecordCell nameAr={campaign.place.name} nameEn={campaign.place.nameEn} thumbnail={campaign.place.coverImage} />
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <p>{campaign.advertiserName}</p>
-                      {campaign.advertiserPhone && <p className="text-xs text-muted-foreground" dir="ltr">{campaign.advertiserPhone}</p>}
+                      <p className="line-clamp-2 leading-4" title={campaign.advertiserName}>{campaign.advertiserName}</p>
+                      {campaign.advertiserPhone && <p className="truncate text-xs text-muted-foreground" dir="ltr" title={campaign.advertiserPhone}>{campaign.advertiserPhone}</p>}
                     </TableCell>
-                    <TableCell>{campaign.placement === 'featured' ? 'Featured' : 'Top 10'}</TableCell>
-                    <TableCell>{campaign.city ? displayName(campaign.city.name, campaign.city.nameEn) : 'All Egypt'}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}</TableCell>
-                    <TableCell>{formatMoney(campaign.amountPaid, campaign.currency)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCount(campaign.totals.impressions)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCount(campaign.totals.taps)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCtr(campaign.totals.ctr)}</TableCell>
-                    <TableCell><AdStateBadge state={campaign.state} /></TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          nativeButton={false}
-                          render={<Link href={`/dashboard/ads/${campaign.id}/report`} />}
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Open report for ${campaign.advertiserName}`}
-                          title="Report"
-                        >
-                          <FileText className="size-4" />
-                        </Button>
-                        {canWrite && <Button
-                          nativeButton={false}
-                          render={<Link href={`/dashboard/ads/${campaign.id}`} />}
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Edit campaign for ${campaign.advertiserName}`}
-                          title="Edit"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>}
-                        {canWrite && <LifecycleActions campaign={campaign} onAction={(action) => setPending({ campaign, action })} />}
-                      </div>
+                    <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${campaign.placement === 'featured' ? text('Featured', 'مميز') : text('Top 10', 'أفضل 10')} · ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : text('All Egypt', 'كل مصر')}`}>{campaign.placement === 'featured' ? text('Featured', 'مميز') : text('Top 10', 'أفضل 10')} · {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : text('All Egypt', 'كل مصر')}</p></TableCell>
+                    <TableCell className="text-muted-foreground"><DateRange start={campaign.startDate} end={campaign.endDate} /></TableCell>
+                    <TableCell className="text-end tabular-nums">{formatMoney(campaign.amountPaid, campaign.currency)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals.impressions)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals.taps)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCtr(campaign.totals.ctr)}</TableCell>
+                    <TableCell column="status"><AdStateBadge state={campaign.state} /></TableCell>
+                    <TableCell column="actions" className="text-end">
+                      <RowActions recordName={campaign.advertiserName} actions={[
+                        { label: 'Report', icon: <FileText aria-hidden="true" />, href: `/dashboard/ads/${campaign.id}/report` },
+                        ...(canWrite ? [{ label: 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/ads/${campaign.id}` }, ...campaignLifecycleActions(campaign, (action) => setPending({ campaign, action }))] : []),
+                      ]} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -223,34 +200,11 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
   );
 }
 
-function LifecycleActions({ campaign, onAction }: { campaign: AdCampaign; onAction: (action: CampaignAction) => void }) {
-  const lang = useOptionalDashboardLang()?.lang ?? 'en';
-  const actionButton = (
-    action: CampaignAction,
-    label: string,
-    Icon: typeof Pause,
-    destructive = false,
-  ) => (
-    <Button
-      type="button"
-      variant="ghost"
-      className={destructive ? 'hover:text-destructive focus-visible:text-destructive' : undefined}
-      size="icon-sm"
-      onClick={() => onAction(action)}
-      aria-label={lang === 'ar' ? `${translateDashboardCopy(label, lang)} حملة ${campaign.advertiserName}` : `${label} campaign for ${campaign.advertiserName}`}
-      title={label}
-    >
-      <Icon className="size-4" />
-    </Button>
-  );
-
-  if (campaign.state === 'ended' || campaign.state === 'expired') return null;
-  return (
-    <>
-      {campaign.state === 'paused'
-        ? actionButton('resume', 'Resume', Play)
-        : actionButton('pause', 'Pause', Pause)}
-      {actionButton('end', 'End', CircleStop, true)}
-    </>
-  );
+export function campaignLifecycleActions(campaign: AdCampaign, onAction: (action: CampaignAction) => void): RowAction[] {
+  if (campaign.state === 'ended' || campaign.state === 'expired') return [];
+  const paused = campaign.state === 'paused';
+  return [
+    { label: paused ? 'Resume' : 'Pause', icon: paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />, onClick: () => onAction(paused ? 'resume' : 'pause') },
+    { label: 'End', icon: <CircleStop aria-hidden="true" />, destructive: true, onClick: () => onAction('end') },
+  ];
 }

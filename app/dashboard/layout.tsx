@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DashboardHomeLink } from "@/components/admin/dashboard-text";
 import Image from "next/image";
 import { ProfileHeader } from "@/components/auth/profile-header";
 import { getServerSession } from "@/lib/auth-server";
@@ -57,9 +58,9 @@ export default async function DashboardLayout({
             or pushing the logo off-screen. */}
         <header className="print-hide relative flex shrink-0 items-center gap-2 border-b border-border bg-card px-3 py-2.5 lg:hidden">
           <DashboardNav items={navItems} />
-          <Link href="/dashboard" className="flex shrink-0 items-center gap-1.5" aria-label="Khargny — dashboard home">
+          <DashboardHomeLink>
             <Image src="/khargny-logo.png" alt="" width={22} height={28} className="h-6 w-auto" />
-          </Link>
+          </DashboardHomeLink>
           <div className="ms-auto flex min-w-0 items-center gap-2">
             <DashboardLangToggle />
             <ProfileHeader compact />

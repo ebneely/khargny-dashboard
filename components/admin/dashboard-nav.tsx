@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardCopy } from '@/components/admin/dashboard-text';
+
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import Link from 'next/link';
@@ -68,6 +70,7 @@ export type NavItem = { href: string; label: string; iconName: NavIconName; grou
  * matches only exactly so Home does not stay lit on every page.
  */
 export function DashboardNav({ items }: { items: NavItem[] }) {
+  const controlCopy = useDashboardCopy();
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -140,7 +143,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   return (
     <>
       {/* Desktop rail */}
-      <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="hidden flex-col gap-1 lg:flex" aria-label="Dashboard">
+      <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="hidden flex-col gap-1 lg:flex" aria-label={controlCopy("Dashboard")}>
         <NavGroups items={items} activeHref={activeHref} />
       </nav>
 
@@ -163,7 +166,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
         className="absolute inset-x-2 top-full z-40 mt-1 hidden rounded-xl border border-border bg-card p-2 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto lg:!hidden"
         style={{ display: 'none', willChange: 'transform, opacity' }}
       >
-        <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="flex flex-col gap-1" aria-label="Dashboard">
+        <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="flex flex-col gap-1" aria-label={controlCopy("Dashboard")}>
           <NavGroups items={items} activeHref={activeHref} mobile onNavigate={() => setOpen(false)} />
         </nav>
       </div>

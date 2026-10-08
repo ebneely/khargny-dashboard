@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardCopy } from '@/components/admin/dashboard-text';
+
 import { Button } from '@/components/ui/button';
 import { useDashboardLang, type DashLang } from '@/lib/dashboard-lang';
 import { cn } from '@/lib/utils';
@@ -13,6 +15,7 @@ import { cn } from '@/lib/utils';
  * the backend). Persisted per-browser via the provider.
  */
 export function DashboardLangToggle({ className }: { className?: string }) {
+  const controlCopy = useDashboardCopy();
   const { lang, setLang } = useDashboardLang();
 
   const seg = (value: DashLang, label: string) => (
@@ -37,7 +40,7 @@ export function DashboardLangToggle({ className }: { className?: string }) {
     <div
       className={cn('inline-flex items-center rounded-md border border-border p-0.5', className)}
       role="group"
-      aria-label="View language"
+      aria-label={controlCopy("View language")}
     >
       {seg('en', 'EN')}
       {seg('ar', 'ع')}

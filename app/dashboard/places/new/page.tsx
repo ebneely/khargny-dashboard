@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { optionalText } from '@/lib/api/subscribers';
 import { FileUpload } from '@/components/ui/file-upload';
 import { useState, useEffect, useRef } from 'react';
@@ -61,6 +61,7 @@ function blankWeek(): PlaceHour[] {
 }
 
 export default function NewPlacePage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const { pick, lang } = useDashboardLang();
   const [cities, setCities] = useState<AdminCity[]>([]);
@@ -316,7 +317,7 @@ export default function NewPlacePage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="slug"><DashboardText>Slug *</DashboardText></Label>
-                  <Input id="slug" aria-invalid={Boolean(fieldErrors.slug)} aria-describedby={fieldErrors.slug ? 'slug-error' : undefined} value={slug} onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }} placeholder="auto-generated from the name" />{fieldError('slug')}
+                  <Input id="slug" aria-invalid={Boolean(fieldErrors.slug)} aria-describedby={fieldErrors.slug ? 'slug-error' : undefined} value={slug} onChange={(e) => { setSlugEdited(true); setSlug(slugify(e.target.value)); }} placeholder={controlCopy("auto-generated from the name")} />{fieldError('slug')}
                   <p className="text-xs text-muted-foreground"><DashboardText>Auto-filled from the name and kept unique on save. Edit it if you want a custom URL.</DashboardText></p>
                 </div>
 
@@ -324,7 +325,7 @@ export default function NewPlacePage() {
                   <div className="space-y-2">
                     <Label htmlFor="cityId"><DashboardText>City *</DashboardText></Label>
                     <Select value={cityId} onValueChange={(v) => v && setCityId(v)}>
-                      <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={controlCopy("Select city")} /></SelectTrigger>
                       <SelectContent>
                         {cities.map((c) => (<SelectItem key={c.id} value={c.id}>{pick(c.name, c.nameEn)}</SelectItem>))}
                       </SelectContent>
@@ -333,7 +334,7 @@ export default function NewPlacePage() {
                   <div className="space-y-2">
                     <Label htmlFor="categoryId"><DashboardText>Category *</DashboardText></Label>
                     <Select value={categoryId} onValueChange={(v) => v && setCategoryId(v)}>
-                      <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={controlCopy("Select category")} /></SelectTrigger>
                       <SelectContent>
                         {categories.map((c) => (<SelectItem key={c.id} value={c.id}>{pick(c.nameAr, c.nameEn)}</SelectItem>))}
                       </SelectContent>
@@ -379,7 +380,7 @@ export default function NewPlacePage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mapsUrl"><DashboardText>Google Maps link *</DashboardText></Label>
-                    <Input id="mapsUrl" aria-invalid={Boolean(fieldErrors.mapsUrl)} aria-describedby={fieldErrors.mapsUrl ? 'mapsUrl-error' : undefined} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.app.goo.gl/…" />{fieldError('mapsUrl')}
+                    <Input id="mapsUrl" aria-invalid={Boolean(fieldErrors.mapsUrl)} aria-describedby={fieldErrors.mapsUrl ? 'mapsUrl-error' : undefined} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder={controlCopy("https://maps.app.goo.gl/…")} />{fieldError('mapsUrl')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="priceRange">{lang === 'ar' ? 'فئة السعر للفرد (جنيه)' : 'Price band per person (EGP)'}</Label>
@@ -440,7 +441,7 @@ export default function NewPlacePage() {
                     <Link href="/dashboard/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline"><DashboardText>Create amenities →</DashboardText></Link>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label="Amenities">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label={controlCopy("Amenities")}>
                     {allAmenities.map((a) => {
                       const checked = amenityIds.includes(a.id);
                       return (
@@ -472,7 +473,7 @@ export default function NewPlacePage() {
                     <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline"><DashboardText>Create tags →</DashboardText></Link>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label="Tags">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2" role="group" aria-label={controlCopy("Tags")}>
                     {allTags.map((tg) => {
                       const checked = tagIds.includes(tg.id);
                       return (
@@ -517,7 +518,7 @@ export default function NewPlacePage() {
                       <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-md border border-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={g.preview} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover" />
-                        <Button variant="ghost" type="button" onClick={() => removeGallery(i)} aria-label="Remove photo"
+                        <Button variant="ghost" type="button" onClick={() => removeGallery(i)} aria-label={controlCopy("Remove photo")}
                           className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80">
                           <X className="h-3.5 w-3.5" />
                         </Button>

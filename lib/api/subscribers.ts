@@ -7,6 +7,9 @@ export function optionalText(value: unknown): string | null {
 export type Money = string | null;
 export type PaymentMethod = 'cash' | 'instapay' | 'bank_transfer' | 'wallet' | 'other';
 export interface SubscriberPlace {
+  coverImage?: string | null;
+  coverImageDimensions?: { width: number; height: number } | null;
+  subscriber?: { id: string; name: string } | null;
   id: string;
   name: string;
   nameEn: string | null;

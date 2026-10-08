@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,6 +11,7 @@ import { createApiKey, type ApiKeyScope } from '@/lib/api/api-keys';
 import { ApiKeySetup } from './api-key-setup';
 
 export function CreateApiKeyDialog({ role, onClose, onCreated }: { role: string; onClose: () => void; onCreated: () => void }) {
+  const controlCopy = useDashboardCopy();
   const [name, setName] = useState('');
   const [scopes, setScopes] = useState<ApiKeyScope[]>(['read']);
   const [expires, setExpires] = useState('');
@@ -71,7 +72,7 @@ export function CreateApiKeyDialog({ role, onClose, onCreated }: { role: string;
           <form onSubmit={submit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="api-key-name"><DashboardText>Name</DashboardText></Label>
-              <Input id="api-key-name" value={name} onChange={(event) => setName(event.target.value)} required maxLength={100} placeholder="Claude on my laptop" autoComplete="off" disabled={isSaving} />
+              <Input id="api-key-name" value={name} onChange={(event) => setName(event.target.value)} required maxLength={100} placeholder={controlCopy("Claude on my laptop")} autoComplete="off" disabled={isSaving} />
             </div>
             <fieldset className="space-y-3" disabled={isSaving}>
               <legend className="mb-2 text-sm font-medium"><DashboardText>Permissions</DashboardText></legend>

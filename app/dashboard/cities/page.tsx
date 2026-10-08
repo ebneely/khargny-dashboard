@@ -1,24 +1,25 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
+import { RowActions } from '@/components/admin/row-actions';
+import { FilterBar, FilterSearch, FilterSelect } from '@/components/admin/filter-bar';
+import { RecordCell } from '@/components/admin/record-cell';
+import { Pager } from '@/components/admin/pager';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, ChevronLeft, ChevronRight, Trash2, RotateCcw, Pencil } from 'lucide-react';
+import { Plus, Trash2, RotateCcw, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
 
@@ -27,6 +28,8 @@ const PAGE_SIZE = 20;
 type StatusFilter = 'all' | 'active' | 'draft' | 'deleted';
 
 export default function CitiesPage() {
+  const controlCopy = useDashboardCopy();
+  const readOnly = useDashboardReadOnly();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -67,7 +70,7 @@ export default function CitiesPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <span className="text-foreground"><DashboardText>Cities</DashboardText></span>
@@ -84,34 +87,7 @@ export default function CitiesPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, name (En), or slug..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                className="pl-9"
-                data-trace-id="city-list-search"
-              />
-            </div>
-            <Select
-              value={statusFilter}
-              onValueChange={(v) => { if (v) { setStatusFilter(v as StatusFilter); setPage(0); } }}
-            >
-              <SelectTrigger className="w-40" data-trace-id="city-list-status-filter">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all"><DashboardText>All</DashboardText></SelectItem>
-                <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
-                <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
-                <SelectItem value="deleted"><DashboardText>Deleted</DashboardText></SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
+        <CardHeader><FilterBar filters={1}><FilterSearch label="Search by name, name (En), or slug..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} data-trace-id="city-list-search" /><FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value as StatusFilter); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'deleted', label: 'Deleted' }]} /></FilterBar></CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
@@ -126,17 +102,16 @@ export default function CitiesPage() {
             </div>
           ) : filtered.length > 0 ? (
             <>
-              <Table>
+              <Table layout="list">
                 <TableHeader>
                   <TableRow>
                     <TableHead><DashboardText>Name</DashboardText></TableHead>
-                    <TableHead><DashboardText>English</DashboardText></TableHead>
                     <TableHead><DashboardText>Slug</DashboardText></TableHead>
                     <TableHead><DashboardText>Region</DashboardText></TableHead>
-                    <TableHead className="text-center"><DashboardText>Places</DashboardText></TableHead>
-                    <TableHead><DashboardText>Status</DashboardText></TableHead>
+                    <TableHead className="text-end"><DashboardText>Places</DashboardText></TableHead>
+                    <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
                     <TableHead className="text-center"><DashboardText>Featured</DashboardText></TableHead>
-                    <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                    <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -147,16 +122,15 @@ export default function CitiesPage() {
                         <TableCell>
                           <Link
                             href={`/dashboard/cities/${city.id}`}
-                            className="hover:text-orange-600 font-medium"
+                            className="hover:text-primary font-medium"
                             data-trace-id={`city-list-name-${city.id}`}
                           >
-                            {city.name}
+                            <RecordCell nameAr={city.name} nameEn={city.nameEn} thumbnail={city.imageUrl} />
                           </Link>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{city.nameEn || '—'}</TableCell>
                         <TableCell className="text-muted-foreground">{city.slug}</TableCell>
                         <TableCell className="text-muted-foreground">{city.region || '—'}</TableCell>
-                        <TableCell className="text-center text-sm">
+                        <TableCell className="text-end tabular-nums text-sm">
                           {(city.placeCount ?? 0) > 0 ? (
                             <span title={`${city.activePlaceCount ?? 0} active of ${city.placeCount} total`}>
                               {city.placeCount}
@@ -166,77 +140,24 @@ export default function CitiesPage() {
                             <span className="text-muted-foreground">0</span>
                           )}
                         </TableCell>
-                        <TableCell>
-                          {deletedAt ? (
-                            <Badge variant="destructive" data-trace-id={`city-list-status-deleted-${city.id}`}><DashboardText>Deleted</DashboardText></Badge>
+                        <TableCell column="status">{deletedAt ? (
+                            <StatusBadge status="deleted" data-trace-id={`city-list-status-deleted-${city.id}`} />
                           ) : (
-                            <Badge variant={city.status === 'active' ? 'default' : 'secondary'}>
-                              {city.status}
-                            </Badge>
+                            <StatusBadge status={city.status} />
                           )}
                         </TableCell>
                         <TableCell className="text-center">{city.featured ? '✓' : '—'}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Link href={`/dashboard/cities/${city.id}`}>
-                              <Button variant="ghost" size="icon-sm" aria-label="Edit" data-trace-id={`city-list-edit-${city.id}`}>
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                            {deletedAt && isSuperadmin ? (
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Restore"
-                                onClick={() => setPendingRestore({ id: city.id, name: city.name })}
-                                data-trace-id={`city-list-restore-${city.id}`}
-                              >
-                                <RotateCcw className="w-4 h-4" />
-                              </Button>
-                            ) : !deletedAt ? (
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Delete"
-                                onClick={() => setPendingDelete({ id: city.id, name: city.name })}
-                                data-trace-id={`city-list-delete-${city.id}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            ) : null}
-                          </div>
-                        </TableCell>
+                        <TableCell column="actions" className="text-end"><RowActions recordName={city.name} actions={[
+                          { label: readOnly ? 'View' : 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/cities/${city.id}`, traceId: `city-list-edit-${city.id}` },
+                          ...(deletedAt && isSuperadmin && !readOnly ? [{ label: 'Restore', icon: <RotateCcw aria-hidden="true" />, onClick: () => setPendingRestore({ id: city.id, name: city.name }), traceId: `city-list-restore-${city.id}` }] : !deletedAt && !readOnly ? [{ label: 'Delete', icon: <Trash2 aria-hidden="true" />, destructive: true, onClick: () => setPendingDelete({ id: city.id, name: city.name }), traceId: `city-list-delete-${city.id}` }] : []),
+                        ]} /></TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
 
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  <DashboardText>Page</DashboardText> {page + 1} <DashboardText>of</DashboardText> {totalPages} ({data?.total ?? 0} <DashboardText>total)</DashboardText>
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 0}
-                    onClick={() => setPage((p) => p - 1)}
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                    aria-label="Next page"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              <Pager skip={page * PAGE_SIZE} pageSize={PAGE_SIZE} total={data?.total ?? 0} count={filtered.length} onPrevious={() => setPage((current) => Math.max(0, current - 1))} onNext={() => setPage((current) => current + 1)} nextDisabled={page >= totalPages - 1} />
             </>
           ) : (
             <div className="text-center py-8">

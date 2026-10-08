@@ -4,6 +4,12 @@ import * as React from 'react';
 import { Eye } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
+const ReadOnlyContext = React.createContext(false);
+
+export function useDashboardReadOnly() {
+  return React.useContext(ReadOnlyContext);
+}
+
 const BLOCKED_CONTROLS = ':is(input, textarea, select, button):not([role="tab"]):not([data-ro-allow="true"])';
 
 /**
@@ -68,10 +74,10 @@ export function ReadOnlyGate({
     };
   }, [readOnly, pathname]);
 
-  if (!readOnly || pathname === '/dashboard/settings/api-keys') return <>{children}</>;
+  if (!readOnly || pathname === '/dashboard/settings/api-keys') return <ReadOnlyContext.Provider value={false}>{children}</ReadOnlyContext.Provider>;
 
   return (
-    <>
+    <ReadOnlyContext.Provider value={readOnly}>
       <style>{`
         /* Controls: blocked EXCEPT tab switchers and opted-in view controls. */
         .khg-readonly ${BLOCKED_CONTROLS} {
@@ -96,6 +102,6 @@ export function ReadOnlyGate({
         </span>
       </div>
       <div ref={contentRef} className="khg-readonly">{children}</div>
-    </>
+    </ReadOnlyContext.Provider>
   );
 }

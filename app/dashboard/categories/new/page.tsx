@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -21,6 +21,7 @@ import type { AdminApiError } from '@/lib/api/admin-client';
 type ParentOption = { id: string; nameAr: string };
 
 export default function NewCategoryPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const [error, setError] = useState('');
   const [slugError, setSlugError] = useState('');
@@ -93,7 +94,7 @@ export default function NewCategoryPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <Link href="/dashboard/categories" className="hover:text-foreground"><DashboardText>Categories</DashboardText></Link>
@@ -143,7 +144,7 @@ export default function NewCategoryPage() {
                   id="slug"
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
-                  placeholder="category-slug"
+                  placeholder={controlCopy("category-slug")}
                   data-trace-id="create-category-slug"
                   aria-invalid={!!slugError}
                   aria-describedby={slugError ? 'create-category-slug-error' : undefined}
@@ -166,7 +167,7 @@ export default function NewCategoryPage() {
                 <Label htmlFor="parentId"><DashboardText>Parent category</DashboardText></Label>
                 <Select value={parentId || '__none__'} onValueChange={(v) => setParentId(v === '__none__' ? '' : v)}>
                   <SelectTrigger data-trace-id="create-category-parent">
-                    <SelectValue placeholder="(none — top-level)" />
+                    <SelectValue placeholder={controlCopy("(none — top-level)")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__"><DashboardText>(none — top-level)</DashboardText></SelectItem>

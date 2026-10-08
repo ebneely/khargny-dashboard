@@ -9,7 +9,7 @@
  * add places, reorder them, remove them, save.
  */
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2, Search, X, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -41,6 +41,7 @@ export function SectionPlacesDialog({
   onOpenChange: (o: boolean) => void;
   onSaved?: () => void;
 }) {
+  const controlCopy = useDashboardCopy();
   const [pinned, setPinned] = React.useState<PickPlace[]>([]);
   const [results, setResults] = React.useState<PickPlace[]>([]);
   const [query, setQuery] = React.useState('');
@@ -137,7 +138,7 @@ export function SectionPlacesDialog({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search places to add…"
+              placeholder={controlCopy("Search places to add…")}
               className="pl-9"
               data-trace-id="section-places-search"
             />
@@ -193,13 +194,13 @@ export function SectionPlacesDialog({
                   <span className="w-5 text-center text-xs text-muted-foreground">{i + 1}</span>
                   <Thumb src={p.coverImage} />
                   <span className="min-w-0 flex-1 truncate text-sm">{label(p)}</span>
-                  <Button variant="ghost" type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Move up")} disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowUp className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" type="button" aria-label="Move down" disabled={i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Move down")} disabled={i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowDown className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" type="button" aria-label="Remove" onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Remove")} onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
                     <X className="h-4 w-4" />
                   </Button>
                 </div>

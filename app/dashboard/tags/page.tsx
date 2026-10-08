@@ -1,6 +1,8 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
+import { RecordCell } from '@/components/admin/record-cell';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
@@ -16,6 +18,7 @@ import { EntityDeleteDialog } from '@/components/admin/entity-delete-dialog';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 
 export default function TagsPage() {
+  const controlCopy = useDashboardCopy();
   const { lang, pick } = useDashboardLang();
   const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
@@ -51,7 +54,7 @@ export default function TagsPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search tags..."
+                placeholder={controlCopy("Search tags...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -72,26 +75,26 @@ export default function TagsPage() {
               <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : filtered.length > 0 ? (
-            <Table>
+            <Table layout="list">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Name</DashboardText></TableHead>
-                  <TableHead><DashboardText>English Name</DashboardText></TableHead>
                   <TableHead><DashboardText>Slug</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                  <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
+                  <TableHead className="text-end" column="actions"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((tag) => (
                   <TableRow key={tag.id}>
                     <TableCell>
-                      <Link href={`/dashboard/tags/${tag.id}`} className="hover:text-orange-600 font-medium">
-                        {tag.name}
+                      <Link href={`/dashboard/tags/${tag.id}`} className="hover:text-primary font-medium">
+                        <RecordCell nameAr={tag.name} nameEn={tag.nameEn} />
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{tag.nameEn || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{tag.slug}</TableCell>
-                    <TableCell className="text-end">
+                    <TableCell column="status"><StatusBadge status={tag.deletedAt ? 'deleted' : 'active'} /></TableCell>
+                      <TableCell className="text-end" column="actions">
                       <Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href={`/dashboard/tags/${tag.id}`} />} aria-label={`${lang === 'ar' ? 'تعديل' : 'Edit'} ${pick(tag.name, tag.nameEn)}`}><Pencil aria-hidden="true" /></Button>
                       <Button
                         variant="ghost"

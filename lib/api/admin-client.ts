@@ -73,7 +73,7 @@ function handleSessionExpired(): void {
 
 interface RequestOptions {
   body?: unknown;
-  params?: Record<string, string | number | undefined | null>;
+  params?: Record<string, string | number | boolean | undefined | null>;
   envelope?: boolean;
   headers?: Record<string, string>;
 }
@@ -272,11 +272,11 @@ async function uploadWithProgress<T>(
 }
 
 export const adminApi = {
-  list: async <T>(path: string, params?: Record<string, string | number | undefined | null>) => {
+  list: async <T>(path: string, params?: Record<string, string | number | boolean | undefined | null>) => {
     const payload = await request<{ data?: unknown }>('GET', path, { params, envelope: true });
     return toList<T>(payload.data && !Array.isArray(payload.data) ? payload.data : payload);
   },
-  get: <T>(path: string, params?: Record<string, string | number | undefined | null>) =>
+  get: <T>(path: string, params?: Record<string, string | number | boolean | undefined | null>) =>
     request<T>('GET', path, { params }),
   post: <T>(path: string, body?: unknown, options?: { headers?: Record<string, string> }) =>
     request<T>('POST', path, { body, ...options }),

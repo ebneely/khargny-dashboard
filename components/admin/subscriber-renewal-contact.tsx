@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardCopy } from '@/components/admin/dashboard-text';
+
 import * as React from 'react';
 import { FormActionBar } from './form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -32,6 +34,7 @@ export function SubscriberRenewalContact({ canWrite }: { canWrite: boolean }) {
 }
 
 function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettings; canWrite: boolean }) {
+  const controlCopy = useDashboardCopy();
   const { text, lang } = useSubscriberText();
   const [phone, setPhone] = React.useState(settings.renewalPhone ?? '');
   const [whatsapp, setWhatsapp] = React.useState(settings.renewalWhatsapp ?? '');
@@ -97,7 +100,7 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
     <fieldset disabled={busy || refreshFailed} className="grid gap-4 sm:grid-cols-2">
       {fields.map((field) => <Field key={field.name} label={field.label} error={fieldErrors[field.name]}>
         <Input name={field.name} type="tel" dir="ltr" autoComplete="tel" value={field.value}
-          placeholder="01XXXXXXXXX" onChange={(event) => {
+          placeholder={controlCopy("01XXXXXXXXX")} onChange={(event) => {
             field.update(event.target.value);
             setSaved(false);
             setError('');

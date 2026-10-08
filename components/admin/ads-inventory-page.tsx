@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -29,6 +29,7 @@ function shiftDate(date: string, days: number): string {
 }
 
 export function AdsInventoryPage() {
+  const controlCopy = useDashboardCopy();
   const [inventory, setInventory] = React.useState<AdInventory | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -67,18 +68,18 @@ export function AdsInventoryPage() {
           : 'Booked capacity across national and city placements.'}
         actions={
           <>
-            <Button data-ro-allow="true" variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label="Previous 4 weeks">
+            <Button data-ro-allow="true" variant="outline" onClick={() => move(-STEP_DAYS)} disabled={loading || !inventory} aria-label={controlCopy("Previous 4 weeks")}>
               <ChevronLeft className="size-4" /><DashboardText>4 weeks</DashboardText>
             </Button>
             <Button data-ro-allow="true" variant="outline" onClick={() => setFrom(null)} disabled={loading || from === null}><DashboardText>Today</DashboardText></Button>
-            <Button data-ro-allow="true" variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label="Next 4 weeks">
+            <Button data-ro-allow="true" variant="outline" onClick={() => move(STEP_DAYS)} disabled={loading || !inventory} aria-label={controlCopy("Next 4 weeks")}>
               <DashboardText>4 weeks</DashboardText><ChevronRight className="size-4" />
             </Button>
           </>
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Inventory legend">
+      <div className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label={controlCopy("Inventory legend")}>
         <Legend className={CELL_STYLES.free} label="Free" />
         <Legend className={CELL_STYLES.partial} label="Partly sold" />
         <Legend className={CELL_STYLES.full} label="Full" />

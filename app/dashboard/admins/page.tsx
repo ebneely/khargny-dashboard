@@ -1,11 +1,14 @@
 'use client';
 
+import { RecordCell } from '@/components/admin/record-cell';
+import { DateCell } from '@/components/admin/date-cell';
+import { Pager } from '@/components/admin/pager';
+import { RowActions } from '@/components/admin/row-actions';
 import { DashboardText } from '@/components/admin/dashboard-text';
-import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronLeft, ChevronRight, ShieldOff, ShieldCheck, Pencil, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import { Plus, ShieldOff, ShieldCheck, Pencil, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +16,7 @@ import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
@@ -37,22 +40,10 @@ function roleLabel(r: Admin['role']): string {
 }
 
 function statusBadge(s: Admin['status']) {
-  if (s === 'active') return <Badge variant="default"><DashboardText>Active</DashboardText></Badge>;
-  return <Badge variant="secondary"><DashboardText>Disabled</DashboardText></Badge>;
-}
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+  return <StatusBadge status={s} />;
 }
 
 export default function AdminsPage() {
-  const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [pendingDisable, setPendingDisable] = useState<Admin | null>(null);
@@ -71,7 +62,6 @@ export default function AdminsPage() {
 
   const totalLoaded = data?.items.length ?? 0;
   const hasNext = totalLoaded === PAGE_SIZE;
-  const hasPrev = page > 0;
 
   const handleDelete = async (admin: Admin) => {
     setActionInFlight(admin);
@@ -200,33 +190,20 @@ export default function AdminsPage() {
               </div>
             ) : data && data.items.length > 0 ? (
               <>
-                <Table>
+                <Table layout="list">
                   <TableHeader>
                     <TableRow>
                       <TableHead><DashboardText>Email</DashboardText></TableHead>
                       <TableHead><DashboardText>Role</DashboardText></TableHead>
-                      <TableHead><DashboardText>Status</DashboardText></TableHead>
+                      <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
                       <TableHead><DashboardText>Last login</DashboardText></TableHead>
                       <TableHead><DashboardText>Created</DashboardText></TableHead>
-                      <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                      <TableHead className="text-end" column="actions"><DashboardText>Actions</DashboardText></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.items.map((admin) => {
                       const isSelf = currentUserId === admin.id;
-                      const disableButton = (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="hover:text-destructive focus-visible:text-destructive"
-                          aria-label={`${lang === 'ar' ? 'تعطيل' : 'Disable'} ${admin.email}`}
-                          disabled={actionInFlight?.id === admin.id}
-                          onClick={() => setPendingDisable(admin)}
-                          data-trace-id={`admin-row-${admin.id}-disable`}
-                        >
-                          <ShieldOff className="size-4" aria-hidden="true" />
-                        </Button>
-                      );
                       return (
                         <TableRow key={admin.id}>
                           <TableCell className="font-medium">
@@ -235,76 +212,25 @@ export default function AdminsPage() {
                               className="hover:text-primary"
                               data-trace-id={`admin-row-${admin.id}-email`}
                             >
-                              {admin.email}
-                              {isSelf && (
-                                <span className="ml-2 text-xs text-muted-foreground"><DashboardText>(you)</DashboardText></span>
-                              )}
+                              <RecordCell name={admin.email} chips={isSelf && <span className="text-sm text-muted-foreground"><DashboardText>(you)</DashboardText></span>} />
                             </Link>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {roleLabel(admin.role)}
                           </TableCell>
-                          <TableCell>{statusBadge(admin.status)}</TableCell>
+                          <TableCell column="status">{statusBadge(admin.status)}</TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {formatDate(admin.lastLoginAt)}
+                            <DateCell value={admin.lastLoginAt} />
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {formatDate(admin.createdAt)}
+                            <DateCell value={admin.createdAt} />
                           </TableCell>
-                          <TableCell className="text-right">
-                            <div className="inline-flex items-center gap-1">
-                              <Link href={`/dashboard/admins/${admin.id}/edit`}>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={`${lang === 'ar' ? 'تعديل' : 'Edit'} ${admin.email}`}
-                                  data-trace-id={`admin-row-${admin.id}-edit`}
-                                >
-                                  <Pencil className="size-4" aria-hidden="true" />
-                                </Button>
-                              </Link>
-                              {isSelf ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  className="hover:text-destructive focus-visible:text-destructive"
-                                  aria-label={`${lang === 'ar' ? 'تعطيل' : 'Disable'} ${admin.email}`}
-                                  disabled
-                                  title="You cannot disable your own account"
-                                  data-trace-id={`admin-row-${admin.id}-disable-blocked`}
-                                >
-                                  <ShieldOff className="size-4" aria-hidden="true" />
-                                </Button>
-                              ) : admin.status === 'active' ? (
-                                disableButton
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={`${lang === 'ar' ? 'تفعيل' : 'Enable'} ${admin.email}`}
-                                  className="text-primary"
-                                  disabled={actionInFlight?.id === admin.id}
-                                  onClick={() => setPendingEnable(admin)}
-                                  data-trace-id={`admin-row-${admin.id}-enable`}
-                                >
-                                  <ShieldCheck className="size-4" aria-hidden="true" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                className="hover:text-destructive focus-visible:text-destructive"
-                                aria-label={`${lang === 'ar' ? 'حذف' : 'Delete'} ${admin.email}`}
-                                disabled={isSelf || actionInFlight?.id === admin.id}
-                                title={
-                                  isSelf ? 'You cannot delete your own account' : undefined
-                                }
-                                onClick={() => setPendingDelete(admin)}
-                                data-trace-id={`admin-row-${admin.id}-delete`}
-                              >
-                                <Trash2 className="size-4" aria-hidden="true" />
-                              </Button>
-                            </div>
+                          <TableCell className="text-end" column="actions">
+                            <RowActions recordName={admin.email} actions={[
+                              { label: 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/admins/${admin.id}/edit`, traceId: `admin-row-${admin.id}-edit` },
+                              { label: isSelf || admin.status === 'active' ? 'Disable' : 'Enable', icon: isSelf || admin.status === 'active' ? <ShieldOff aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />, disabled: isSelf || actionInFlight?.id === admin.id, destructive: isSelf || admin.status === 'active', title: isSelf ? 'You cannot disable your own account' : undefined, onClick: () => admin.status === 'active' ? setPendingDisable(admin) : setPendingEnable(admin), traceId: `admin-row-${admin.id}-${isSelf ? 'disable-blocked' : admin.status === 'active' ? 'disable' : 'enable'}` },
+                              { label: 'Delete', icon: <Trash2 aria-hidden="true" />, destructive: true, disabled: isSelf || actionInFlight?.id === admin.id, title: isSelf ? 'You cannot delete your own account' : undefined, onClick: () => setPendingDelete(admin), traceId: `admin-row-${admin.id}-delete` },
+                            ]} />
                           </TableCell>
                         </TableRow>
                       );
@@ -312,25 +238,7 @@ export default function AdminsPage() {
                   </TableBody>
                 </Table>
 
-                <div className="flex items-center justify-end gap-2 p-4 border-t border-border">
-                  <Button
-                    variant="outline" size="sm"
-                    disabled={!hasPrev}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    data-trace-id="admin-list-prev"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground px-2"><DashboardText>Page</DashboardText> {page + 1}</span>
-                  <Button
-                    variant="outline" size="sm"
-                    disabled={!hasNext}
-                    onClick={() => setPage((p) => p + 1)}
-                    data-trace-id="admin-list-next"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Pager skip={skip} pageSize={PAGE_SIZE} total={undefined} count={totalLoaded} onPrevious={() => setPage((current) => Math.max(0, current - 1))} onNext={() => setPage((current) => current + 1)} nextDisabled={!hasNext} />
               </>
             ) : (
               <div className="text-center py-12">

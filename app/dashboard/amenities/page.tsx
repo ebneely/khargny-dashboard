@@ -1,6 +1,8 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { StatusBadge } from '@/components/admin/subscriber-ui';
+import { RecordCell } from '@/components/admin/record-cell';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
@@ -17,6 +19,7 @@ import { IconPreview } from '@/components/icon-picker';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 
 export default function AmenitiesPage() {
+  const controlCopy = useDashboardCopy();
   const { lang, pick } = useDashboardLang();
   const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
@@ -51,7 +54,7 @@ export default function AmenitiesPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search amenities..."
+                placeholder={controlCopy("Search amenities...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -72,24 +75,23 @@ export default function AmenitiesPage() {
               <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : filtered.length > 0 ? (
-            <Table>
+            <Table layout="list">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Name</DashboardText></TableHead>
-                  <TableHead><DashboardText>English Name</DashboardText></TableHead>
                   <TableHead><DashboardText>Icon</DashboardText></TableHead>
-                  <TableHead className="text-right"><DashboardText>Actions</DashboardText></TableHead>
+                  <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
+                  <TableHead className="text-end" column="actions"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((amenity) => (
                   <TableRow key={amenity.id}>
                     <TableCell>
-                      <Link href={`/dashboard/amenities/${amenity.id}`} className="hover:text-orange-600 font-medium">
-                        {amenity.name}
+                      <Link href={`/dashboard/amenities/${amenity.id}`} className="hover:text-primary font-medium">
+                        <RecordCell nameAr={amenity.name} nameEn={amenity.nameEn} />
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{amenity.nameEn || '—'}</TableCell>
                     {/* Show the glyph, not the raw name — the icon is what visitors see. */}
                     <TableCell className="text-muted-foreground">
                       {amenity.icon ? (
@@ -101,7 +103,8 @@ export default function AmenitiesPage() {
                         '—'
                       )}
                     </TableCell>
-                    <TableCell className="text-end">
+                    <TableCell column="status"><StatusBadge status={amenity.deletedAt ? 'deleted' : 'active'} /></TableCell>
+                      <TableCell className="text-end" column="actions">
                       <Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href={`/dashboard/amenities/${amenity.id}`} />} aria-label={`${lang === 'ar' ? 'تعديل' : 'Edit'} ${pick(amenity.name, amenity.nameEn)}`}><Pencil aria-hidden="true" /></Button>
                       <Button
                         variant="ghost"

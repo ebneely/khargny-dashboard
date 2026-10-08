@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import {
   Eye,
@@ -31,6 +31,7 @@ const MEASURES = [
 type MeasureKey = (typeof MEASURES)[number]['key'];
 
 export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | 'en' }) {
+  const controlCopy = useDashboardCopy();
   const { lang: currentLanguage } = useDashboardLang();
   const lang = requestedLanguage ?? currentLanguage;
   const { data, isLoading, isError, refetch } = useAnalyticsOverview();
@@ -160,7 +161,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           <div
             className="flex shrink-0 rounded-md border border-border p-0.5"
             role="group"
-            aria-label="Measure"
+            aria-label={controlCopy("Measure")}
           >
             {MEASURES.map((m) => (
               <Button variant="ghost"

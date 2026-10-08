@@ -1,4 +1,7 @@
 export interface AdminPlace {
+  coverImage?: string | null;
+  coverImageDimensions?: { width: number; height: number } | null;
+  subscriber?: { id: string; name: string } | null;
   id: string;
   name: string;
   nameEn: string | null;
@@ -53,6 +56,7 @@ export interface AdminPlaceList {
 }
 
 export interface AdminPlaceFilters {
+  subscriberId?: string;
   search?: string;
   cityId?: string;
   categoryId?: string;

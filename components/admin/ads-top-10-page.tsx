@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CheckCircle2, MapPin, Trophy } from 'lucide-react';
 import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
+import { StatusBadge } from './subscriber-ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,7 +142,7 @@ export function AdsTop10Page() {
                     <span className="block truncate text-sm font-medium">{item.placeName}</span>
                     <span className="block truncate text-xs text-muted-foreground">{item.advertiserName}</span>
                   </span>
-                  <Badge variant={item.shownNow ? 'default' : 'secondary'}>{item.shownNow ? 'Shown now' : 'Queued'}</Badge>
+                  <StatusBadge status={item.shownNow ? 'live' : 'scheduled'}>{item.shownNow ? 'Shown now' : 'Queued'}</StatusBadge>
                 </Link>
               )) : <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground"><DashboardText>No live sponsored campaigns in this scope.</DashboardText></p>}
             </CardContent>

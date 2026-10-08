@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FormActionBar } from '@/components/admin/form-action-bar';
@@ -24,6 +24,7 @@ import { autoSlug } from '@/lib/utils/slug';
 import type { AdminApiError } from '@/lib/api/admin-client';
 
 export default function NewCityPage() {
+  const controlCopy = useDashboardCopy();
   const router = useRouter();
   const { lang } = useDashboardLang();
   const [error, setError] = useState('');
@@ -113,7 +114,7 @@ export default function NewCityPage() {
 
   return (
     <div>
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-2">
+      <nav aria-label={controlCopy("Breadcrumb")} className="text-sm text-muted-foreground mb-2">
         <Link href="/dashboard" className="hover:text-foreground"><DashboardText>Dashboard</DashboardText></Link>
         <span className="mx-2">/</span>
         <Link href="/dashboard/cities" className="hover:text-foreground"><DashboardText>Cities</DashboardText></Link>
@@ -218,7 +219,7 @@ export default function NewCityPage() {
                   id="slug"
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
-                  placeholder="city-slug"
+                  placeholder={controlCopy("city-slug")}
                   data-trace-id="create-city-slug"
                   aria-invalid={!!slugError}
                   aria-describedby={slugError ? 'create-city-slug-error' : undefined}

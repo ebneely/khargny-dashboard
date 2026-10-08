@@ -1,0 +1,51 @@
+[data-list-table] { isolation: isolate; }
+[data-list-table] [data-slot="table-header"] { position: relative; top: auto; transform: translateY(var(--table-header-shift, 0px)); z-index: 30; }
+[data-list-table] [data-slot="table"] { table-layout: fixed; }
+[data-list-table] [data-slot="table-cell"], [data-list-table] [data-slot="table-head"] { padding-inline: 8px; }
+[data-list-table] [data-slot="table-cell"] { overflow-wrap: anywhere; white-space: normal; }
+[data-list-table] [data-column="actions"] { position: sticky; inset-inline-end: 0; width: 100px; background: var(--card); z-index: 20; text-align: end; }
+[data-list-table] [data-column="status"] { width: 80px; }
+[data-list-table] [data-slot="table-header"] [data-column="actions"] { z-index: 40; }
+[data-list-table] [data-slot="record-cell"] { max-width: 100%; }
+[data-list-table="list"] th:first-child { width: 24%; }
+[data-list-table] td:first-child { min-width: 0; }
+[data-list-table] td:first-child > a { display: block; min-width: 0; }
+[data-list-table="campaigns"] table { min-width: 930px; }
+[data-list-table="campaigns"] th:first-child { width: 196px; }
+[data-list-table="campaigns"] th:nth-child(2) { width: 88px; }
+[data-list-table="campaigns"] th:nth-child(3) { width: 100px; }
+[data-list-table="campaigns"] th:nth-child(4) { width: 144px; }
+[data-list-table="campaigns"] th:nth-child(5) { width: 72px; }
+[data-list-table="campaigns"] th:nth-child(6) { width: 66px; }
+[data-list-table="campaigns"] th:nth-child(7) { width: 50px; }
+[data-list-table="campaigns"] th:nth-child(8) { width: 56px; }
+[data-list-table="campaigns"] [data-column="status"] { width: 80px; }
+[data-list-table="campaigns"] [data-column="actions"] { width: 92px; }
+[data-list-table="campaigns"] [data-slot="table-cell"], [data-list-table="campaigns"] [data-slot="table-head"] { padding-inline: 4px; }
+[data-list-table="campaigns"] [data-slot="table-head"] { font-size: 12px; }
+[data-list-table="campaigns"] [data-slot="date-range"] { font-size: 12px; white-space: nowrap; }
+[data-slot="filter-bar"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+[data-slot="filter-search"] { grid-column: 1 / -1; }
+[data-slot="filter-bar"] [data-slot="select-trigger"], [data-slot="filter-bar"] [data-slot="input"] { width: 100%; height: 44px; min-width: 0; }
+[data-slot="status-chip"] { border: 0; max-width: 100%; }
+[data-slot="status-chip"][data-tone="success"] { background: var(--success-bg); color: var(--success); }
+[data-slot="status-chip"][data-tone="warning"] { background: var(--warning-bg); color: color-mix(in srgb, var(--warning) 55%, var(--gray-900)); }
+[data-slot="status-chip"][data-tone="info"] { background: var(--info-bg); color: var(--info); }
+[data-slot="status-chip"][data-tone="neutral"] { background: var(--muted); color: var(--muted-foreground); }
+[data-slot="status-chip"][data-tone="danger"] { background: var(--error-bg); color: var(--error); }
+@media (min-width: 1280px) {
+  [data-slot="filter-bar"] { grid-template-columns: minmax(180px, 1fr) repeat(var(--filter-count), minmax(0, 132px)); }
+  [data-slot="filter-search"] { grid-column: auto; }
+}
+@media (max-width: 639px) {
+  [data-list-table] { overflow: visible; }
+  [data-list-table] [data-slot="table"] { width: 100%; min-width: 0; }
+  [data-list-table] tr > :not(:first-child):not([data-column="status"]):not([data-column="actions"]) { display: none; }
+  [data-list-table] [data-column="status"] { width: 68px; }
+  [data-list-table] [data-column="actions"] { width: 88px; padding-inline: 4px; }
+  [data-list-table] tr > :first-child { width: auto; }
+  [data-list-table] [data-slot="table-head"] { white-space: normal; overflow-wrap: anywhere; font-size: 12px; }
+  [data-list-table] [data-slot="table-cell"], [data-list-table] [data-slot="table-head"] { padding-inline: 4px; }
+  [data-list-table] [data-slot="row-actions"] { gap: 0; }
+  [data-list-table] [data-slot="status-chip"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

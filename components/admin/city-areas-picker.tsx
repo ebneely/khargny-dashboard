@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 import { Check, Search } from 'lucide-react';
@@ -27,6 +27,7 @@ export function CityAreasPicker({
   value: string[];
   onChange: (keys: string[]) => void;
 }) {
+  const controlCopy = useDashboardCopy();
   const [query, setQuery] = useState('');
   const selected = new Set(value);
 
@@ -63,9 +64,9 @@ export function CityAreasPicker({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter areas…"
+            placeholder={controlCopy("Filter areas…")}
             className="pl-9"
-            aria-label="Filter areas"
+            aria-label={controlCopy("Filter areas")}
           />
         </div>
         <span className="shrink-0 text-xs text-muted-foreground">{value.length} <DashboardText>selected</DashboardText></span>

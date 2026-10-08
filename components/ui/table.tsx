@@ -4,11 +4,29 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({ className, layout, ...props }: React.ComponentProps<"table"> & { layout?: "list" | "campaigns" }) {
+  const container = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    if (!layout) return
+    const update = () => {
+      const element = container.current
+      if (!element) return
+      const header = element.querySelector("thead")
+      const bounds = element.getBoundingClientRect()
+      const shift = Math.max(0, Math.min(-bounds.top, bounds.height - (header?.getBoundingClientRect().height ?? 0)))
+      element.style.setProperty("--table-header-shift", `${shift}px`)
+    }
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", update)
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update) }
+  }, [layout])
   return (
     <div
       data-slot="table-container"
-      className="relative h-72 w-full overflow-auto sm:h-90"
+      ref={container}
+      data-list-table={layout}
+      className="relative w-full overflow-x-auto"
     >
       <table
         data-slot="table"
@@ -65,10 +83,11 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({ className, column, ...props }: React.ComponentProps<"th"> & { column?: "status" | "actions" }) {
   return (
     <th
       data-slot="table-head"
+      data-column={column}
       className={cn(
         "h-11 px-[18px] text-start align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pe-0",
         className
@@ -78,12 +97,13 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({ className, column, ...props }: React.ComponentProps<"td"> & { column?: "status" | "actions" }) {
   return (
     <td
       data-slot="table-cell"
+      data-column={column}
       className={cn(
-        "px-[18px] py-3.5 align-middle whitespace-nowrap [&:has([role=checkbox])]:pe-0 [&:has([data-slot=button])]:text-end [&:has([data-slot=button])>div]:justify-end",
+        "px-[18px] py-1 align-middle whitespace-nowrap [&:has([role=checkbox])]:pe-0 [&:has([data-slot=button])]:text-end [&:has([data-slot=button])>div]:justify-end",
         className
       )}
       {...props}
