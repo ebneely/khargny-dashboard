@@ -341,6 +341,14 @@ main:has([data-slot="form-action-bar"]) {
   min-width: 40px;
 }
 
+/* An option of a pill control is sized by its track (36px, or 28px for the compact one), not by
+   the button floor above: with the floor, radio pills came out 44px beside 36px tab pills and the
+   language thumb bulged out of its track. */
+[data-slot="segmented-control"] [data-slot="button"] {
+  min-height: 0;
+  min-width: 0;
+}
+
 a:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;

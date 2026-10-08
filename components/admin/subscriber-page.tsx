@@ -11,6 +11,7 @@ import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import type { SubscriberDetail } from '@/lib/api/subscribers';
 import { SubscriberProfileForm } from './subscriber-profile-form';
 import { SubscriberSubscriptions } from './subscriber-subscriptions';
+import { TrialBadge } from './trial-badge';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
@@ -31,7 +32,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{subscriber?.name ?? text(subscriberId ? 'Subscriber' : 'New subscriber', subscriberId ? 'المشترك' : 'مشترك جديد')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{text('Manage details, places, subscriptions, visits, account and pricing.', 'إدارة البيانات والأماكن والاشتراكات والزيارات والحساب والأسعار.')}</p>
         </div>
-        {subscriber && <div className="flex flex-wrap items-center gap-3"><StatusBadge status={subscriber.status} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
+        {subscriber && <div className="flex flex-wrap items-center gap-3"><StatusBadge status={subscriber.status} /><TrialBadge planName={subscriber.currentSubscription?.planName} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
       </div>
     </header>
     {subscriberId && resource.loading && <LoadingState />}

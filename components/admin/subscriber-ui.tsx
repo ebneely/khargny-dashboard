@@ -78,7 +78,7 @@ export function LoadingState() {
 
 export function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
   const id = React.useId();
-  return <div className="space-y-2"><Label htmlFor={id}>{label}</Label>{React.isValidElement<{ id?: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>(children) ? React.cloneElement(children, { id, 'aria-invalid': error ? true : undefined, 'aria-describedby': error ? `${id}-error` : undefined }) : children}{error && <p id={`${id}-error`} className="text-sm text-destructive" role="alert">{error}</p>}</div>;
+  return <div className="space-y-2"><Label htmlFor={id}>{label}</Label>{React.isValidElement<{ id?: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>(children) ? React.cloneElement(children, { id, 'aria-invalid': error ? true : children.props['aria-invalid'], 'aria-describedby': [children.props['aria-describedby'], error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined }) : children}{error && <p id={`${id}-error`} className="text-sm text-destructive" role="alert">{error}</p>}</div>;
 }
 
 type SubscriberSelectProps = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
+import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import {
   Eye,
@@ -16,6 +16,7 @@ import {
 import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { UrlTabs } from '@/components/ui/url-tabs';
 import { Button } from '@/components/ui/button';
+import { SegmentedControl } from '@/components/admin/segmented-control';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { regionLabel } from '@/lib/egypt-regions';
@@ -31,7 +32,6 @@ const MEASURES = [
 type MeasureKey = (typeof MEASURES)[number]['key'];
 
 export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | 'en' }) {
-  const controlCopy = useDashboardCopy();
   const { lang: currentLanguage } = useDashboardLang();
   const lang = requestedLanguage ?? currentLanguage;
   const { data, isLoading, isError, refetch } = useAnalyticsOverview();
@@ -158,27 +158,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           </div>
           {/* One measure at a time: the three differ by an order of magnitude, so plotting
               them on one axis would flatten two of them into nothing. */}
-          <div
-            className="flex shrink-0 rounded-md border border-border p-0.5"
-            role="group"
-            aria-label={controlCopy("Measure")}
-          >
-            {MEASURES.map((m) => (
-              <Button variant="ghost"
-                key={m.key}
-                type="button"
-                onClick={() => setMeasure(m.key)}
-                aria-pressed={measure === m.key}
-                className={
-                  measure === m.key
-                    ? 'rounded px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50'
-                    : 'rounded px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground'
-                }
-              >
-                <DashboardText>{m.label}</DashboardText>
-              </Button>
-            ))}
-          </div>
+          <SegmentedControl label="Measure" value={measure} onValueChange={(value) => setMeasure(value as typeof measure)} options={MEASURES.map(({ key, label, icon: Icon }) => ({ value: key, label, icon: <Icon aria-hidden="true" /> }))} />
         </div>
 
         <UrlTabs values={["city", "region"]} className="p-4 sm:p-5">

@@ -68,7 +68,8 @@ export default async function DashboardLayout({
         </header>
 
         <aside className="print-hide sticky top-0 h-dvh hidden w-60 shrink-0 flex-col self-start overflow-y-auto border-e border-border bg-card px-4 py-6 lg:flex">
-          <Link href="/dashboard" className="mb-6 flex items-center gap-2">
+          <div className="mb-4 flex items-center justify-between gap-2">
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
             <Image
               src="/khargny-logo.png"
               alt="Khargny"
@@ -80,11 +81,10 @@ export default async function DashboardLayout({
               خرجني
             </span>
           </Link>
+          <DashboardLangToggle />
+          </div>
           <ProfileHeader />
           {/* The global view-language toggle, always above the nav on desktop. */}
-          <div className="mb-3">
-            <DashboardLangToggle className="w-full justify-center" />
-          </div>
           <DashboardNav items={navItems} />
         </aside>
 

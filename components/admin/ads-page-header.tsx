@@ -1,11 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { BarChart3, CalendarDays, ListChecks, Trophy } from 'lucide-react';
-import { tabsListVariants, tabsTriggerClassName } from '@/components/ui/tabs';
-import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
+import { SegmentedNavigation } from './segmented-control';
+import { DashboardText } from '@/components/admin/dashboard-text';
 
 const ADS_NAV = [
   { href: '/dashboard/ads', label: 'Campaigns', icon: ListChecks },
@@ -22,7 +21,6 @@ export function AdsPageHeader({
   description: string;
   actions?: ReactNode;
 }) {
-  const controlCopy = useDashboardCopy();
   const pathname = usePathname();
 
   return (
@@ -38,27 +36,7 @@ export function AdsPageHeader({
         {actions && <div className="print-hide flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
 
-      <nav data-orientation="horizontal" data-horizontal="" className="print-hide group/tabs" aria-label={controlCopy("Ads dashboard")}>
-        <div data-variant="default" className={tabsListVariants()}>
-        {ADS_NAV.map(({ href, label, icon: Icon }) => {
-          const active = href === '/dashboard/ads'
-            ? !(pathname === '/dashboard/ads/inventory' || pathname.startsWith('/dashboard/ads/inventory/')) && !(pathname === '/dashboard/ads/top-10' || pathname.startsWith('/dashboard/ads/top-10/'))
-            : pathname === href || pathname.startsWith(href + '/');
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? 'page' : undefined}
-              data-active={active ? '' : undefined}
-              className={tabsTriggerClassName}
-            >
-              <Icon className="size-4" aria-hidden="true" />
-              <DashboardText>{label}</DashboardText>
-            </Link>
-          );
-        })}
-        </div>
-      </nav>
+      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/inventory') ? '/dashboard/ads/inventory' : pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/top-10' : '/dashboard/ads'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
     </div>
   );
 }
