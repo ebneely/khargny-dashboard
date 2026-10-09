@@ -67,8 +67,8 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <aside className="print-hide sticky top-0 h-dvh hidden w-60 shrink-0 flex-col self-start overflow-hidden border-e border-border bg-card px-4 py-6 lg:flex">
-          <div className="mb-4 flex shrink-0 items-center justify-between gap-2">
+        <aside className="print-hide sticky top-0 h-dvh hidden w-60 shrink-0 flex-col self-start overflow-hidden border-e border-border bg-card px-4 pb-2 pt-4 lg:flex">
+          <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
             <Image
               src="/khargny-logo.png"
@@ -83,8 +83,8 @@ export default async function DashboardLayout({
           </Link>
           <DashboardLangToggle />
           </div>
-          <div data-slot="sidebar-navigation" className="min-h-0 flex-1 overflow-y-auto"><DashboardNav items={navItems} /></div>
-          <div data-slot="sidebar-account" className="shrink-0 border-t border-border pt-3"><ProfileHeader /></div>
+          <div data-slot="sidebar-navigation" className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]"><DashboardNav items={navItems} /></div>
+          <div data-slot="sidebar-account" className="shrink-0 border-t border-border pt-1.5"><ProfileHeader /></div>
         </aside>
 
         {/* Padding steps up with the viewport rather than sitting at a desktop 32px on a

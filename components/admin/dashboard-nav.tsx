@@ -188,7 +188,7 @@ function NavGroups({ items, activeHref, mobile, onNavigate }: { items: NavItem[]
     const members = items.filter((item) => item.group === group);
     if (!members.length) return null;
     const heading = group && { sales: ['Sales', 'المبيعات'], content: ['Content', 'المحتوى'], team: ['Team', 'الفريق'] }[group][lang === 'ar' ? 1 : 0];
-    return <div key={group ?? 'home'} className="space-y-1">{heading && <h2 className="px-3 pb-1 pt-4 text-xs font-medium text-muted-foreground">{heading}</h2>}{members.map((item) => <NavLink key={item.href} item={item} active={item.href === activeHref} mobile={mobile} onNavigate={onNavigate} />)}</div>;
+    return <div key={group ?? 'home'} className="space-y-1">{heading && <h2 className="px-3 pb-0.5 pt-2.5 text-xs font-medium text-muted-foreground">{heading}</h2>}{members.map((item) => <NavLink key={item.href} item={item} active={item.href === activeHref} mobile={mobile} onNavigate={onNavigate} />)}</div>;
   })}</>;
 }
 
@@ -214,7 +214,7 @@ function NavLink({
       className={[
         // 44px min height on mobile: a nav row is a primary tap target.
         'relative flex items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors',
-        mobile ? 'min-h-11 py-2' : 'py-2',
+        mobile ? 'min-h-11 py-2' : 'py-1.5',
         active
           ? 'bg-brand-50 text-brand-700'
           : 'text-secondary-foreground hover:bg-muted hover:text-foreground',
