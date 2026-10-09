@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import { PageActions } from './page-actions';
 import { ContactRound } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import type { SubscriberDetail } from '@/lib/api/subscribers';
 import { SubscriberProfileForm } from './subscriber-profile-form';
 import { SubscriberSubscriptions } from './subscriber-subscriptions';
+import { SubscriberBrand } from './subscriber-brand';
 import { TrialBadge } from './trial-badge';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
@@ -26,13 +27,13 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
   const canWrite = mayWrite && (!subscriberId || (!resource.loading && !resource.error));
   return <div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
     <header>
-      <Link href="/dashboard/subscribers" className="text-sm text-muted-foreground underline underline-offset-4">{text('Back to subscribers', 'العودة للمشتركين')}</Link>
+      <PageActions form actions={[{ label: 'Back to subscribers', href: "/dashboard/subscribers", readOnly: true }]} />
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{subscriber?.name ?? text(subscriberId ? 'Subscriber' : 'New subscriber', subscriberId ? 'المشترك' : 'مشترك جديد')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{text('Manage details, places, subscriptions, visits, account and pricing.', 'إدارة البيانات والأماكن والاشتراكات والزيارات والحساب والأسعار.')}</p>
         </div>
-        {subscriber && <div className="flex flex-wrap items-center gap-3"><StatusBadge status={subscriber.status} /><TrialBadge planName={subscriber.currentSubscription?.planName} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
+        {subscriber && <div className="flex flex-wrap items-center gap-3"><SubscriberBrand isBrand={subscriber.isBrand} /><StatusBadge status={subscriber.status} /><TrialBadge planName={subscriber.currentSubscription?.planName} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
       </div>
     </header>
     {subscriberId && resource.loading && <LoadingState />}

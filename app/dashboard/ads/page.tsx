@@ -1,30 +1,14 @@
-import { AdsCampaignsPage, type CampaignListInitialFilters } from '@/components/admin/ads-campaigns-page';
-import type { AdPlacement } from '@/lib/api/ads';
+import { AdsTodayPage } from '@/components/admin/ads-today-page';
+import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth-server';
 
-function first(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-export default async function AdsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const session = await getServerSession();
-  const canWrite = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+export default async function AdsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;
-  const placementValue = first(query.placement);
-  const placement = placementValue === 'featured' || placementValue === 'top10'
-    ? placementValue as AdPlacement
-    : undefined;
-  const campaignIds = first(query.campaignIds)?.split(',').filter(Boolean);
-  const initialFilters: CampaignListInitialFilters = {
-    placement,
-    cityId: first(query.cityId),
-    placeId: first(query.placeId),
-    campaignIds,
-  };
-
-  return <AdsCampaignsPage initialFilters={initialFilters} canWrite={canWrite} />;
+  if (['state', 'placement', 'cityId', 'placeId', 'campaignIds'].some((key) => query[key])) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) if (typeof value === 'string') params.set(key, value);
+    redirect(`/dashboard/ads/campaigns?${params}`);
+  }
+  const session = await getServerSession();
+  return <AdsTodayPage canWrite={session?.user?.role === 'admin' || session?.user?.role === 'super_admin'} />;
 }

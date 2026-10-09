@@ -1,5 +1,5 @@
-import { AdsInventoryPage } from '@/components/admin/ads-inventory-page';
+import { redirect } from 'next/navigation';
 
 export default function AdInventoryRoute() {
-  return <AdsInventoryPage />;
+  redirect('/dashboard/ads/placements');
 }

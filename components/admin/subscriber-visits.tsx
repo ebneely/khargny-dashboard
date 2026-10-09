@@ -1,10 +1,11 @@
 'use client';
 
+import { PageActions } from './page-actions';
 import * as React from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
 import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
@@ -14,12 +15,12 @@ import { ActionDialog, type ActionSpec, Field, LoadingState, RequestError, Saved
 export function SubscriberVisits({ subscriber, canWrite, refresh }: { subscriber: SubscriberDetail; canWrite: boolean; refresh: () => Promise<boolean> }) {
   const { text, pick } = useSubscriberText();
   const [action, setAction] = React.useState<ActionSpec | null>(null);
-  return <Card id="visits"><CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{text('Visits and creatives', 'الزيارات والمواد الإبداعية')}</CardTitle>{canWrite && <Button disabled={!subscriber.places.length} onClick={() => setAction({ title: text('Add visit', 'إضافة زيارة'), fields: [
+  return <Card id="visits"><CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{text('Visits and creatives', 'الزيارات والمواد الإبداعية')}</CardTitle>{<PageActions actions={[{ label: 'Add visit', allowed: canWrite, disabled: !subscriber.places.length, disabledReason: text('Link a place first.', 'اربط مكاناً أولاً.'), onClick: () => setAction({ title: text('Add visit', 'إضافة زيارة'), fields: [
     { name: 'placeId', label: text('Place', 'المكان'), type: 'select', value: subscriber.places[0]?.id ?? '', required: true, options: subscriber.places.map((place) => ({ value: place.id, label: pick(place.name, place.nameEn) })) },
     { name: 'visitedAt', label: text('Visit date (Cairo)', 'تاريخ الزيارة (القاهرة)'), type: 'date', value: cairoDate(), required: true },
     { name: 'notes', label: text('Visit notes', 'ملاحظات الزيارة'), type: 'textarea' },
     { name: 'consent', label: text('Photo / video consent received', 'تم الحصول على موافقة التصوير'), type: 'checkbox', value: false },
-  ], submit: async (values, idempotencyKey) => { if (!canWrite) return; await adminApi.post<Visit>(`/v1/admin/places/${values.placeId}/visits`, { visitedAt: values.visitedAt, notes: optionalText(values.notes), consent: values.consent, subscriberId: subscriber.id }, { headers: { 'Idempotency-Key': idempotencyKey } }); const refreshed = await refresh(); if (refreshed) toast.success(text('Visit saved', 'تم حفظ الزيارة')); } })}>{text('Add visit', 'إضافة زيارة')}</Button>}</CardHeader><CardContent className="space-y-6">{!subscriber.visits.length && <p className="text-sm text-muted-foreground">{text('No visits yet. Record a visit before uploading its images and videos.', 'لا توجد زيارات بعد. سجل زيارة قبل رفع صورها وفيديوهاتها.')}</p>}{subscriber.visits.map((visit) => <VisitCreatives key={visit.id} visit={visit} placeName={pick(subscriber.places.find((place) => place.id === visit.placeId)?.name, subscriber.places.find((place) => place.id === visit.placeId)?.nameEn) || visit.placeId} canWrite={canWrite} refresh={refresh} />)}<ActionDialog action={action} onClose={() => setAction(null)} /></CardContent></Card>;
+  ], submit: async (values, idempotencyKey) => { if (!canWrite) return; await adminApi.post<Visit>(`/v1/admin/places/${values.placeId}/visits`, { visitedAt: values.visitedAt, notes: optionalText(values.notes), consent: values.consent, subscriberId: subscriber.id }, { headers: { 'Idempotency-Key': idempotencyKey } }); const refreshed = await refresh(); if (refreshed) toast.success(text('Visit saved', 'تم حفظ الزيارة')); } }) }]} />}</CardHeader><CardContent className="space-y-6">{!subscriber.visits.length && <p className="text-sm text-muted-foreground">{text('No visits yet. Record a visit before uploading its images and videos.', 'لا توجد زيارات بعد. سجل زيارة قبل رفع صورها وفيديوهاتها.')}</p>}{subscriber.visits.map((visit) => <VisitCreatives key={visit.id} visit={visit} placeName={pick(subscriber.places.find((place) => place.id === visit.placeId)?.name, subscriber.places.find((place) => place.id === visit.placeId)?.nameEn) || visit.placeId} canWrite={canWrite} refresh={refresh} />)}<ActionDialog action={action} onClose={() => setAction(null)} /></CardContent></Card>;
 }
 
 function VisitCreatives({ visit, placeName, canWrite, refresh }: { visit: Visit; placeName: string; canWrite: boolean; refresh: () => Promise<boolean> }) {

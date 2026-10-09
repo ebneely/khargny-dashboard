@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { StatusBadge } from '@/components/admin/subscriber-ui';
 import { RecordCell } from '@/components/admin/record-cell';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
@@ -40,12 +42,7 @@ export default function AmenitiesPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Amenities</DashboardText></h1>
-        <Link href="/dashboard/amenities/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            <DashboardText>Add Amenity</DashboardText>
-          </Button>
-        </Link>
+        <PageActions actions={[{ label: 'Add Amenity', href: '/dashboard/amenities/new', icon: <Plus className="size-4" aria-hidden="true" />, traceId: '' }]} />
       </div>
 
       <Card>

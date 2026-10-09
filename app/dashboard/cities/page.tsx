@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { RowActions } from '@/components/admin/row-actions';
 import { FilterBar, FilterSearch, FilterSelect } from '@/components/admin/filter-bar';
@@ -78,12 +80,7 @@ export default function CitiesPage() {
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Cities</DashboardText></h1>
-        <Link href="/dashboard/cities/new">
-          <Button className="gap-2" data-trace-id="city-list-add">
-            <Plus className="w-4 h-4" />
-            <DashboardText>Add City</DashboardText>
-          </Button>
-        </Link>
+        <PageActions actions={[{ label: 'Add City', href: '/dashboard/cities/new', icon: <Plus className="size-4" aria-hidden="true" />, traceId: 'city-list-add' }]} />
       </div>
 
       <Card>

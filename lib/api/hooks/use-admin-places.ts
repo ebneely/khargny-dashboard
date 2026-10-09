@@ -61,12 +61,21 @@ export function useAdminPlace(id: string) {
       );
       const envelope = result as {
         place?: AdminPlace;
+        imageCount?: number;
+        videoCount?: number;
+        publicState?: AdminPlace['publicState'];
+        capabilities?: AdminPlace['capabilities'];
+        promotions?: AdminPlace['promotions'];
         amenities?: { id: string }[];
         tags?: { id: string }[];
       };
       const place = envelope?.place
         ? ({
             ...envelope.place,
+            _count: envelope.place._count ?? (envelope.imageCount !== undefined || envelope.videoCount !== undefined ? { images: envelope.imageCount ?? 0, videos: envelope.videoCount ?? 0 } : undefined),
+            publicState: envelope.place.publicState ?? envelope.publicState,
+            capabilities: envelope.place.capabilities ?? envelope.capabilities,
+            promotions: envelope.place.promotions ?? envelope.promotions,
             amenities: envelope.amenities ?? [],
             tags: envelope.tags ?? [],
           } as AdminPlace)

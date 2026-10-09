@@ -1,25 +1,29 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
-import { BarChart3, CalendarDays, ListChecks, Trophy } from 'lucide-react';
+import { PageActions, type PageAction } from './page-actions';
+import { BarChart3, CalendarDays, ListChecks, Trophy, Home, Pin } from 'lucide-react';
 import { SegmentedNavigation } from './segmented-control';
 import { DashboardText } from '@/components/admin/dashboard-text';
 
 const ADS_NAV = [
-  { href: '/dashboard/ads', label: 'Campaigns', icon: ListChecks },
-  { href: '/dashboard/ads/inventory', label: 'Inventory', icon: CalendarDays },
-  { href: '/dashboard/ads/top-10', label: 'Top 10 preview', icon: Trophy },
+  { href: '/dashboard/ads', label: 'Today', icon: Home },
+  { href: '/dashboard/ads/placements', label: 'Where ads appear', icon: CalendarDays },
+  { href: '/dashboard/ads/campaigns', label: 'Campaigns', icon: ListChecks },
+  { href: '/dashboard/ads/always-on', label: 'Always on', icon: Pin },
+  { href: '/dashboard/ads/results', label: 'Results', icon: Trophy },
 ] as const;
 
 export function AdsPageHeader({
   title,
   description,
   actions,
+  form = false,
 }: {
   title: string;
   description: string;
-  actions?: ReactNode;
+  actions?: PageAction[];
+  form?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -33,10 +37,10 @@ export function AdsPageHeader({
           </div>
           <p className="mt-1 text-sm text-muted-foreground"><DashboardText>{description}</DashboardText></p>
         </div>
-        {actions && <div className="print-hide flex flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <PageActions actions={actions} form={form} />}
       </div>
 
-      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/inventory') ? '/dashboard/ads/inventory' : pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/top-10' : '/dashboard/ads'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
+      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/placements') || pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/placements' : pathname.startsWith('/dashboard/ads/always-on') ? '/dashboard/ads/always-on' : pathname.startsWith('/dashboard/ads/results') ? '/dashboard/ads/results' : pathname === '/dashboard/ads' ? '/dashboard/ads' : '/dashboard/ads/campaigns'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
     </div>
   );
 }

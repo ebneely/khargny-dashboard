@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { optionalText } from '@/lib/api/subscribers';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -255,7 +257,7 @@ export default function NewPlacePage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>New Place</DashboardText></h1>
-        <Button variant="outline" onClick={() => router.push(subscriberReturnPath() ?? '/dashboard/places')}><DashboardText>Cancel</DashboardText></Button>
+        <PageActions form actions={[{ label: "Cancel", onClick: () => router.push(subscriberReturnPath() ?? '/dashboard/places'), readOnly: true }]} />
       </div>
 
       <form onSubmit={handleSubmit}>

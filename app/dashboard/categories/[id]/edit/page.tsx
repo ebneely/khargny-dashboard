@@ -1,13 +1,15 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useEffect, useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,17 +131,8 @@ export default function EditCategoryPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Category</DashboardText></h1>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="gap-2 text-destructive"
-            onClick={() => setConfirmDelete(true)}
-            data-trace-id="edit-category-delete"
-          >
-            <Trash2 className="w-4 h-4" /> <DashboardText>Delete</DashboardText>
-          </Button>
-          <Link href="/dashboard/categories">
-            <Button variant="outline" data-trace-id="edit-category-cancel-top"><DashboardText>Cancel</DashboardText></Button>
-          </Link>
+          <PageActions form actions={[{ label: "Delete", onClick: () => setConfirmDelete(true), traceId: "edit-category-delete" }]} />
+          <PageActions form actions={[{ label: "Cancel", href: "/dashboard/categories", traceId: "edit-category-cancel-top", readOnly: true }]} />
         </div>
       </div>
 

@@ -1,13 +1,15 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+
 import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,9 +92,7 @@ export default function NewAdminPage() {
         <h1 className="font-display text-2xl font-semibold text-foreground">
           <DashboardText>Add admin</DashboardText>
         </h1>
-        <Link href="/dashboard/admins">
-          <Button variant="outline" data-trace-id="admin-new-cancel"><DashboardText>Cancel</DashboardText></Button>
-        </Link>
+        <PageActions form actions={[{ label: "Cancel", href: "/dashboard/admins", traceId: "admin-new-cancel", readOnly: true }]} />
       </div>
 
       <Card>

@@ -1,11 +1,13 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,9 +64,7 @@ export default function EditAmenityPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Amenity</DashboardText></h1>
-        <Link href="/dashboard/amenities">
-          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
-        </Link>
+        <PageActions form actions={[{ label: "Cancel", href: "/dashboard/amenities", readOnly: true }]} />
       </div>
 
       <Card>

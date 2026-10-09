@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
@@ -7,7 +9,7 @@ import { useFormChanges } from '@/lib/use-form-changes';
 import { autoSlug } from '@/lib/utils/slug';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Trash2, RotateCcw } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -159,27 +161,11 @@ export default function EditCityPage() {
         </div>
         <div className="flex gap-2">
           {deletedAt && isSuperadmin ? (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setRestoreOpen(true)}
-              data-trace-id="edit-city-restore"
-            >
-              <RotateCcw className="w-4 h-4" /> <DashboardText>Restore</DashboardText>
-            </Button>
+            <PageActions form actions={[{ label: "Restore", onClick: () => setRestoreOpen(true), traceId: "edit-city-restore" }]} />
           ) : !deletedAt ? (
-            <Button
-              variant="destructive"
-              className="gap-2"
-              onClick={() => setDeleteOpen(true)}
-              data-trace-id="edit-city-delete"
-            >
-              <Trash2 className="w-4 h-4" /> <DashboardText>Delete</DashboardText>
-            </Button>
+            <PageActions form actions={[{ label: "Delete", onClick: () => setDeleteOpen(true), traceId: "edit-city-delete" }]} />
           ) : null}
-          <Link href="/dashboard/cities">
-            <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
-          </Link>
+          <PageActions form actions={[{ label: "Cancel", href: "/dashboard/cities", readOnly: true }]} />
         </div>
       </div>
 

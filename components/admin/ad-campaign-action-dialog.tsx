@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardText } from '@/components/admin/dashboard-text';
+import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -51,6 +51,7 @@ export function AdCampaignActionDialog({
   onOpenChange: (open: boolean) => void;
   onCompleted: () => void;
 }) {
+  const text = useDashboardCopy();
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -63,11 +64,11 @@ export function AdCampaignActionDialog({
     setError(null);
     try {
       await adminApi.post(`/v1/admin/ads/campaigns/${campaign.id}/${action}`);
-      toast.success(`Campaign ${action === 'end' ? 'ended' : `${action}d`}.`);
+      toast.success(text({ pause: 'Campaign paused.', resume: 'Campaign resumed.', end: 'Campaign ended.' }[action]));
       onOpenChange(false);
       onCompleted();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : `Could not ${action} the campaign.`);
+      setError(caught instanceof Error ? caught.message : text({ pause: 'Could not pause the campaign.', resume: 'Could not resume the campaign.', end: 'Could not end the campaign.' }[action]));
     } finally {
       setSubmitting(false);
     }
@@ -87,10 +88,10 @@ export function AdCampaignActionDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{copy.title}</DialogTitle>
+          <DialogTitle>{text(copy.title)}</DialogTitle>
           <DialogDescription>
             {campaign ? `${campaign.place.name || campaign.place.nameEn} · ${campaign.advertiserName}. ` : ''}
-            {copy.description}
+            {text(copy.description)}
           </DialogDescription>
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}

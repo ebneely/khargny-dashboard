@@ -76,9 +76,10 @@ export function LoadingState() {
   return <div role="status" className="space-y-3 py-6"><span className="sr-only">{text('Loading…', 'جارٍ التحميل…')}</span><Skeleton className="h-5 w-1/3" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div>;
 }
 
-export function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
+export function Field({ label, children, error, required, optional }: { label: string; children: React.ReactNode; error?: string; required?: boolean; optional?: boolean }) {
   const id = React.useId();
-  return <div className="space-y-2"><Label htmlFor={id}>{label}</Label>{React.isValidElement<{ id?: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>(children) ? React.cloneElement(children, { id, 'aria-invalid': error ? true : children.props['aria-invalid'], 'aria-describedby': [children.props['aria-describedby'], error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined }) : children}{error && <p id={`${id}-error`} className="text-sm text-destructive" role="alert">{error}</p>}</div>;
+  const { text } = useSubscriberText();
+  return <div className="space-y-2"><Label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}{optional && <span className="font-normal text-muted-foreground"> ({text('Optional', 'اختياري')})</span>}</Label>{React.isValidElement<{ id?: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>(children) ? React.cloneElement(children, { id, 'aria-invalid': error ? true : children.props['aria-invalid'], 'aria-describedby': [children.props['aria-describedby'], error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined }) : children}{error && <p id={`${id}-error`} className="text-sm text-destructive" role="alert">{error}</p>}</div>;
 }
 
 type SubscriberSelectProps = {

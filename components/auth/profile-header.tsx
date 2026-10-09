@@ -67,7 +67,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
     return (
       <div
         data-trace-id="auth-profile-header"
-        className="mb-4 flex items-center justify-between gap-2 py-2"
+        className="flex items-center justify-between gap-2 py-2"
       >
         <span className="text-sm text-muted-foreground">{copy('Session expired')}</span>
         <Link
@@ -95,7 +95,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
     return (
       <div
         data-trace-id="auth-profile-header"
-        className="mb-4 flex items-center gap-2 py-2"
+        className="flex items-center gap-2 py-2"
       >
         <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
         <div className="flex-1 space-y-1.5">
@@ -113,7 +113,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
 
   // The menu content is identical in both layouts — defined once.
   const menuContent = (
-    <DropdownMenuContent align="end" sideOffset={6} className="min-w-48">
+    <DropdownMenuContent side={compact ? 'bottom' : 'top'} align="end" sideOffset={6} className="min-w-48">
       <DropdownMenuLabel className="flex items-center gap-2 font-normal">
         <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="truncate text-xs" title={data.user.email}>{data.user.email}</span>
@@ -166,7 +166,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   return (
     <div
       data-trace-id="auth-profile-header"
-      className="mb-4 flex items-center gap-2 py-2"
+      className="flex items-center gap-2 py-2"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
         {initials}

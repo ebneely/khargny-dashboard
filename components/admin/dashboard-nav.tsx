@@ -2,6 +2,7 @@
 
 import { useDashboardCopy } from '@/components/admin/dashboard-text';
 
+import { ProfileHeader } from '@/components/auth/profile-header';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import Link from 'next/link';
@@ -94,7 +95,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
     if (open) {
-      panel.style.display = 'block';
+      panel.style.display = 'flex';
       if (reduced) {
         panel.style.opacity = '1';
         panel.style.transform = 'none';
@@ -163,12 +164,13 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       <div
         id="dashboard-nav-panel"
         ref={panelRef}
-        className="absolute inset-x-2 top-full z-40 mt-1 hidden rounded-xl border border-border bg-card p-2 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto lg:!hidden"
+        className="absolute inset-x-2 top-full z-40 mt-1 hidden rounded-xl border border-border bg-card p-2 shadow-lg h-[calc(100dvh-5rem)] flex-col overflow-hidden lg:!hidden"
         style={{ display: 'none', willChange: 'transform, opacity' }}
       >
-        <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="flex flex-col gap-1" aria-label={controlCopy("Dashboard")}>
+        <nav dir={lang === 'ar' ? 'rtl' : 'ltr'} className="min-h-0 flex-1 overflow-y-auto flex flex-col gap-1" aria-label={controlCopy("Dashboard")}>
           <NavGroups items={items} activeHref={activeHref} mobile onNavigate={() => setOpen(false)} />
         </nav>
+        <div data-slot="drawer-account" className="shrink-0 border-t border-border px-2 pt-2"><ProfileHeader /></div>
       </div>
     </>
   );

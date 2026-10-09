@@ -27,9 +27,9 @@ const COMPONENT_LABELS: { key: keyof TopPlaceComponents; label: string }[] = [
   { key: 'views', label: 'Views' },
 ];
 
-export function AdsTop10Page() {
+export function AdsTop10Page({ initialCity = "all" }: { initialCity?: string }) {
   const [cities, setCities] = React.useState<AdCitySummary[]>([]);
-  const [citySlug, setCitySlug] = React.useState('all');
+  const [citySlug, setCitySlug] = React.useState(initialCity);
   const [preview, setPreview] = React.useState<TopPlacesPreview | null>(null);
   const requestRef = React.useRef(0);
   const [loading, setLoading] = React.useState(true);
@@ -66,12 +66,12 @@ export function AdsTop10Page() {
 
   return (
     <div>
-      <AdsPageHeader title="Top 10 preview" description="Inspect the earned ranking, sponsored slots and current fair-rotation queue." />
+      <AdsPageHeader title="Manage Top 10" description="Inspect the earned ranking, sponsored slots and current fair-rotation queue." />
 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-(--radius-ds-lg) bg-card p-4 shadow-(--shadow-ds-sm)">
         <div>
           <label htmlFor="top10-city" className="mb-2 block text-sm font-medium"><DashboardText>City scope</DashboardText></label>
-          <Select value={citySlug} onValueChange={(value) => value && setCitySlug(value)}>
+          <Select value={citySlug} onValueChange={(value) => { if (!value) return; setCitySlug(value); const params = new URLSearchParams(window.location.search); params.set('city', value); window.history.replaceState(null, '', `${window.location.pathname}?${params}${window.location.hash}`); }}>
             <SelectTrigger data-ro-allow="true" id="top10-city" className="h-11 min-w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all"><DashboardText>All Egypt</DashboardText></SelectItem>

@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 
-export function FormActionBar({ dirty, saving, error, disabled, form, onSave, cancelHref, onCancel, primaryLabel, traceId, active = true }: {
+export function FormActionBar({ dirty, saving, error, disabled, disabledReason, form, onSave, cancelHref, onCancel, primaryLabel, traceId, active = true, children }: {
+  children?: React.ReactNode;
   active?: boolean;
   dirty: boolean;
   saving: boolean;
   error?: string | null;
   disabled?: boolean;
+  disabledReason?: string;
   form?: string;
   onSave?: () => void;
   cancelHref?: string;
@@ -19,6 +21,7 @@ export function FormActionBar({ dirty, saving, error, disabled, form, onSave, ca
   traceId?: string;
 }) {
   const { lang } = useDashboardLang();
+  const reasonId = React.useId();
   const bar = React.useRef<HTMLDivElement>(null);
   const [bounds, setBounds] = React.useState<{ left: number; width: number } | null>(null);
   React.useEffect(() => {
@@ -38,17 +41,19 @@ export function FormActionBar({ dirty, saving, error, disabled, form, onSave, ca
     return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
   }, []);
   const text = (english: string, arabic: string) => lang === 'ar' ? arabic : english;
-  const message = saving ? text('Saving…', 'جارٍ الحفظ…') : error || (dirty ? text('Unsaved changes', 'تغييرات غير محفوظة') : text('Saved', 'محفوظ'));
+  const message = saving ? text('Saving…', 'جارٍ الحفظ…') : error || disabledReason || (dirty ? text('Unsaved changes', 'تغييرات غير محفوظة') : text('Saved', 'محفوظ'));
   return <div ref={bar} hidden={!active} data-slot="form-action-bar" dir={lang === 'ar' ? 'rtl' : 'ltr'}
     className="sticky bottom-0 z-40 mt-6 border-t border-border bg-background/80 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 lg:px-8"
     style={bounds ? { position: 'fixed', left: bounds.left, width: bounds.width, marginTop: 0 } : undefined}>
     <div className="flex min-w-0 flex-wrap items-center gap-3">
-      <p role={error ? 'alert' : 'status'} className={`min-w-0 flex-1 basis-full break-words text-sm sm:basis-auto ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{message}</p>
-      <Button type={onSave ? 'button' : 'submit'} form={form} onClick={onSave} disabled={!dirty || saving || disabled} data-trace-id={traceId}>
+      {children ? <div className="ms-auto flex flex-wrap items-center gap-3">{children}</div> : <>
+      <p id={reasonId} role={error ? 'alert' : 'status'} className={`min-w-0 flex-1 basis-full break-words text-sm sm:basis-auto ${error ? 'text-destructive' : 'text-muted-foreground'}`}>{message}</p>
+      <Button type={onSave ? 'button' : 'submit'} form={form} onClick={onSave} disabled={!dirty || saving || disabled} aria-describedby={disabledReason ? reasonId : undefined} title={disabledReason} data-trace-id={traceId}>
         {saving ? text('Saving…', 'جارٍ الحفظ…') : primaryLabel ?? text('Save changes', 'حفظ التغييرات')}
       </Button>
       {cancelHref ? <Button type="button" variant="outline" nativeButton={false} render={<Link href={cancelHref} />}>{text('Cancel', 'إلغاء')}</Button> :
         <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>{text('Back', 'رجوع')}</Button>}
+      </>}
     </div>
   </div>;
 }

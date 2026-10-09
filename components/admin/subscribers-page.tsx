@@ -1,5 +1,13 @@
 'use client';
 
+import { PageActions } from './page-actions';
+import { SubscriberBrand } from './subscriber-brand';
+import { supportsBrands } from '@/lib/subscriber-brand';
+import { useUrlTab } from '@/lib/use-url-tab';
+import { UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SegmentedControl } from './segmented-control';
+import { useDashboardCopy } from './dashboard-text';
 import { TrialBadge } from './trial-badge';
 
 import { RecordCell } from './record-cell';
@@ -8,7 +16,6 @@ import { Pager } from './pager';
 import * as React from 'react';
 import Link from 'next/link';
 import { Plus, ContactRound } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +28,14 @@ import { SubscriberRenewalContact } from './subscriber-renewal-contact';
 import { Field, LoadingState, MoneyText, RequestError, SubscriberSelect, StatusBadge, subscriberError, useSubscriberText } from './subscriber-ui';
 
 export function SubscribersPage({ canWrite }: { canWrite: boolean }) {
+  return <React.Suspense fallback={<LoadingState />}><SubscribersContent canWrite={canWrite} /></React.Suspense>;
+}
+
+function SubscribersContent({ canWrite }: { canWrite: boolean }) {
+  const copy = useDashboardCopy();
+  const tab = useUrlTab(['list', 'settings']);
+  const brand = useUrlTab(['all', 'true', 'false'], 'all', 'brand');
+  const [brandSupported, setBrandSupported] = React.useState(false);
   const { text, pick, lang } = useSubscriberText();
   const [search, setSearch] = React.useState('');
   const [status, setStatus] = React.useState('');
@@ -28,7 +43,7 @@ export function SubscribersPage({ canWrite }: { canWrite: boolean }) {
   const [expiring, setExpiring] = React.useState(false);
   const [skip, setSkip] = React.useState(0);
   const limit = 20;
-  const load = React.useCallback(() => adminApi.list<Subscriber>('/v1/admin/subscribers', { skip, limit, search: search.trim() || undefined, status: status || undefined, cityId: cityId || undefined, expiringWithinDays: expiring ? 30 : undefined }), [skip, search, status, cityId, expiring]);
+  const load = React.useCallback(async () => { const result = await adminApi.list<Subscriber>('/v1/admin/subscribers', { skip, limit, brand: brandSupported && brand.value !== 'all' ? brand.value : undefined, search: search.trim() || undefined, status: status || undefined, cityId: cityId || undefined, expiringWithinDays: expiring ? 30 : undefined }); if (result.items.length) setBrandSupported(supportsBrands(result.items)); return result; }, [skip, search, status, cityId, expiring, brand.value, brandSupported]);
   const list = useSubscriberResource(load);
   const validSkip = list.data ? lastSubscriberPage(skip, list.data.total, limit) : skip;
   React.useEffect(() => {
@@ -42,14 +57,20 @@ export function SubscribersPage({ canWrite }: { canWrite: boolean }) {
   const cities = useSubscriberResource(loadCities);
   const filter = (change: () => void) => { setSkip(0); change(); };
   return <div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-    <header className="flex flex-wrap items-start justify-between gap-3"><div className="max-w-2xl"><h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{text('Subscribers', 'المشتركون')}</h1><p className="mt-1 text-sm text-muted-foreground">{text('Keep places, subscriptions, visits and subscriber accounts together.', 'الأماكن والاشتراكات والزيارات وحسابات المشتركين في مكان واحد.')}</p></div>{canWrite && <Button variant="outline" nativeButton={false} render={<Link href="/dashboard/subscribers/new" />}><Plus className="size-4" aria-hidden="true" />{text('New subscriber', 'مشترك جديد')}</Button>}</header>
+    <header className="flex flex-wrap items-start justify-between gap-3"><div className="max-w-2xl"><h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{text('Subscribers', 'المشتركون')}</h1><p className="mt-1 text-sm text-muted-foreground">{text('Keep places, subscriptions, visits and subscriber accounts together.', 'الأماكن والاشتراكات والزيارات وحسابات المشتركين في مكان واحد.')}</p></div><PageActions form={tab.value === 'settings'} actions={[{ label: "New subscriber", href: "/dashboard/subscribers/new", allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]} /></header>
+    <UrlTabs values={["list", "settings"]}>
+    <TabsList aria-label={copy("Subscriber sections")}><TabsTrigger value="list">{copy("Subscribers list")}</TabsTrigger><TabsTrigger value="settings">{copy("Settings")}</TabsTrigger></TabsList>
+    <UrlTabsContent value="settings" lazy><SubscriberRenewalContact canWrite={canWrite} /></UrlTabsContent>
+    <UrlTabsContent value="list" className="space-y-6">
     {summary.loading ? <LoadingState /> : summary.error ? <RequestError message={subscriberError(summary.error, lang)} retry={() => { void summary.refetch(); }} /> : summary.data && <div className="grid gap-3 sm:grid-cols-3">{[
       { label: text('Active subscribers', 'المشتركون النشطون'), value: summary.data.active },
       { label: text('Expiring within 30 days', 'تنتهي خلال ٣٠ يوماً'), value: summary.data.expiringWithin30Days },
       { label: text('Revenue this month', 'إيرادات هذا الشهر'), value: <MoneyText value={summary.data.revenueThisMonth} /> },
+      ...(typeof summary.data.brands === 'number' ? [{ label: copy('Brands'), value: summary.data.brands }] : []),
+      ...(typeof summary.data.revenueThisMonthBrands === 'string' ? [{ label: copy('Brand revenue this month'), value: <><MoneyText value={summary.data.revenueThisMonthBrands} />{typeof summary.data.revenueThisMonth === 'string' && Number(summary.data.revenueThisMonth) > 0 && <span className="block text-sm text-muted-foreground">{new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en', { style: 'percent', maximumFractionDigits: 1 }).format(Number(summary.data.revenueThisMonthBrands) / Number(summary.data.revenueThisMonth))} · {copy('Share of revenue this month')}</span>}</> }] : []),
     ].map((metric) => <Card key={metric.label}><CardContent><p className="text-sm text-muted-foreground">{metric.label}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{metric.value}</p></CardContent></Card>)}</div>}
-    <SubscriberRenewalContact canWrite={canWrite} />
     <Card><CardContent className="space-y-5">
+      {brandSupported && <SegmentedControl label="Subscriber type" value={brand.value} options={[{ value: "all", label: "All" }, { value: "true", label: "Brands" }, { value: "false", label: "Individuals" }]} onValueChange={(value) => filter(() => brand.onValueChange(value))} />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label={text('Search name or phone', 'بحث بالاسم أو الهاتف')}><Input data-ro-allow="true" type="search" value={search} onChange={(event) => filter(() => setSearch(event.target.value))} placeholder={text('Name or 01…', 'الاسم أو 01…')} /></Field>
         <Field label={text('Status', 'الحالة')}><SubscriberSelect data-ro-allow="true" value={status} onValueChange={(value) => filter(() => setStatus(value))} options={[{ value: '', label: text('All statuses', 'كل الحالات') }, { value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} /></Field>
@@ -57,8 +78,9 @@ export function SubscribersPage({ canWrite }: { canWrite: boolean }) {
         <label className="flex min-h-11 items-center gap-2 self-end text-sm"><Checkbox data-ro-allow="true" checked={expiring} onCheckedChange={(checked) => filter(() => setExpiring(checked))} />{text('Expiring within 30 days', 'تنتهي خلال ٣٠ يوماً')}</label>
       </div>
       {cities.error && <RequestError message={text('Cities could not be loaded.', 'تعذر تحميل المدن.')} retry={() => { void cities.refetch(); }} />}
-      {list.loading || skip !== validSkip ? <LoadingState /> : list.error ? <RequestError message={subscriberError(list.error, lang)} retry={() => { void list.refetch(); }} /> : !list.data?.items.length ? <div className="py-12 text-center"><p className="font-medium">{text('No subscribers found', 'لا يوجد مشتركون')}</p><p className="mt-1 text-sm text-muted-foreground">{text('Try another search or clear the filters.', 'جرب بحثاً آخر أو أزل الفلاتر.')}</p></div> : <div className="overflow-x-auto"><Table layout="list"><TableHeader><TableRow>{[text('Name', 'الاسم'), text('Phone', 'الهاتف'), text('Places', 'الأماكن'), text('Status', 'الحالة'), text('Subscription ends', 'نهاية الاشتراك'), text('Paid total', 'إجمالي المدفوع')].map((label) => <TableHead key={label} column={label === text('Status', 'الحالة') ? 'status' : undefined} className={label === text('Paid total', 'إجمالي المدفوع') ? 'text-end' : 'text-start'}>{label}</TableHead>)}</TableRow></TableHeader><TableBody>{list.data.items.map((subscriber) => <TableRow key={subscriber.id}><TableCell><Link className="font-medium underline-offset-4 hover:underline focus-visible:underline" href={`/dashboard/subscribers/${subscriber.id}`}><RecordCell name={subscriber.name} chips={<TrialBadge planName={subscriber.currentSubscription?.planName} />} /></Link></TableCell><TableCell><span dir="ltr">{subscriber.phone}</span></TableCell><TableCell className="max-w-64 whitespace-normal"><p className="line-clamp-2 leading-4" title={subscriber.places.map((place) => pick(place.name, place.nameEn)).join(' · ')}>{subscriber.places.map((place) => pick(place.name, place.nameEn)).join(' · ') || text('No linked places', 'لا توجد أماكن مرتبطة')}</p></TableCell><TableCell column="status"><StatusBadge status={subscriber.status} /></TableCell><TableCell className="text-start">{subscriber.currentSubscription?.endDate ? <DateCell value={subscriber.currentSubscription.endDate} /> : text('No subscription', 'بدون اشتراك')}</TableCell><TableCell className="text-end tabular-nums"><MoneyText value={subscriber.paidTotal} /></TableCell></TableRow>)}</TableBody></Table></div>}
+      {list.loading || skip !== validSkip ? <LoadingState /> : list.error ? <RequestError message={subscriberError(list.error, lang)} retry={() => { void list.refetch(); }} /> : !list.data?.items.length ? <div className="py-12 text-center"><p className="font-medium">{text('No subscribers found', 'لا يوجد مشتركون')}</p><p className="mt-1 text-sm text-muted-foreground">{text('Try another search or clear the filters.', 'جرب بحثاً آخر أو أزل الفلاتر.')}</p></div> : <div className="overflow-x-auto"><Table layout="list"><TableHeader><TableRow>{[text('Name', 'الاسم'), text('Phone', 'الهاتف'), text('Places', 'الأماكن'), text('Status', 'الحالة'), text('Subscription ends', 'نهاية الاشتراك'), text('Paid total', 'إجمالي المدفوع')].map((label) => <TableHead key={label} column={label === text('Status', 'الحالة') ? 'status' : undefined} className={label === text('Paid total', 'إجمالي المدفوع') ? 'text-end' : 'text-start'}>{label}</TableHead>)}</TableRow></TableHeader><TableBody>{list.data.items.map((subscriber) => <TableRow key={subscriber.id}><TableCell><Link className="font-medium underline-offset-4 hover:underline focus-visible:underline" href={`/dashboard/subscribers/${subscriber.id}`}><RecordCell name={subscriber.name} chips={<><SubscriberBrand isBrand={subscriber.isBrand} /><TrialBadge planName={subscriber.currentSubscription?.planName} /></>} /></Link></TableCell><TableCell><span dir="ltr">{subscriber.phone}</span></TableCell><TableCell className="max-w-64 whitespace-normal"><p className="line-clamp-2 leading-4" title={subscriber.places.map((place) => pick(place.name, place.nameEn)).join(' · ')}>{subscriber.places.map((place) => pick(place.name, place.nameEn)).join(' · ') || text('No linked places', 'لا توجد أماكن مرتبطة')}</p></TableCell><TableCell column="status"><StatusBadge status={subscriber.status} /></TableCell><TableCell className="text-start">{subscriber.currentSubscription?.endDate ? <DateCell value={subscriber.currentSubscription.endDate} /> : text('No subscription', 'بدون اشتراك')}</TableCell><TableCell className="text-end tabular-nums"><MoneyText value={subscriber.paidTotal} /></TableCell></TableRow>)}</TableBody></Table></div>}
       <Pager skip={skip} pageSize={limit} total={list.data?.total ?? 0} count={list.data?.items.length ?? 0} busy={list.loading || skip !== validSkip} error={Boolean(list.error)} onPrevious={() => setSkip(Math.max(0, skip - limit))} onNext={() => setSkip(skip + limit)} />
     </CardContent></Card>
+    </UrlTabsContent></UrlTabs>
   </div>;
 }

@@ -106,18 +106,14 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
     <div>
       <AdsPageHeader
         title="Ad campaigns"
-        description="Manage booked placements, serving state, advertiser records and performance."
-        actions={
-          canWrite && <Button nativeButton={false} render={<Link href="/dashboard/ads/new" />}>
-            <Plus className="size-4" aria-hidden="true" /><DashboardText>New campaign</DashboardText>
-          </Button>
-        }
+        description="Manage booked promotions, serving state, advertiser records and performance."
+        actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]}
       />
 
       {hasInventoryFilter && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-info-bg px-4 py-3 text-sm text-info">
-          <span><DashboardText>Showing campaigns linked from an inventory scope or day.</DashboardText></span>
-          <Link href="/dashboard/ads" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
+          <span><DashboardText>Showing campaigns for the selected surface.</DashboardText></span>
+          <Link href="/dashboard/ads/campaigns" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
         </div>
       )}
 
@@ -137,7 +133,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
           ) : campaigns.length === 0 ? (
             <div className="py-12 text-center">
               <p className="font-medium"><DashboardText>No campaigns in this view</DashboardText></p>
-              <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book inventory.</DashboardText></p>
+              <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book space.</DashboardText></p>
             </div>
           ) : (
             <Table layout="campaigns">
@@ -145,7 +141,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                 <TableRow>
                   <TableHead><DashboardText>Place</DashboardText></TableHead>
                   <TableHead><DashboardText>Advertiser</DashboardText></TableHead>
-                  <TableHead><DashboardText>Placement</DashboardText></TableHead>
+                  <TableHead><DashboardText>Where it appears</DashboardText></TableHead>
                   <TableHead><DashboardText>Dates</DashboardText></TableHead>
                   <TableHead className="text-end"><DashboardText>Amount</DashboardText></TableHead>
                   <TableHead className="text-end"><DashboardText>Impr.</DashboardText></TableHead>

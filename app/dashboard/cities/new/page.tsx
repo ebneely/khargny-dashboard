@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -124,9 +126,7 @@ export default function NewCityPage() {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>New City</DashboardText></h1>
-        <Link href="/dashboard/cities">
-          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
-        </Link>
+        <PageActions form actions={[{ label: "Cancel", href: "/dashboard/cities", readOnly: true }]} />
       </div>
 
       <Card>

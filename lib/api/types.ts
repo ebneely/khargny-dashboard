@@ -1,3 +1,5 @@
+import type { PlacePublicState, PlacePromotion } from '@/lib/place-public-state';
+
 export interface AdminPlace {
   coverImage?: string | null;
   coverImageDimensions?: { width: number; height: number } | null;
@@ -33,7 +35,10 @@ export interface AdminPlace {
   /** Lifetime Directions/Go taps from web + app. Monotonic. */
   directionsCount?: number;
   region?: string | null;
-  status: 'active' | 'draft';
+  status: 'active' | 'draft' | 'inactive';
+  publicState?: PlacePublicState;
+  capabilities?: { inactiveStatus?: boolean };
+  promotions?: PlacePromotion[];
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

@@ -1,11 +1,12 @@
 'use client';
 
+import { PageActions } from './page-actions';
 import * as React from 'react';
 import { Pencil, Plus, RefreshCw, X } from 'lucide-react';
 import { RowActions } from './row-actions';
 import { DateCell } from './date-cell';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { adminApi } from '@/lib/api/admin-client';
@@ -41,7 +42,7 @@ export function SubscriberSubscriptions({ subscriber, canWrite, refresh }: { sub
     if (canWrite && subscription.status !== 'cancelled') setSubscriptionAction({ renewal: subscription });
   };
   const current = subscriber.currentSubscription;
-  return <Card id="subscriptions"><CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{text('Subscriptions and payments', 'الاشتراكات والمدفوعات')}</CardTitle>{canWrite && <Button disabled={!subscriber.places.length} onClick={newSubscription}>{text('New subscription', 'اشتراك جديد')}</Button>}</CardHeader><CardContent className="space-y-6">
+  return <Card id="subscriptions"><CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{text('Subscriptions and payments', 'الاشتراكات والمدفوعات')}</CardTitle><PageActions actions={[{ label: 'New subscription', allowed: canWrite, disabled: !subscriber.places.length, disabledReason: text('Link a place first.', 'اربط مكاناً أولاً.'), onClick: newSubscription }]} /></CardHeader><CardContent className="space-y-6">
     {current ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted p-4"><div><p className="font-medium">{text('Current subscription', 'الاشتراك الحالي')}: {current.planName} <TrialBadge planName={current.planName} /></p><p className="mt-1 text-sm tabular-nums"><DateCell value={current.startDate} /> — <DateCell value={current.endDate} /></p></div><StatusBadge status={current.status} /></div> : <p className="text-sm text-muted-foreground">{text('No current subscription. Link a place, then add a subscription.', 'لا يوجد اشتراك حالي. اربط مكاناً ثم أضف اشتراكاً.')}</p>}
     <h3 className="font-medium">{text('Subscription history', 'سجل الاشتراكات')}</h3>
     {!subscriber.subscriptions.length && <p className="text-sm text-muted-foreground">{text('No subscriptions recorded yet.', 'لم تُسجل اشتراكات بعد.')}</p>}

@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { RecordCell } from '@/components/admin/record-cell';
 import { DateCell } from '@/components/admin/date-cell';
 import { Pager } from '@/components/admin/pager';
@@ -160,12 +162,7 @@ export default function AdminsPage() {
             </p>
           </div>
           {isSuperadmin && (
-            <Link href="/dashboard/admins/new">
-              <Button className="gap-2" data-trace-id="admin-new-open">
-                <Plus className="w-4 h-4" />
-                <DashboardText>Add admin</DashboardText>
-              </Button>
-            </Link>
+            <PageActions actions={[{ label: 'Add admin', href: '/dashboard/admins/new', icon: <Plus className="size-4" aria-hidden="true" />, traceId: 'admin-new-open' }]} />
           )}
         </div>
 

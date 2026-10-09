@@ -1,5 +1,8 @@
 'use client';
 
+import { placePublicState, placeStatusFilters, canDeactivatePlace } from '@/lib/place-public-state';
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { RecordCell } from '@/components/admin/record-cell';
 import { Pager } from '@/components/admin/pager';
@@ -65,10 +68,9 @@ export default function PlacesPage() {
   const { data, isLoading, isError, refetch } = useAdminPlaces({
     subscriberId: ownerFilter === 'all' ? undefined : ownerFilter,
     search: search || undefined,
-    status: statusFilter === 'all' ? undefined : statusFilter,
+    ...placeStatusFilters(statusFilter, mediaFilter),
     cityId: cityFilter === 'all' ? undefined : cityFilter,
     categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
-    hasMedia: mediaFilter === 'all' ? undefined : mediaFilter === 'with',
     skip: page * PAGE_SIZE,
     limit: PAGE_SIZE,
   });
@@ -92,12 +94,7 @@ export default function PlacesPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Places</DashboardText></h1>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/dashboard/places/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            <DashboardText>Add Place</DashboardText>
-          </Button>
-          </Link>
+          <PageActions actions={[{ label: 'Add Place', href: '/dashboard/places/new', icon: <Plus className="size-4" aria-hidden="true" />, traceId: '' }]} />
         </div>
       </div>
 
@@ -105,11 +102,11 @@ export default function PlacesPage() {
         <CardHeader>
           <FilterBar filters={5}>
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
-            <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'deleted', label: 'Deleted' }]} />
+            <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter(value === 'live' ? 'with' : 'without'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />
             <FilterSelect label="Any city" value={cityFilter} onValueChange={(value) => { setCityFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any city' }, ...(cityData?.items ?? []).map((city) => ({ value: city.id, label: pickName(city.name, city.nameEn, lang) }))]} />
             <FilterSelect label="Any category" value={categoryFilter} onValueChange={(value) => { setCategoryFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any category' }, ...(categoryData ?? []).map((category) => ({ value: category.id, label: pickName(category.nameAr, category.nameEn, lang) }))]} />
             <PlaceOwnerFilter value={ownerFilter} onChange={(value) => { setOwnerFilter(value); setPage(0); }} />
-            <FilterSelect label="Any media" value={mediaFilter} onValueChange={(value) => { setMediaFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any media' }, { value: 'with', label: 'Has media' }, { value: 'without', label: 'Needs media' }]} />
+            <FilterSelect label="Any media" value={mediaFilter} onValueChange={(value) => { setMediaFilter(value); if (statusFilter === 'live' || statusFilter === 'not-shown') setStatusFilter(value === 'with' ? 'live' : value === 'without' ? 'not-shown' : 'active'); setPage(0); }} options={[{ value: 'all', label: 'Any media' }, { value: 'with', label: 'Has media' }, { value: 'without', label: 'Needs media' }]} />
           </FilterBar>
           {hasActiveFilters && <Button data-ro-allow="true" variant="ghost" size="sm" className="self-start" onClick={() => { setSearch(''); setStatusFilter('all'); setCityFilter('all'); setCategoryFilter('all'); setMediaFilter('all'); setOwnerFilter('all'); setPage(0); }}><DashboardText>Clear</DashboardText></Button>}
         </CardHeader>
@@ -158,7 +155,7 @@ export default function PlacesPage() {
                         {deletedAt ? (
                           <StatusBadge status="deleted" data-trace-id={`place-list-status-deleted-${place.id}`} />
                         ) : (
-                          <StatusBadge status={place.status} />
+                          <div className="space-y-0.5"><StatusBadge status={placePublicState(place).tone}><DashboardText>{placePublicState(place).tone === 'paused' ? 'Active' : placePublicState(place).label}</DashboardText></StatusBadge>{placePublicState(place).tone === 'paused' && <p className="text-[10px] leading-3 text-muted-foreground"><DashboardText>Not shown: no photos</DashboardText></p>}</div>
                         )}
                       </TableCell>
                       <TableCell className="text-end tabular-nums text-muted-foreground">{place.saveCount ?? 0}</TableCell>

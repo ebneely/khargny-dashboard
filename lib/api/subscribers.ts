@@ -58,6 +58,7 @@ export interface SubscriberAccount {
   createdAt: string;
 }
 export interface Subscriber {
+  isBrand?: boolean;
   id: string;
   name: string;
   phone: string;
@@ -76,6 +77,8 @@ export interface SubscriberDetail extends Subscriber {
   visits: Visit[];
 }
 export interface SubscriberSummary {
+  brands?: number;
+  revenueThisMonthBrands?: Money;
   active: number;
   expiringWithin30Days: number;
   revenueThisMonth: Money;

@@ -1,5 +1,6 @@
 'use client';
 
+import { PageActions } from './page-actions';
 import { StatusBadge } from './subscriber-ui';
 import { RecordCell } from '@/components/admin/record-cell';
 import { DateCell } from './date-cell';
@@ -56,7 +57,7 @@ export function ApiKeysScreen() {
             <h1 className="font-display text-2xl font-semibold"><DashboardText>API keys</DashboardText></h1>
             <p className="mt-2 text-sm text-muted-foreground"><DashboardText>Connect AI assistants without sharing your admin password.</DashboardText></p>
           </div>
-          <Button onClick={() => setCreating(true)} disabled={!canCreate} data-trace-id="api-keys-create"><Plus className="h-4 w-4" /><DashboardText>Create key</DashboardText></Button>
+          <PageActions actions={[{ label: 'Create key', onClick: () => setCreating(true), allowed: canCreate, viewerAllowed: true, traceId: 'api-keys-create', icon: <Plus className="size-4" aria-hidden="true" /> }]} />
         </div>
       </div>
       <Card>

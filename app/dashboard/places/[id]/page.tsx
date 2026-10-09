@@ -1,5 +1,10 @@
 'use client';
 
+import { PlaceStatusControl } from '@/components/admin/place-status-control';
+import { PlaceAdsTab } from '@/components/admin/place-ads-tab';
+import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState, useEffect } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -37,6 +42,7 @@ import type { AdminCity, AdminCategory, AdminOptions } from '@/lib/api/types';
 
 export default function EditPlacePage() {
   const controlCopy = useDashboardCopy();
+  const readOnly = useDashboardReadOnly();
   const router = useRouter();
   const { pick, lang } = useDashboardLang();
   const params = useParams();
@@ -200,14 +206,12 @@ export default function EditPlacePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1>
-        <Link href="/dashboard/places">
-          <Button variant="outline"><DashboardText>Cancel</DashboardText></Button>
-        </Link>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div className="flex min-w-0 flex-wrap items-start gap-4"><h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1><PlaceStatusControl place={media.loading || media.isError ? place : { ...place, hasMedia: media.images.length + media.videos.length > 0 }} value={status} onChange={setStatus} disabled={saving || isSoftDeleted} /></div>
+        <PageActions form actions={[{ label: "Cancel", href: "/dashboard/places", readOnly: true }]} />
       </div>
 
-      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu"]}>
+      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu", "ads"]}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
           <TabsTrigger value="amenities">{lang === 'ar' ? 'المرافق' : 'Amenities'}</TabsTrigger>
@@ -215,6 +219,7 @@ export default function EditPlacePage() {
           <TabsTrigger value="hours">{lang === 'ar' ? 'المواعيد' : 'Hours'}</TabsTrigger>
           <TabsTrigger value="photos">{lang === "ar" ? "الوسائط" : "Media"}</TabsTrigger>
           <TabsTrigger value="menu">{lang === "ar" ? "الأسعار" : "Pricing"}</TabsTrigger>
+          <TabsTrigger value="ads">{controlCopy("Ads")}</TabsTrigger>
         </TabsList>
 
         <TabsContent keepMounted value="details">
@@ -347,16 +352,7 @@ export default function EditPlacePage() {
                 <Checkbox id="featured" checked={featured} onCheckedChange={(v) => setFeatured(v === true)} />
                 <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
-                <Select value={status} onValueChange={(v) => v && setStatus(v)}>
-                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft"><DashboardText>Draft</DashboardText></SelectItem>
-                    <SelectItem value="active"><DashboardText>Active</DashboardText></SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
           </form>
         </CardContent>
@@ -914,6 +910,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
+        <UrlTabsContent value="ads" lazy><PlaceAdsTab placeId={id} canWrite={!readOnly && !isSoftDeleted} promotions={place.promotions} /></UrlTabsContent>
       </UrlTabs>
 
       {/* Image preview lightbox — click any photo to view it large. */}
@@ -938,9 +935,9 @@ export default function EditPlacePage() {
         </div>
       )}
 
-      <HiddenOnTab tab="menu">
+      <HiddenOnTab tab="ads"><HiddenOnTab tab="menu">
       <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />
-      </HiddenOnTab>
+      </HiddenOnTab></HiddenOnTab>
     </div>
   );
 }

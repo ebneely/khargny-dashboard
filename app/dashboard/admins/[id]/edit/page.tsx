@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { useEffect, useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
@@ -132,9 +134,7 @@ export default function EditAdminPage() {
         <h1 className="font-display text-2xl font-semibold text-foreground">
           <DashboardText>Edit admin</DashboardText>
         </h1>
-        <Link href="/dashboard/admins">
-          <Button variant="outline" data-trace-id="admin-edit-cancel"><DashboardText>Cancel</DashboardText></Button>
-        </Link>
+        <PageActions form actions={[{ label: "Cancel", href: "/dashboard/admins", traceId: "admin-edit-cancel", readOnly: true }]} />
       </div>
 
       <Card>

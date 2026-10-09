@@ -29,12 +29,14 @@ type PickPlace = {
 };
 
 export function SectionPlacesDialog({
+  canWrite = false,
   sectionId,
   sectionTitle,
   open,
   onOpenChange,
   onSaved,
 }: {
+  canWrite?: boolean;
   sectionId: string | null;
   sectionTitle: string | null;
   open: boolean;
@@ -46,6 +48,7 @@ export function SectionPlacesDialog({
   const [results, setResults] = React.useState<PickPlace[]>([]);
   const [query, setQuery] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [loadError, setLoadError] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
   const pinnedIds = React.useMemo(() => new Set(pinned.map((p) => p.id)), [pinned]);
@@ -53,19 +56,21 @@ export function SectionPlacesDialog({
   // Load the current pins when the dialog opens.
   React.useEffect(() => {
     if (!open || !sectionId) return;
-    setLoading(true);
+    let current = true;
+    setLoading(true); setLoadError(false); setPinned([]);
     setQuery('');
     setResults([]);
     adminApi
       .get<PickPlace[]>(`/v1/admin/storefront/sections/${sectionId}/places`)
-      .then((rows) => setPinned(Array.isArray(rows) ? rows : []))
-      .catch(() => toast.error('Could not load this section’s places.'))
-      .finally(() => setLoading(false));
-  }, [open, sectionId]);
+      .then((rows) => { if (current) setPinned(Array.isArray(rows) ? rows : []); })
+      .catch(() => { if (current) { setLoadError(true); toast.error(controlCopy('Could not load this section’s places.')); } })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [open, sectionId, controlCopy]);
 
   // Debounced catalog search.
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || !canWrite) return;
     const q = query.trim();
     if (!q) {
       setResults([]);
@@ -84,7 +89,7 @@ export function SectionPlacesDialog({
         .catch(() => setResults([]));
     }, 300);
     return () => clearTimeout(id);
-  }, [query, open]);
+  }, [query, open, canWrite]);
 
   const add = (p: PickPlace) => {
     if (pinnedIds.has(p.id)) return;
@@ -102,18 +107,18 @@ export function SectionPlacesDialog({
   };
 
   const save = async () => {
-    if (!sectionId) return;
+    if (!canWrite || !sectionId || loading || loadError || saving) return;
     setSaving(true);
     try {
       await adminApi.put(`/v1/admin/storefront/sections/${sectionId}/places`, {
         placeIds: pinned.map((p) => p.id),
       });
-      toast.success('Section places saved.');
+      toast.success(controlCopy('Section places saved.'));
       onOpenChange(false);
       onSaved?.();
     } catch (e) {
       const err = e as AdminApiError;
-      toast.error(err.message || 'Could not save the section places.');
+      toast.error(err.message || controlCopy('Could not save the section places.'));
     } finally {
       setSaving(false);
     }
@@ -132,14 +137,14 @@ export function SectionPlacesDialog({
         </DialogHeader>
 
         {/* Search + results */}
-        <div className="space-y-2">
+        {canWrite && <div className="space-y-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={controlCopy("Search places to add…")}
-              className="pl-9"
+              className="ps-9"
               data-trace-id="section-places-search"
             />
           </div>
@@ -151,9 +156,9 @@ export function SectionPlacesDialog({
                   <Button variant="ghost"
                     key={p.id}
                     type="button"
-                    disabled={already}
+                    disabled={already || loading || loadError || saving}
                     onClick={() => add(p)}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted disabled:opacity-50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-start text-sm hover:bg-muted disabled:opacity-50"
                     data-trace-id={`section-places-add-${p.id}`}
                   >
                     <Thumb src={p.coverImage} />
@@ -170,6 +175,7 @@ export function SectionPlacesDialog({
           )}
         </div>
 
+        }
         {/* Current pins */}
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -194,13 +200,13 @@ export function SectionPlacesDialog({
                   <span className="w-5 text-center text-xs text-muted-foreground">{i + 1}</span>
                   <Thumb src={p.coverImage} />
                   <span className="min-w-0 flex-1 truncate text-sm">{label(p)}</span>
-                  <Button variant="ghost" type="button" aria-label={controlCopy("Move up")} disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Move up")} disabled={!canWrite || saving || i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowUp className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" type="button" aria-label={controlCopy("Move down")} disabled={i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Move down")} disabled={!canWrite || saving || i === pinned.length - 1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30">
                     <ArrowDown className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" type="button" aria-label={controlCopy("Remove")} onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
+                  <Button variant="ghost" type="button" aria-label={controlCopy("Remove")} disabled={!canWrite || saving} onClick={() => removeAt(i)} className="text-muted-foreground hover:text-destructive">
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -210,10 +216,10 @@ export function SectionPlacesDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button data-ro-allow="true" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             <DashboardText>Cancel</DashboardText>
           </Button>
-          <Button onClick={save} disabled={saving} data-trace-id="section-places-save">
+          <Button onClick={save} disabled={!canWrite || loading || loadError || saving} data-trace-id="section-places-save">
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             <DashboardText>Save places</DashboardText>
           </Button>

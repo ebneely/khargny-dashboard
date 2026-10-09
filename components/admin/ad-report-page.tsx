@@ -2,7 +2,7 @@
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
-import Link from 'next/link';
+
 import { ArrowLeft, CalendarDays, Printer } from 'lucide-react';
 import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
@@ -71,17 +71,12 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
       <AdsPageHeader
         title={lang === 'ar' ? `تقرير حملة ${placeName}` : `${placeName} campaign report`}
         description={lang === 'ar' ? `أُعد لصالح ${campaign.advertiserName}. تاريخ الإنشاء ${generatedAt} (${report.timezone}).` : `Prepared for ${campaign.advertiserName}. Generated ${generatedAt} (${report.timezone}).`}
-        actions={
-          <>
-            <Button render={<Link href={`/dashboard/ads/${campaignId}`} />} variant="outline"><ArrowLeft className="size-4" /><DashboardText>Campaign</DashboardText></Button>
-            <Button data-ro-allow="true" onClick={() => window.print()}><Printer className="size-4" /><DashboardText>Print / Save PDF</DashboardText></Button>
-          </>
-        }
+        actions={[{ label: 'Print / Save PDF', onClick: () => window.print(), readOnly: true, icon: <Printer className="size-4" aria-hidden="true" /> }, { label: 'Campaign', href: `/dashboard/ads/${campaignId}`, readOnly: true, icon: <ArrowLeft className="size-4" aria-hidden="true" /> }]}
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y bg-card px-4 py-3 text-sm">
         <AdStateBadge state={campaign.state} />
-        <span><strong><DashboardText>Placement:</DashboardText></strong> <DashboardText>{campaign.placement === 'featured' ? 'Featured' : 'Top 10'}</DashboardText></span>
+        <span><strong><DashboardText>Where it appears:</DashboardText></strong> <DashboardText>{campaign.placement === 'featured' ? 'Featured' : 'Top 10'}</DashboardText></span>
         <span><strong><DashboardText>Scope:</DashboardText></strong> {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : <DashboardText>All Egypt</DashboardText>}</span>
         <span><strong><DashboardText>Dates:</DashboardText></strong> {formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}</span>
         <span><strong><DashboardText>Timezone:</DashboardText></strong> {report.timezone}</span>

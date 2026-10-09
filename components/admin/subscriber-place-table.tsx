@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RecordCell } from './record-cell';
 import { Pager } from './pager';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -42,14 +44,16 @@ export function SubscriberPlaceTable(props: SubscriberPlaceTableProps) {
 
 function SubscriberPlaceTableContent({ value, persisted = value, onChange, subscriberId, disabled, readOnly }: SubscriberPlaceTableProps) {
   const { text, pick, lang } = useSubscriberText();
+  const [cityFilter, setCityFilter] = React.useState('all');
+  const { data: cities } = useAdminCities({ limit: 100 });
   const [query, setQuery] = React.useState('');
   const [term, setTerm] = React.useState('');
   const [rows, setRows] = React.useState<LinkedPlaceRow[]>([]);
   const [defaultFilter] = React.useState(subscriberId && persisted.length ? 'linked' : 'available');
   const { value: filter, onValueChange } = useUrlTab(['available', 'linked', 'all'], defaultFilter, 'placeFilter');
-  const [paging, setPaging] = React.useState({ filter, term, skip: 0 });
-  const skip = paging.filter === filter && paging.term === term ? paging.skip : 0;
-  const setSkip = (next: number) => setPaging({ filter, term, skip: next });
+  const [paging, setPaging] = React.useState({ filter, term, cityFilter, skip: 0 });
+  const skip = paging.filter === filter && paging.term === term && paging.cityFilter === cityFilter ? paging.skip : 0;
+  const setSkip = (next: number) => setPaging({ filter, term, cityFilter, skip: next });
   const [removed, setRemoved] = React.useState<string[]>([]);
   const [total, setTotal] = React.useState(0);
   const [resultFilter, setResultFilter] = React.useState('');
@@ -65,7 +69,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
     const timer = window.setTimeout(async () => {
       setLoading(true); setError('');
       try {
-        const result = toList<LinkedPlaceRow>(await adminApi.get<unknown>('/v1/admin/places', { search: term || undefined, status: 'active', limit: 20, skip, subscriberId: filter === 'available' ? 'none' : filter === 'linked' ? subscriberId : undefined }));
+        const result = toList<LinkedPlaceRow>(await adminApi.get<unknown>('/v1/admin/places', { cityId: cityFilter === 'all' ? undefined : cityFilter, search: term || undefined, status: 'active', limit: 20, skip, subscriberId: filter === 'available' ? 'none' : filter === 'linked' ? subscriberId : undefined }));
         if (!active) return;
         setRows(result.items);
         setTotal(result.total); setResultFilter(filter);
@@ -73,7 +77,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
       finally { if (active) setLoading(false); }
     }, 0);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [term, skip, retry, text, filter, subscriberId]);
+  }, [term, skip, retry, text, filter, subscriberId, cityFilter]);
   const selected = (place: LinkedPlaceRow) => value.some((entry) => entry.id === place.id) || Boolean(subscriberId && placeOwner(place)?.id === subscriberId && !removed.includes(place.id));
   const toggle = (place: LinkedPlaceRow) => {
     if (disabled || readOnly || linkedToAnother(place, subscriberId)) return;
@@ -83,10 +87,16 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
   };
   return <div className="min-w-0 space-y-4">
     <SegmentedControl label="Link state" value={filter} onValueChange={(next) => { setSkip(0); onValueChange(next); }} options={[{ value: 'available', label: text('Available', 'المتاح') }, { value: 'linked', label: text('Linked here', 'المرتبط هنا'), disabled: !subscriberId }, { value: 'all', label: text('All', 'الكل') }].map((option) => ({ ...option, count: !loading && resultFilter === option.value ? total : undefined }))} />
-    <div className="relative">
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+    <div className="relative min-w-0 flex-1 basis-52">
       <Search className="pointer-events-none absolute start-3 top-3.5 size-4 text-muted-foreground" aria-hidden="true" />
       <Input data-ro-allow="true" value={query} onChange={(event) => setQuery(event.target.value)} className="ps-10"
         placeholder={text('Search active places by name…', 'ابحث بالاسم عن مكان نشط…')} aria-label={text('Search places', 'البحث عن مكان')} />
+    </div>
+    <Select value={cityFilter} onValueChange={(next) => { if (next) setCityFilter(next); }}>
+      <SelectTrigger data-ro-allow="true" className="w-44 rounded-full" aria-label={text('Any city', 'أي مدينة')}><SelectValue /></SelectTrigger>
+      <SelectContent><SelectItem value="all">{text('Any city', 'أي مدينة')}</SelectItem>{(cities?.items ?? []).map((city) => <SelectItem key={city.id} value={city.id}>{pick(city.name, city.nameEn)}</SelectItem>)}</SelectContent>
+    </Select>
     </div>
     <div data-slot="linked-places-table" className="h-[320px] overflow-auto rounded-lg border sm:h-[420px]" aria-busy={loading}>
       <table className="w-full table-fixed text-start text-sm">
@@ -101,7 +111,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
           const state = other ? text('Linked to', 'مرتبط بـ') + ' ' + (placeOwner(place)?.name ?? text('another subscriber', 'مشترك آخر')) :
             chosen ? text('Linked here', 'مرتبط هنا') : (place.subscriber !== undefined ? place.subscriber === null : place.subscriberId === null) ? text('Free', 'متاح') : '';
           const location = [place.city ? pick(place.city.name, place.city.nameEn) : '', place.category ? pick(place.category.nameAr, place.category.nameEn) : ''].filter(Boolean).join(' · ');
-          return <tr key={place.id} tabIndex={0} className="h-[60px] border-t hover:bg-muted/40 focus-within:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring dark:hover:bg-background/30 dark:focus-within:bg-background/30"
+          return <tr key={place.id} tabIndex={0} className="h-14 border-t hover:bg-muted/40 focus-within:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring dark:hover:bg-background/30 dark:focus-within:bg-background/30"
             onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggle(place); } }}>
             <td className="min-w-0 px-2 py-1 align-middle"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} />{location && <p className="truncate text-xs leading-3 text-muted-foreground sm:hidden" title={location}>{location}</p>}</td>
             <td className="hidden px-2 py-1 align-middle text-xs text-muted-foreground sm:table-cell"><p className="truncate" title={location}>{location}</p></td>

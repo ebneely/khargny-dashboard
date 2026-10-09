@@ -1,5 +1,7 @@
 'use client';
 
+import { PageActions } from '@/components/admin/page-actions';
+
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { RowActions } from '@/components/admin/row-actions';
 import { FilterBar, FilterSearch } from '@/components/admin/filter-bar';
@@ -57,12 +59,7 @@ export default function CategoriesPage() {
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Categories</DashboardText></h1>
-        <Link href="/dashboard/categories/new">
-          <Button className="gap-2" data-trace-id="category-list-add">
-            <Plus className="w-4 h-4" />
-            <DashboardText>Add Category</DashboardText>
-          </Button>
-        </Link>
+        <PageActions actions={[{ label: 'Add Category', href: '/dashboard/categories/new', icon: <Plus className="size-4" aria-hidden="true" />, traceId: 'category-list-add' }]} />
       </div>
 
       <Card>
