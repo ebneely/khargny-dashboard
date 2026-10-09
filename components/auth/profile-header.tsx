@@ -166,20 +166,20 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   return (
     <div
       data-trace-id="auth-profile-header"
-      className="flex items-center gap-2 py-2"
+      className="flex items-center gap-1.5 py-1"
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
         {initials}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium text-foreground" title={data.user.email}>
+          <span className="text-[10.5px] font-medium leading-tight tracking-tight break-all text-foreground" title={data.user.email}>
             {data.user.email}
           </span>
         </div>
         <Badge
           variant={roleBadgeVariant(data.user.role)}
-          className="mt-1"
+          className="mt-0.5 h-4 px-1.5 text-[10px] leading-none"
           data-trace-id="auth-profile-role-badge"
         >
           {copy(roleLabel(data.user.role))}
@@ -187,7 +187,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           data-trace-id="auth-profile-menu"
           aria-label={copy('Open profile menu')}
         >
