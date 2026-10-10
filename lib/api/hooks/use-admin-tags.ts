@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { adminApi, toList } from '../admin-client';
 import type { AdminTag } from '../types';
 
-export function useAdminTags() {
+export function useAdminTags(enabled = true) {
   const [data, setData] = useState<AdminTag[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -33,9 +33,9 @@ export function useAdminTags() {
 
   useEffect(() => {
     let subscribed = true;
-    queueMicrotask(() => { if (subscribed) void fetch(); });
+    queueMicrotask(() => { if (subscribed && enabled) void fetch(); });
     return () => { subscribed = false; };
-  }, [fetch]);
+  }, [fetch, enabled]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }

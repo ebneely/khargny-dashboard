@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api/admin-client';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
-import { isEgyptianMobile, type SubscriberSettings } from '@/lib/api/subscribers';
+import type { SubscriberSettings } from '@/lib/api/subscribers';
+import { subscriberPhonePayload } from '@/lib/subscriber-phone';
 import { Field, LoadingState, RequestError, SavedRefreshError, subscriberError, subscriberValidation, useSubscriberText } from './subscriber-ui';
 
 export function SubscriberRenewalContact({ canWrite, active = true, onEdit }: { canWrite: boolean; active?: boolean; onEdit?: () => void }) {
@@ -67,17 +68,17 @@ function RenewalContactForm({ settings, canWrite, active, onEdit }: { settings: 
     setSaved(false);
     setError('');
     setFieldErrors({});
-    const invalid = fields.find((field) => field.value.trim() && !isEgyptianMobile(field.value));
+    const invalid = fields.find((field) => { if (!field.value.trim()) return false; try { subscriberPhonePayload(field.value); return false; } catch { return true; } });
     if (invalid) {
-      setError(`${invalid.label}: ${text('Enter an Egyptian mobile number (01…, +20…, 0020… or 20…).', 'أدخل رقم موبايل مصري (01… أو +20… أو 0020… أو 20…).')}`);
+      setError(`${invalid.label}: ${text('Enter a valid international number including its country code.', 'أدخل رقماً دولياً صحيحاً مع رمز البلد.')}`);
       return;
     }
     saving.current = true;
     setBusy(true);
     try {
       await adminApi.put<SubscriberSettings>('/v1/admin/subscribers/settings', {
-        renewalPhone: phone.trim() ? phone : null,
-        renewalWhatsapp: whatsapp.trim() ? whatsapp : null,
+        renewalPhone: phone.trim() ? subscriberPhonePayload(phone) : null,
+        renewalWhatsapp: whatsapp.trim() ? subscriberPhonePayload(whatsapp) : null,
       });
       await reread();
     } catch (caught) {

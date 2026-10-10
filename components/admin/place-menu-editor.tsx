@@ -79,7 +79,7 @@ export function PlaceMenuEditor({ placeId, canWrite: mayWrite, onChanged, primar
         {!menu.data.items.length && <p className="py-4 text-sm text-muted-foreground">{text('No items or services yet. Add a group, then its first item or service.', 'لا توجد أصناف أو خدمات بعد. أضف مجموعة ثم أول صنف أو خدمة فيها.')}</p>}
       </>}{error && !imageError && <RequestError message={error} />}{busy && uploadProgress === null && <p role="status" className="text-sm">{text('Saving…', 'جارٍ الحفظ…')}</p>}{saved && <p role="status" className="text-sm text-success">{text('Pricing changes saved.', 'تم حفظ تغييرات الأسعار.')}</p>}
     </CardContent></Card>
-        {menu.data && !menu.error && <RecordList scope="pricing-groups" records={groups.filter((section) => section.id !== null || menu.data!.items.some((item) => item.sectionId === null))} searchText={(section) => `${section.nameAr} ${section.nameEn ?? ''}`} render={(visibleGroups) => <div className="space-y-6">{visibleGroups.map((section) => {
+        {menu.data && !menu.error && <RecordList layout="groups" scope="pricing-groups" records={groups.filter((section) => section.id !== null || menu.data!.items.some((item) => item.sectionId === null))} searchText={(section) => `${section.nameAr} ${section.nameEn ?? ''}`} render={(visibleGroups) => <div className="space-y-6">{visibleGroups.map((section) => {
           const items = menu.data!.items.filter((item) => item.sectionId === section.id).sort((first, second) => first.sortOrder - second.sortOrder);
           if (section.id === null && !items.length) return null;
           const groupKey = section.id ?? 'unsectioned';

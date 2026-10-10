@@ -4,6 +4,8 @@ import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { optionalText } from '@/lib/api/subscribers';
+import { subscriberPhonePayload } from '@/lib/subscriber-phone';
+import { PhoneField } from '@/components/admin/phone-field';
 import { FileUpload } from '@/components/ui/file-upload';
 import { useState, useEffect, useRef } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
@@ -181,7 +183,7 @@ export default function NewPlacePage() {
         name, nameEn: optionalText(nameEn), slug: slugToUse,
         cityId, region: optionalText(region), categoryId,
         description: optionalText(description), descriptionEn: optionalText(descriptionEn),
-        address: optionalText(address), phone: optionalText(phone),
+        address: optionalText(address), phone: phone.trim() ? subscriberPhonePayload(phone) : null,
         website: optionalText(website), mapsUrl: optionalText(mapsUrl), instagram: optionalText(instagram),
         facebook: optionalText(facebook), tiktok: optionalText(tiktok),
         priceRange: priceRange ? parseInt(priceRange) : undefined,
@@ -374,7 +376,7 @@ export default function NewPlacePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="phone"><DashboardText>Phone</DashboardText></Label>
-                    <Input id="phone" aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? 'phone-error' : undefined} value={phone} onChange={(e) => setPhone(e.target.value)} />{fieldError('phone')}
+                    <PhoneField id="phone" value={phone} onChange={setPhone} error={fieldErrors.phone} showError={false} />{fieldError('phone')}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="website"><DashboardText>Website</DashboardText></Label>
@@ -533,7 +535,7 @@ export default function NewPlacePage() {
           </TabsContent>
         </UrlTabs>
 
-        <FormActionBar dirty={formChanges.dirty} saving={saving} error={error} onCancel={() => router.push(subscriberReturnPath() ?? '/dashboard/places')} primaryLabel={lang === 'ar' ? 'إنشاء مكان' : 'Create place'} />
+        <FormActionBar creating={!formChanges.saved} dirty={formChanges.dirty} saving={saving} error={error} onCancel={() => router.push(subscriberReturnPath() ?? '/dashboard/places')} primaryLabel={lang === 'ar' ? 'إنشاء مكان' : 'Create place'} />
       </form>
     </div>
   );

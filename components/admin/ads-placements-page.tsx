@@ -1,134 +1,68 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowDown, ArrowUp, GripVertical, Pencil, Plus, Trash2, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
+import { AdsSubscriptionAction } from './ads-subscription-action';
+import { Plus, CalendarDays } from 'lucide-react';
 import { AdsPageHeader } from './ads-page-header';
-import { AdSurfaceSchematic } from './ad-surface-schematic';
+import { AdsRange, SurfaceList } from './ads-round-b-ui';
+import { HomeSections } from './ads-home-sections';
+import { RecordList, useListAddress } from './record-list';
 import { RecordCell } from './record-cell';
-import { RecordList } from './record-list';
-import { placeCover } from '@/lib/place-list';
+import { DateCell, DateRange } from './date-cell';
 import { RowActions } from './row-actions';
-import { FormActionBar } from './form-action-bar';
-import { SectionPlacesDialog } from './section-places-dialog';
 import { useDashboardCopy } from './dashboard-text';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { adminApi, toList } from '@/lib/api/admin-client';
-import type { AdCampaign, AdInventory, TopPlacesPreview } from '@/lib/api/ads';
+import { Button } from '@/components/ui/button';
+import { adsBApi, type AdSurface } from '@/lib/api/ads-round-b';
+import { campaignHref, sourceLabels, validAdsRange } from '@/lib/ads-round7b';
 import { cairoDate } from '@/lib/api/subscribers';
-import { sectionOrder, type HomeSection, type HomePin } from '@/lib/api/storefront';
+import { loadInsightOptions } from '@/lib/api/search-insights';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
-import { ActionDialog, type ActionSpec, Field, LoadingState, RequestError, SavedRefreshError, SubscriberSelect, useSubscriberText } from './subscriber-ui';
+import { LoadingState, RequestError } from './subscriber-ui';
+import { placeCover } from '@/lib/place-list';
 
-export function AdsPlacementsPage({ canWrite = false }: { canWrite?: boolean }) {
-  return <React.Suspense fallback={<LoadingState />}><PlacementsContent canWrite={canWrite} /></React.Suspense>;
-}
-
+export function AdsPlacementsPage({ canWrite = false }: { canWrite?: boolean }) { return <React.Suspense fallback={<LoadingState />}><PlacementsContent canWrite={canWrite} /></React.Suspense>; }
 function PlacementsContent({ canWrite }: { canWrite: boolean }) {
-  const copy = useDashboardCopy();
-  const { pick, lang } = useSubscriberText();
-  const params = useSearchParams();
-  const router = useRouter();
-  const adding = params.get('add') === 'section' && canWrite;
-  const today = cairoDate();
-  const [managing, setManaging] = React.useState<HomeSection | null>(null);
-  const [dragged, setDragged] = React.useState<string | null>(null);
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [action, setAction] = React.useState<ActionSpec | null>(null);
-  const [draft, setDraft] = React.useState({ key: '', titleAr: '', titleEn: '', kind: 'featured' as HomeSection['kind'] });
-  const number = (value: number) => new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en').format(value);
-  const load = React.useCallback(async () => {
-    const [sectionsResponse, capacity, campaignsResponse] = await Promise.all([
-      adminApi.get<unknown>('/v1/admin/storefront/sections'),
-      adminApi.get<AdInventory>('/v1/admin/ads/inventory', { from: today, to: today }),
-      adminApi.get<unknown>('/v1/admin/ads/campaigns', { state: 'live' }),
-    ]);
-    const sections = toList<HomeSection>(sectionsResponse).items.sort((first, second) => first.sortOrder - second.sortOrder);
-    const pins: Record<string, HomePin[]> = {};
-    for (const section of sections) pins[section.id] = toList<HomePin>(await adminApi.get<unknown>(`/v1/admin/storefront/sections/${section.id}/places`)).items;
-    for (const placement of ['featured', 'top10'] as const) if (!capacity.scopes.some((scope) => scope.placement === placement && scope.cityId === null)) capacity.scopes.unshift({ placement, cityId: null, city: null, days: [] });
-    const previews: Record<string, TopPlacesPreview> = {};
-    for (const scope of capacity.scopes.filter((scope) => scope.placement === 'top10')) previews[scope.cityId ?? 'all'] = await adminApi.get<TopPlacesPreview>('/v1/admin/ads/top-places/preview', { city: scope.city?.slug });
-    return { sections, pins, capacity, campaigns: toList<AdCampaign>(campaignsResponse).items, previews };
-  }, [today]);
+  const copy = useDashboardCopy(); const params = useSearchParams();
+  const [from, setFrom] = React.useState(cairoDate); const [to, setTo] = React.useState(cairoDate);
+  const valid = validAdsRange(from, to, 92);
+  const address = useListAddress('surfaces');
+  const kind = address.get('kind'); const city = address.get('city'); const query = address.query;
+  const state = ['has_free', 'full', 'nobody_promoted', 'has_paid'].includes(address.get('state')) ? address.get('state') : undefined;
+  const page = Math.floor(address.skip / address.limit) + 1; const limit = address.limit;
+  const [chosen, setChosen] = React.useState<AdSurface | null>(null);
+  const load = React.useCallback(async () => valid ? adsBApi.surfaces(from, to, { kind: kind || undefined, cityId: city && city !== 'national' ? city : undefined, q: query.trim().slice(0, 200) || undefined, state, page, limit, detail: 'summary' }) : null, [from, to, valid, kind, city, query, state, page, limit]);
   const resource = useSubscriberResource(load);
-  const sections = resource.data?.sections ?? [];
-  const write = async (operation: () => Promise<unknown>) => {
-    if (!canWrite || busy || resource.loading || resource.error || resource.savedRefreshFailed) return false;
-    setBusy(true); setError('');
-    try { await operation(); await resource.refreshAfterSave(); return true; }
-    catch { setError(copy('Could not update homepage sections. Refresh before trying again.')); return false; }
-    finally { setBusy(false); }
-  };
-  const reorder = async (source: string, target: string) => {
-    if (!canWrite || source === target || busy) return;
-    await write(async () => {
-      const current = toList<HomeSection>(await adminApi.get<unknown>('/v1/admin/storefront/sections')).items.sort((first, second) => first.sortOrder - second.sortOrder);
-      if (JSON.stringify(current.map((section) => [section.id, section.sortOrder])) !== JSON.stringify(sections.map((section) => [section.id, section.sortOrder]))) throw new Error('STALE_ORDER');
-      const next = sectionOrder(current, source, target);
-      try { for (const section of next) if (current.find((entry) => entry.id === section.id)?.sortOrder !== section.sortOrder) await adminApi.patch(`/v1/admin/storefront/sections/${section.id}`, { sortOrder: section.sortOrder }); }
-      catch (caught) { await resource.refetch(); throw caught; }
-    });
-  };
-  const create = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!canWrite || busy) return;
-    if (!draft.key.trim() || !draft.titleAr.trim()) { setError(copy('Key and Arabic title are required')); return; }
-    setBusy(true); setError('');
-    try {
-      await adminApi.post('/v1/admin/storefront/sections', { ...draft, titleEn: draft.titleEn || undefined, sortOrder: Math.max(-1, ...sections.map((section) => section.sortOrder)) + 1, enabled: true });
-      setDraft({ key: '', titleAr: '', titleEn: '', kind: 'featured' });
-      toast.success(copy('Section created.'));
-      router.replace('/dashboard/ads/placements');
-      await resource.refreshAfterSave();
-    } catch { setError(copy('Could not create the section.')); }
-    finally { setBusy(false); }
-  };
-  return <div className="space-y-6">
-    <AdsPageHeader title="Where ads appear" description="See booked space and the homepage sections you control." form={adding} actions={[{ label: 'Add a section', href: '/dashboard/ads/placements?add=section#add-section', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]} />
-    {error && <RequestError message={error} retry={() => { void resource.refetch(); }} />}
-    {resource.loading ? <LoadingState /> : resource.error ? resource.savedRefreshFailed ? <SavedRefreshError retry={() => { void resource.refetch(); }} /> : <RequestError message={copy('Could not load promotion data.')} retry={() => { void resource.refetch(); }} /> : resource.data && <>
-      <RecordList scope="surfaces" records={resource.data.capacity.scopes} searchText={(scope) => `${scope.city?.name ?? ''} ${scope.city?.nameEn ?? ''} ${copy(scope.placement === 'featured' ? 'Home Featured rail' : 'City Top 10')}`} filters={[{ key: 'placement', label: 'All surfaces', options: [{ value: 'featured', label: 'Home Featured rail' }, { value: 'top10', label: 'City Top 10' }], value: (scope) => scope.placement }]} render={(visibleScopes) => <div className="grid gap-6 xl:grid-cols-2">{visibleScopes.map((scope) => {
-        const day = scope.days.find((entry) => entry.date === today);
-        const preview = resource.data!.previews[scope.cityId ?? 'all'];
-        const campaigns = resource.data!.campaigns.filter((campaign) => campaign.placement === scope.placement && campaign.cityId === scope.cityId);
-        return <Card key={`${scope.placement}-${scope.cityId}`}><CardHeader><CardTitle><RecordCell icon="location" name={scope.city ? undefined : copy('All Egypt')} nameAr={scope.city?.name} nameEn={scope.city?.nameEn} thumbnail={null} context={copy(scope.placement === 'featured' ? 'Home Featured rail' : 'City Top 10')} /></CardTitle></CardHeader><CardContent className="space-y-4">
-          <AdSurfaceSchematic surface={scope.placement} />
-          {!day && <p className="text-sm tabular-nums">{number(resource.data!.capacity.capacity[scope.placement])} {copy('places of capacity · now')}</p>}
-          {day && <p className="text-sm tabular-nums">{number(day.capacity)} {copy('places of capacity')} · {number(day.booked)} {copy('booked today')} · {number(Math.max(0, day.capacity - day.booked))} {copy('free places · today')}</p>}
-          <p className="text-sm text-muted-foreground">{copy(scope.placement === 'featured' ? 'Live Featured campaigns; rotation decides who is shown.' : 'Shown in the current Top 10 rotation.')}</p>
-          <RecordList scope={`surface-${scope.placement}-${scope.cityId ?? 'all'}`} records={scope.placement === 'top10' && preview ? preview.items.map((item) => ({ place: item.place, sponsored: item.sponsored })) : campaigns.map((campaign) => ({ place: campaign.place, sponsored: true }))} searchText={({ place }) => `${place.name} ${place.nameEn ?? ''}`} filters={[{ key: 'sponsored', label: 'All promotion types', options: [{ value: 'yes', label: 'Sponsored' }, { value: 'no', label: 'Not sponsored' }], value: (item) => item.sponsored ? 'yes' : 'no' }]} render={(visible) => <ul className="divide-y divide-border">{visible.map(({ place, sponsored }) => <li key={place.id} className="py-3"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} chips={<Badge variant="secondary">{copy(sponsored ? 'Sponsored' : 'Not sponsored')}</Badge>} /></li>)}</ul>} />
-          <Button data-ro-allow="true" variant="outline" nativeButton={false} render={<Link href={scope.placement === 'top10' ? `/dashboard/ads/top-10?city=${scope.city?.slug ?? 'all'}` : '/dashboard/ads/campaigns?placement=featured'} />}>{copy('Manage')}</Button>
-        </CardContent></Card>;
-      })}</div>} />
-      <h2 id="homepage-sections" className="text-lg font-semibold">{copy('Homepage sections')}</h2>
-      {!sections.length && <p className="text-sm text-muted-foreground">{copy('No sections yet. Add one to show it on the homepage.')}</p>}
-      <RecordList scope="home-sections" records={sections} searchText={(section) => `${section.titleAr} ${section.titleEn ?? ''} ${section.key}`} filters={[{ key: 'enabled', label: 'All statuses', options: [{ value: 'yes', label: 'Enabled' }, { value: 'no', label: 'Disabled' }], value: (section) => section.enabled ? 'yes' : 'no' }]} render={(visibleSections) => <div className="grid gap-6 xl:grid-cols-2">{visibleSections.map((section) => { const index = sections.findIndex((entry) => entry.id === section.id); return <Card key={section.id} id={`section-${section.key}`} data-trace-id={`storefront-section-${section.key}`} onDragOver={(event) => { if (canWrite && dragged && !busy) event.preventDefault(); }} onDrop={(event) => { event.preventDefault(); if (dragged) void reorder(dragged, section.id); setDragged(null); }}>
-        <CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle><RecordCell icon="section" nameAr={section.titleAr} nameEn={section.titleEn} /></CardTitle>{canWrite && <div className="flex items-center gap-2"><Button type="button" variant="ghost" size="icon" draggable={!busy} disabled={busy} onDragStart={(event) => { setDragged(section.id); event.dataTransfer.setData('text/plain', section.id); event.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDragged(null)} aria-label={copy('Drag to reorder; use the menu to move with the keyboard.')}><GripVertical aria-hidden="true" /></Button><RowActions recordName={pick(section.titleAr, section.titleEn)} actions={[
-          ...(index > 0 ? [{ label: 'Move up', icon: <ArrowUp aria-hidden="true" />, onClick: () => { void reorder(section.id, sections[index - 1].id); } }] : []),
-          ...(index < sections.length - 1 ? [{ label: 'Move down', icon: <ArrowDown aria-hidden="true" />, onClick: () => { void reorder(section.id, sections[index + 1].id); } }] : []),
-          { label: 'Edit section', icon: <Pencil aria-hidden="true" />, onClick: () => setAction({ title: copy('Edit section'), fields: [{ name: 'titleAr', label: copy('Title (Arabic)'), value: section.titleAr, required: true }, { name: 'titleEn', label: copy('Title (English)'), value: section.titleEn ?? '' }], submit: async (values) => { if (!await write(() => adminApi.patch(`/v1/admin/storefront/sections/${section.id}`, { titleAr: values.titleAr, titleEn: values.titleEn || null }))) throw new Error(copy('Could not update homepage sections. Refresh before trying again.')); } }) },
-          { label: section.enabled ? 'Disable section' : 'Enable section', icon: <Eye aria-hidden="true" />, onClick: () => { void write(() => adminApi.patch(`/v1/admin/storefront/sections/${section.id}`, { enabled: !section.enabled })); } },
-          { label: 'Delete section', icon: <Trash2 aria-hidden="true" />, destructive: true, onClick: () => setAction({ title: copy('Delete section?'), description: copy('This removes the homepage section and its pins, not the places.'), destructive: true, submit: async () => { if (!await write(() => adminApi.delete(`/v1/admin/storefront/sections/${section.id}`))) throw new Error(copy('Could not update homepage sections. Refresh before trying again.')); } }) },
-        ].map((item) => ({ ...item, disabled: busy || resource.loading || Boolean(resource.error) || resource.savedRefreshFailed }))} /></div>}</CardHeader>
-        <CardContent className="space-y-4"><AdSurfaceSchematic surface="section" /><Badge variant="secondary">{copy(section.enabled ? 'Enabled' : 'Disabled')}</Badge><p className="text-sm tabular-nums">{number(resource.data!.pins[section.id].length)} {copy('configured pins · now')}</p><p className="text-sm text-muted-foreground">{copy('Pins are editorial, not paid campaigns. Empty automatic sections fill by their kind.')}</p>
-          <RecordList scope={`section-${section.id}`} records={resource.data!.pins[section.id]} searchText={(place) => `${place.name} ${place.nameEn ?? ''}`} render={(visible) => <ul className="divide-y divide-border">{visible.map((place) => <li key={place.id} className="min-h-14 py-2"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} chips={<Badge variant="secondary">{copy('Not sponsored')}</Badge>} /></li>)}</ul>} />
-          <Button data-ro-allow="true" variant="outline" onClick={() => setManaging(section)} data-trace-id={`storefront-manage-${section.key}`}>{copy('Manage')}</Button>
-        </CardContent></Card>; })}</div>} />
-    </>}
-    {adding && <Card id="add-section"><CardHeader><CardTitle>{copy('Add a section')}</CardTitle></CardHeader><CardContent><form id="home-section-form" onSubmit={create} noValidate className="space-y-5"><fieldset disabled={busy || resource.loading || Boolean(resource.error)} className="grid gap-4 sm:grid-cols-2">
-      <Field label={copy('Key (slug)')}><Input value={draft.key} onChange={(event) => setDraft({ ...draft, key: event.target.value })} required /></Field>
-      <Field label={copy('Kind')}><SubscriberSelect value={draft.kind} options={['featured', 'top_rated', 'recommended', 'custom'].map((value) => ({ value, label: copy({ featured: 'Featured', top_rated: 'Top rated', recommended: 'Recommended', custom: 'Custom (pinned)' }[value]!) }))} onValueChange={(kind) => setDraft({ ...draft, kind: kind as HomeSection['kind'] })} /></Field>
-      <Field label={copy('Title (Arabic)')}><Input dir="rtl" value={draft.titleAr} onChange={(event) => setDraft({ ...draft, titleAr: event.target.value })} required /></Field>
-      <Field label={copy('Title (English)')}><Input dir="ltr" value={draft.titleEn} onChange={(event) => setDraft({ ...draft, titleEn: event.target.value })} /></Field>
-    </fieldset><FormActionBar form="home-section-form" dirty={Boolean(draft.key || draft.titleAr || draft.titleEn || draft.kind !== 'featured')} saving={busy} error={error} disabled={resource.loading || Boolean(resource.error)} cancelHref="/dashboard/ads/placements" primaryLabel={copy('Create section')} /></form></CardContent></Card>}
-    <SectionPlacesDialog canWrite={canWrite} sectionId={managing?.id ?? null} sectionTitle={managing ? pick(managing.titleAr, managing.titleEn) : null} open={Boolean(managing)} onOpenChange={(open) => { if (!open) setManaging(null); }} onSaved={() => { void resource.refreshAfterSave(); }} />
-    <ActionDialog action={action} onClose={() => setAction(null)} />
+  const loadCities = React.useCallback(() => loadInsightOptions<{ id: string; name: string; nameEn: string | null }>('/v1/admin/cities'), []);
+  const cities = useSubscriberResource(loadCities);
+  const paged = Boolean(resource.data?.meta);
+  const loadSummary = React.useCallback(() => valid && paged ? adsBApi.surfacesSummary(from, to) : Promise.resolve(null), [from, to, valid, paged]);
+  const summary = useSubscriberResource(loadSummary);
+  const selected = resource.data?.data.find(row => row.key === chosen?.key) ?? null;
+  return <div className="min-w-0 space-y-6"><AdsPageHeader form={params.get('add') === 'section' && canWrite} title="Where ads appear" description="Choose where a visitor sees a place, see bookings and preview the actual cards." actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite }, { label: 'Add a section', href: '/dashboard/ads/placements?add=section#homepage-sections', allowed: canWrite, icon: <Plus /> }]} />
+    <Card><CardHeader><CardTitle>{copy('Booking range')}</CardTitle></CardHeader><CardContent><AdsRange from={from} to={to} onFrom={setFrom} onTo={setTo} /></CardContent></Card>
+    {paged && <Card data-slot="surface-summary"><CardHeader><CardTitle>{copy('All surfaces in the booking range')}</CardTitle></CardHeader><CardContent>{summary.loading ? <LoadingState /> : summary.error ? <RequestError message={copy('Could not load surfaces.')} retry={() => { void summary.refetch(); }} /> : summary.data && <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">{[['Surfaces grouped by kind and city', summary.data.totals.surfaces], ['With free space', summary.data.totals.withFreeSpace], ['Nobody promoted', summary.data.totals.nobodyPromoted]].map(([label, count]) => <div key={label}><dt className="text-sm text-muted-foreground">{copy(String(label))}</dt><dd className="text-xl font-semibold tabular-nums">{count}</dd></div>)}</dl>}</CardContent></Card>}
+    {valid && <Card><CardHeader><CardTitle>{copy('Surfaces grouped by kind and city')}</CardTitle></CardHeader><CardContent>{resource.loading ? <LoadingState /> : resource.error ? <RequestError message={copy('Could not load surfaces.')} retry={() => { void resource.refetch(); }} /> : <SurfaceList scope="surfaces" address={address} total={resource.data?.meta?.total} surfaces={resource.data?.data ?? []} cities={cities.data ?? []} onChoose={setChosen} />}</CardContent></Card>}
+    {selected && <SurfaceDetails key={selected.key} surface={selected} from={from} to={to} canWrite={canWrite} />}
+    <HomeSections canWrite={canWrite} />
+    <p className="text-sm text-muted-foreground">{copy('Bookings include paused reservations. Candidates are not simultaneous occupants; use the visitor preview for the exact current order.')}</p>
   </div>;
+}
+function SurfaceDetails({ surface: summary, from, to, canWrite }: { surface: AdSurface; from: string; to: string; canWrite: boolean }) {
+  const loadDetail = React.useCallback(() => adsBApi.surfaces(from, to, { detail: 'full' }), [from, to]);
+  const detail = useSubscriberResource(loadDetail);
+  const surface = detail.data?.data.find(row => row.key === summary.key) ?? summary;
+  const copy = useDashboardCopy(); const [query, setQuery] = React.useState('');
+  const load = React.useCallback(() => adsBApi.preview(surface.key, query), [surface.key, query]);
+  const preview = useSubscriberResource(load);
+  return <>
+    <Card><CardHeader><CardTitle>{surface.name}</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-sm">{copy('Booked and free per day')}</p>{detail.error && <RequestError message={copy('Could not load surfaces.')} retry={() => { void detail.refetch(); }} />}<RecordList scope="surface-days" records={surface.days ?? []} busy={detail.loading} searchText={day => day.date} render={visible => <div>{visible.map(day => <div key={day.date} className="flex min-h-14 flex-wrap items-center gap-3 border-b py-2"><RecordCell icon="calendar" name={day.date} /><p className="ms-auto text-sm tabular-nums">{day.booked} {copy('booked')} / {day.capacity} · {day.free} {copy('free')}</p></div>)}</div>} />
+      {canWrite && surface.sellable && <RowActions recordName={surface.name} actions={[{ label: 'Start a campaign here', href: campaignHref(surface), icon: <CalendarDays /> }]} />}
+      <p className="text-sm text-muted-foreground">{copy('Candidates overlapping the chosen dates')}</p><RecordList scope="surface-occupants" records={surface.occupants} searchText={row => `${row.name} ${row.source}`} filters={[{ key: 'source', label: 'All promotion sources', options: Object.entries(sourceLabels).map(([value, label]) => ({ value, label })), value: row => row.source }]} render={visible => <div>{visible.map((row, index) => <div key={`${row.placeId}-${row.campaignId ?? row.subscriptionId ?? index}`} className="flex min-h-14 flex-wrap items-center gap-3 border-b py-2"><RecordCell name={row.name} chips={<Badge variant="secondary">{copy(row.sponsored ? 'Sponsored' : 'Not sponsored')}</Badge>} context={copy(sourceLabels[row.source])} /><p className="text-sm">{row.startDate && <DateCell value={row.startDate} />}{row.endDate && <> — <DateCell value={row.endDate} /></>}{row.status === 'paused' && <> · {copy('Paused')}</>}</p>{row.subscriptionId && <AdsSubscriptionAction placeId={row.placeId} subscriptionId={row.subscriptionId} name={row.name} />}</div>)}</div>} />
+    </CardContent></Card>
+    <Card><CardHeader><CardTitle>{copy('Exact visitor preview')}</CardTitle></CardHeader><CardContent className="space-y-4">{surface.surface === 'search' && <label className="block space-y-1 text-sm">{copy('Search query (optional)')}<Input data-ro-allow="true" value={query} onChange={event => setQuery(event.target.value)} /></label>}{preview.loading ? <LoadingState /> : preview.error ? <RequestError message={copy('Could not load the visitor preview.')} retry={() => { void preview.refetch(); }} /> : <><p className="text-sm text-muted-foreground">{copy('Current order; refresh to see the next rotation.')} {preview.data?.rotation.nextAt && <DateRange start={preview.data.rotation.nextAt} end={preview.data.rotation.nextAt} />}</p><Button variant="outline" data-ro-allow="true" onClick={() => { void preview.refetch(); }}>{copy('Refresh preview')}</Button><RecordList scope="visitor-preview" records={preview.data?.items ?? []} searchText={row => `${row.place.name} ${row.place.nameEn ?? ''}`} render={visible => <div>{visible.map((row, index) => <div key={`${row.place.id}-${index}`} className="flex min-h-14 items-center gap-3 border-b py-2"><span className="tabular-nums">{(preview.data?.items.indexOf(row) ?? index) + 1}</span><RecordCell nameAr={row.place.name} nameEn={row.place.nameEn} thumbnail={placeCover(row.place)} chips={<Badge variant="secondary">{copy(row.sponsored ? 'Sponsored' : 'Not sponsored')}</Badge>} context={copy(sourceLabels[row.source])} /></div>)}</div>} /></>}</CardContent></Card>
+  </>;
 }

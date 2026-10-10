@@ -1,3 +1,3 @@
-import { redirect } from 'next/navigation';
+import { KeywordsPage } from '@/components/admin/analytics/keywords-page';
 
-export default function LegacyTagsPage() { redirect('/dashboard/analytics/keywords'); }
+export default function TagsPage() { return <KeywordsPage />; }

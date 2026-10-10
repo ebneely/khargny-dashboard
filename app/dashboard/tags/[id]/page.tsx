@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation';
+import { KeywordDetailPage } from '@/components/admin/analytics/keyword-detail-page';
 
-export default async function LegacyTagPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function KeywordPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  redirect(`/dashboard/analytics/keywords/${id}`);
+  return <KeywordDetailPage id={id} />;
 }

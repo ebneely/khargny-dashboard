@@ -3,12 +3,10 @@
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { RecordList } from '../record-list';
 import { RecordCell } from '../record-cell';
+import { engagementMetrics, engagementNumber } from '@/lib/engagement';
 import { placeCover } from '@/lib/place-list';
 import * as React from 'react';
 import {
-  Eye,
-  Heart,
-  Navigation,
   MapPin,
   Building2,
   Shapes,
@@ -27,11 +25,7 @@ import { StatTile } from './stat-tile';
 import { RankedBars, type RankedRow } from './ranked-bars';
 
 /** The three engagement measures, each plotted on its own axis — never together. */
-const MEASURES = [
-  { key: 'views', label: 'Views', icon: Eye },
-  { key: 'saves', label: 'Saves', icon: Heart },
-  { key: 'directions', label: 'Directions', icon: Navigation },
-] as const;
+const MEASURES = engagementMetrics;
 type MeasureKey = (typeof MEASURES)[number]['key'];
 
 export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | 'en' }) {
@@ -52,7 +46,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           value: c[measure],
           meta: `${c.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
-        .sort((a, b) => b.value - a.value),
+        .sort((a, b) => (b.value ?? -1) - (a.value ?? -1)),
     [data, measure, lang, label],
   );
 
@@ -67,7 +61,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           value: r[measure],
           meta: `${r.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
-        .sort((a, b) => b.value - a.value),
+        .sort((a, b) => (b.value ?? -1) - (a.value ?? -1)),
     [data, measure, lang],
   );
 
@@ -93,20 +87,20 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Engagement first: the three numbers that describe what visitors did. */}
       <section aria-labelledby="insights-engagement">
         <h2 id="insights-engagement" className="sr-only">
           <DashboardText>Engagement</DashboardText>
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatTile label="Views" value={t?.views ?? 0} icon={Eye} loading={isLoading} />
-          <StatTile label="Saves" value={t?.saves ?? 0} icon={Heart} loading={isLoading} />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <StatTile label="Views" value={t?.views} icon={engagementMetrics[0].icon} loading={isLoading} />
+          <StatTile label="Saves" value={t?.saves} icon={engagementMetrics[1].icon} loading={isLoading} />
           <StatTile
-            label="Directions"
+            label="5argny taps"
             value={t?.directions ?? 0}
-            icon={Navigation}
+            icon={engagementMetrics[3].icon}
             loading={isLoading}
           />
+          <StatTile label="Likes" value={t?.likes} icon={engagementMetrics[2].icon} loading={isLoading} />
           <StatTile
             label="Live places"
             value={t?.places ?? 0}
@@ -122,7 +116,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
         <h2 id="insights-catalogue" className="sr-only">
           <DashboardText>Catalogue</DashboardText>
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <StatTile label="Cities" value={t?.cities ?? 0} icon={Building2} loading={isLoading} />
           {/* Areas = distinct regions that have at least one live place, since a city can hold
               many. Counted from the byRegion breakdown the endpoint already returns. */}
@@ -130,7 +124,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
             label="Areas"
             value={data?.byRegion?.length ?? 0}
             hint="Across all cities"
-            icon={Navigation}
+            icon={engagementMetrics[3].icon}
             loading={isLoading}
           />
           <StatTile
@@ -203,7 +197,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
             <DashboardText>Most-viewed places</DashboardText>
           </h2>
         </div>
-        <div className="min-w-0 p-4 sm:p-5"><RecordList scope="home-top" records={data?.topPlaces ?? []} busy={isLoading} searchText={(place) => [place.name, place.nameEn, place.cityAr, place.cityEn].join(' ')} filters={[{ key: 'city', label: 'All cities', options: Array.from(new Map((data?.topPlaces ?? []).map((place) => [place.cityAr ?? '', { value: place.cityAr ?? '', label: label(place.cityAr, place.cityEn, '—') }])).values()).filter((option) => option.value), value: (place) => place.cityAr ?? '' }]} render={(visible) => <ul className="divide-y">{visible.map((place) => <li key={place.id} className="space-y-3 py-3"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} context={label(place.cityAr, place.cityEn, '—')} /><dl className="grid grid-cols-3 gap-3 text-sm">{(['views', 'saves', 'directions'] as const).map((metric) => <div key={metric}><dt className="text-muted-foreground"><DashboardText>{metric === 'views' ? 'Views' : metric === 'saves' ? 'Saves' : 'Directions'}</DashboardText></dt><dd className="tabular-nums">{place[metric].toLocaleString(lang)}</dd></div>)}</dl></li>)}</ul>} /></div>
+        <div className="min-w-0 p-4 sm:p-5"><RecordList scope="home-top" records={data?.topPlaces ?? []} busy={isLoading} searchText={(place) => [place.name, place.nameEn, place.cityAr, place.cityEn].join(' ')} filters={[{ key: 'city', label: 'All cities', options: Array.from(new Map((data?.topPlaces ?? []).map((place) => [place.cityAr ?? '', { value: place.cityAr ?? '', label: label(place.cityAr, place.cityEn, '—') }])).values()).filter((option) => option.value), value: (place) => place.cityAr ?? '' }]} render={(visible) => <ul className="divide-y">{visible.map((place) => <li key={place.id} className="space-y-3 py-3"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} context={label(place.cityAr, place.cityEn, '—')} /><dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">{(['views', 'saves', 'likes', 'directions'] as const).map((metric) => <div key={metric}><dt className="text-muted-foreground"><DashboardText>{engagementMetrics.find((item) => item.key === metric)?.label ?? metric}</DashboardText></dt><dd className="tabular-nums">{engagementNumber(place[metric], lang)}</dd></div>)}</dl></li>)}</ul>} /></div>
       </section>
 
       {/* What the numbers mean, from the API itself — so this caption cannot drift out of

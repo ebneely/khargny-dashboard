@@ -30,10 +30,10 @@ export interface Decision { term: string; action: 'alias' | 'ignore'; tagId: str
 export interface TermDetail extends ReportScope { term: string; decision: Decision | null; keyword: KeywordConcept | null; series: TermDay[]; cities: ReportPage<Record<string, unknown>>; clickedPlaces: ReportPage<Record<string, unknown>>; placesThatWouldMatchNow: ReportPage<Record<string, unknown>>; }
 export interface Funnel { sessions: number; searched: number; viewedPlace: number; acted: number; placeViews: number; actedPlaceViews: number; searchRate: number; placeViewRate: number; actionRate: number; placeActionRate: number; }
 export interface Movement extends ReportScope { entries: ReportPage<{ path: string; count: number }>; exits: ReportPage<{ path: string; count: number }>; transitions: ReportPage<{ fromPath: string; toPath: string; count: number }>; funnel: { totals: Funnel; series: (Funnel & { day?: string; platform?: string })[] }; }
-export interface KeywordPlace { id: string; name: string; nameEn: string | null; cityId: string; categoryId: string; status: string; }
+export interface KeywordPlace { cover?: string | null; id: string; name: string; nameEn: string | null; cityId: string; categoryId: string; status: string; }
 export interface AssignmentSelector { cityId?: string; categoryId?: string; region?: string; search?: string; hasAmenityId?: string; placeIds?: string[]; }
 export type AssignmentBody = { add: string[]; remove: string[]; dryRun: boolean; planDigest?: string } | { tagIds: string[]; where: AssignmentSelector; mode: 'add' | 'remove'; dryRun: boolean; planDigest?: string };
-export interface AssignmentPreview { dryRun: boolean; planDigest: string; selectedPlaces: { id: string; name: string; cityId: string; categoryId: string; region: string | null }[]; changes: { placeId: string; tagId: string; mode: 'add' | 'remove' }[]; added: number; removed: number; }
+export interface AssignmentPreview { dryRun: boolean; planDigest: string; selectedPlaces: { cover?: string | null; id: string; name: string; cityId: string; categoryId: string; region: string | null }[]; changes: { placeId: string; tagId: string; mode: 'add' | 'remove' }[]; added: number; removed: number; }
 export const termRoute = (term: string) => `/v1/admin/analytics/search/terms/${encodeURIComponent(term)}`;
 export const resolveTerm = (term: string, tagId?: string) => adminApi.post<Decision>(`${termRoute(term)}/resolve`, tagId ? { action: 'alias', tagId } : { action: 'ignore' });
 export const reverseTerm = (term: string) => adminApi.delete<{ reversed: boolean; term: string; aliasRemoved: boolean }>(`${termRoute(term)}/resolve`);
@@ -43,9 +43,10 @@ export const applyAssignment = (id: string, body: AssignmentBody, preview: Assig
 
 export async function searchOverview(query: InsightQuery) {
   let skip = 0;
-  const totals = { searches: 0, zeroResults: 0, clicks: 0 };
+  const totals = { searches: 0, zeroResults: 0, clicks: 0, terms: [] as TermRow[] };
   while (true) {
     const page = await adminApi.get<ReportPage<TermRow>>('/v1/admin/analytics/search/terms', { ...query, skip, limit: 200 });
+    totals.terms.push(...page.data);
     for (const row of page.data) { totals.searches += row.searches; totals.zeroResults += row.zeroResults; totals.clicks += row.clicks; }
     skip += page.data.length;
     if (skip >= page.meta.total) return totals;

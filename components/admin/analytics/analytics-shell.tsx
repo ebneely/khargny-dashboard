@@ -15,7 +15,7 @@ import { cairoDate } from '@/lib/api/subscribers';
 import { isCalendarDate, calendarStamp, shiftCalendarDays } from '@/lib/subscription-calendar';
 import { LoadingState } from '../subscriber-ui';
 
-const tabs = [{ value: '', label: 'Overview' }, { value: 'search-terms', label: 'Search terms' }, { value: 'missing-words', label: 'Missing words' }, { value: 'movement', label: 'Movement' }, { value: 'keywords', label: 'Keywords' }];
+const tabs = [{ value: '', label: 'Overview' }, { value: 'search-terms', label: 'Search terms' }, { value: 'missing-words', label: 'Missing words' }, { value: 'movement', label: 'Movement' }, { value: 'keywords', label: 'Keywords' }, { value: 'live', label: 'Live' }];
 const FiltersContext = React.createContext<{ query: InsightQuery; valid: boolean; period: string; cities: AdminCity[] } | null>(null);
 export function useInsightFilters() {
   const value = React.useContext(FiltersContext);
@@ -54,13 +54,13 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
   return <FiltersContext.Provider value={{ query, valid, period, cities: cities.data ?? [] }}><div className="min-w-0 space-y-6">
     <header><h1 className="font-display text-2xl font-semibold">{copy('Analytics')}</h1><p className="mt-1 text-sm text-muted-foreground">{copy('Search and movement, measured in Cairo calendar days.')}</p></header>
     <SegmentedNavigation label="Analytics sections" value={value} options={tabs.map((tab) => ({ ...tab, href: `/dashboard/analytics${tab.value ? '/' + tab.value : ''}?${shared}` }))} />
-    <div className="space-y-3"><SegmentedControl label="Analytics period" value={period} onValueChange={(next) => change('period', String(next))} options={[{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: 'custom', label: 'Custom range' }]} />
+    {value !== 'live' && <div className="space-y-3"><SegmentedControl label="Analytics period" value={period} onValueChange={(next) => change('period', String(next))} options={[{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }, { value: 'custom', label: 'Custom range' }]} />
       {period === 'custom' && <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => change('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => change('to', date)} /></label></div>}
       <FilterBar filters={2}><FilterSelect label="All platforms" value={query.platform ?? 'all'} onValueChange={(value) => change('platform', value)} options={[{ value: 'all', label: 'All platforms' }, { value: 'app', label: 'App' }, { value: 'web', label: 'Web' }, { value: 'unknown', label: 'Unknown platform' }]} /><FilterSelect label="All cities" value={query.cityId ?? 'all'} onValueChange={(value) => change('cityId', value)} options={[{ value: 'all', label: 'All cities' }, ...(cities.data ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn) }))]} /></FilterBar>
       {cities.error && <p role="alert" className="text-sm text-destructive">{copy('Could not load cities.')} <Button data-ro-allow="true" type="button" variant="outline" onClick={() => { void cities.refetch(); }}>{copy('Retry')}</Button></p>}
       <p className="text-sm text-muted-foreground"><span dir="ltr">{from} – {to}</span> · {copy('Cairo · inclusive dates')}</p>
       {!valid && <p role="alert" className="text-sm text-destructive">{copy('Choose an ordered range of at most 401 days.')}</p>}
-    </div>
-    {valid && children}
+    </div>}
+    {(valid || value === 'live') && children}
   </div></FiltersContext.Provider>;
 }

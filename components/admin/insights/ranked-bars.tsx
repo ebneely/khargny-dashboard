@@ -10,7 +10,7 @@ import { translateDashboardCopy } from '@/lib/dashboard-copy';
 export type RankedRow = {
   key: string;
   label: string;
-  value: number;
+  value?: number;
   /** Secondary context shown under the label, e.g. "12 places". */
   meta?: string;
 };
@@ -45,7 +45,7 @@ export function RankedBars({
 }) {
   const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const measureLabel = translateDashboardCopy(valueLabel.charAt(0).toUpperCase() + valueLabel.slice(1), lang);
-  const max = maxOverride ?? Math.max(1, ...rows.map((r) => r.value));
+  const max = maxOverride ?? Math.max(1, ...rows.map((r) => r.value ?? 0));
 
   if (rows.length === 0) {
     return (
@@ -56,7 +56,7 @@ export function RankedBars({
   return (
     <RecordList scope={scope} records={rows} searchText={(row) => row.label} render={(visible) => <ul className="flex flex-col gap-3">
       {visible.map((row, i) => {
-        const pct = Math.round((row.value / max) * 100);
+        const pct = row.value === undefined ? 0 : Math.round((row.value / max) * 100);
         // Sequential steps: the leader is darkest, the tail lightest, so rank is legible
         // without reading a single number. Four steps, not a per-row gradient — a
         // continuous ramp implies precision the ranking does not carry.
@@ -72,12 +72,12 @@ export function RankedBars({
           <li key={row.key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1">
             <RecordCell icon="location" name={row.label} thumbnail={null} />
             <span className="text-sm font-semibold tabular-nums text-foreground">
-              {row.value.toLocaleString('en-US')}
+              {row.value === undefined ? '—' : row.value.toLocaleString(lang)}
             </span>
             <div
               className="col-span-2 h-2 overflow-hidden rounded-full bg-muted"
               role="img"
-              aria-label={`${row.label}: ${row.value.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${measureLabel}`}
+              aria-label={`${row.label}: ${row.value === undefined ? '—' : row.value.toLocaleString(lang)} ${measureLabel}`}
             >
               <div
                 className="h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out"

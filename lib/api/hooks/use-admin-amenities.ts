@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '../admin-client';
 import type { AdminAmenity } from '../types';
 
-export function useAdminAmenities() {
+export function useAdminAmenities(enabled = true) {
   const [data, setData] = useState<AdminAmenity[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -25,7 +25,7 @@ export function useAdminAmenities() {
     }
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => { let subscribed = true; queueMicrotask(() => { if (subscribed && enabled) void fetch(); }); return () => { subscribed = false; }; }, [fetch, enabled]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }
@@ -52,7 +52,7 @@ export function useAdminAmenity(id: string) {
     }
   }, [id]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => { let subscribed = true; queueMicrotask(() => { if (subscribed) void fetch(); }); return () => { subscribed = false; }; }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }

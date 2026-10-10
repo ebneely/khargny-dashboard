@@ -24,14 +24,13 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+    <div data-slot="dashboard-error" role="alert" className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <AlertTriangle className="mb-4 h-10 w-10 text-muted-foreground" />
       <h1 className="font-display text-xl font-semibold text-foreground">
-        Something went wrong on this page
+        <DashboardText>Something went wrong on this page</DashboardText>
       </h1>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        The page hit an unexpected error. You can try again, or head back to the
-        dashboard.
+        <DashboardText>The page hit an unexpected error. You can try again, or head back to the dashboard.</DashboardText>
       </p>
       <div className="mt-6 flex items-center gap-3">
         <Button onClick={reset} className="gap-2">
@@ -39,7 +38,7 @@ export default function DashboardError({
           <DashboardText>Try again</DashboardText>
         </Button>
         <Button variant="outline" onClick={() => (window.location.href = '/dashboard')}>
-          Back to dashboard
+          <DashboardText>Back to dashboard</DashboardText>
         </Button>
       </div>
       {error?.digest && (

@@ -7,7 +7,14 @@ export function optionalText(value: unknown): string | null {
 
 export type Money = string | null;
 export type PaymentMethod = 'cash' | 'instapay' | 'bank_transfer' | 'wallet' | 'other';
+export type RenewalFilter = 'ending_soon' | 'awaiting_review' | 'in_grace' | 'ended';
+export interface TimeLeft {
+  state: 'active' | RenewalFilter;
+  days: number;
+  graceUntil?: string;
+}
 export interface SubscriberPlace {
+  cover?: string | null;
   coverImage?: string | null;
   coverImageDimensions?: { width: number; height: number } | null;
   subscriber?: { id: string; name: string; isBrand?: boolean } | null;
@@ -38,6 +45,8 @@ export interface Subscription {
   supersededAt?: string | null;
   startDate: string;
   endDate: string;
+  graceUntil?: string | null;
+  timeLeft?: TimeLeft;
   status: 'scheduled' | 'active' | 'expired' | 'cancelled';
   notes: string | null;
   cancelledAt: string | null;
@@ -83,6 +92,10 @@ export interface SubscriberDetail extends Subscriber {
   visits: Visit[];
 }
 export interface SubscriberSummary {
+  endingSoon?: number;
+  awaitingReview?: number;
+  inGrace?: number;
+  ended?: number;
   brands?: number;
   revenueThisMonthBrands?: Money;
   active: number;

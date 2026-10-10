@@ -1,6 +1,7 @@
 import type { PlacePublicState, PlacePromotion } from '@/lib/place-public-state';
 
 export interface AdminPlace {
+  cover?: string | null;
   coverImage?: string | null;
   coverImageDimensions?: { width: number; height: number } | null;
   subscriber?: { id: string; name: string } | null;
@@ -30,6 +31,7 @@ export interface AdminPlace {
   featured: boolean;
   rating: number;
   viewCount: number;
+  likeCount?: number;
   /** Lifetime saves. Monotonic — un-saving never decrements it. */
   saveCount?: number;
   /** Lifetime Directions/Go taps from web + app. Monotonic. */
@@ -61,6 +63,8 @@ export interface AdminPlaceList {
 }
 
 export interface AdminPlaceFilters {
+  publicState?: 'live' | 'not_shown' | 'inactive' | 'draft';
+  region?: string;
   subscriberId?: string;
   search?: string;
   cityId?: string;

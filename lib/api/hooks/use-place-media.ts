@@ -67,7 +67,7 @@ export interface UsePlaceMediaResult {
 
 let uploadSeq = 0;
 
-export function usePlaceMedia(placeId: string, visitId?: string): UsePlaceMediaResult {
+export function usePlaceMedia(placeId: string, visitId?: string, enabled = true): UsePlaceMediaResult {
   const [images, setImages] = useState<PlaceImage[]>([]);
   const [videos, setVideos] = useState<PlaceVideo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,9 +101,10 @@ export function usePlaceMedia(placeId: string, visitId?: string): UsePlaceMediaR
   }, [placeId]);
 
   useEffect(() => {
+    if (!enabled) return;
     const timer = window.setTimeout(() => { void refetch(); }, 0);
     return () => window.clearTimeout(timer);
-  }, [refetch]);
+  }, [refetch, enabled]);
 
   // Upload a batch (image or video) with per-file animated progress and a
   // concurrency cap of MAX_CONCURRENT (2 at a time; the rest wait). Each file

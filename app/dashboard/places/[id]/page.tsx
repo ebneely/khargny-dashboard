@@ -1,12 +1,14 @@
 'use client';
 
 import { PlaceStatusControl } from '@/components/admin/place-status-control';
-import { PlaceAdsTab } from '@/components/admin/place-ads-tab';
+import { PlacePromotionReport } from '@/components/admin/place-promotion-report';
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { PageActions } from '@/components/admin/page-actions';
 
+import { PlaceEngagement } from '@/components/admin/place-engagement';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import { useUrlTab } from '@/lib/use-url-tab';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -27,6 +29,8 @@ import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { PRICE_BANDS } from '@/lib/price-bands';
 import { optionalText } from '@/lib/api/subscribers';
+import { subscriberPhonePayload } from '@/lib/subscriber-phone';
+import { PhoneField } from '@/components/admin/phone-field';
 import { useAdminPlace } from '@/lib/api/hooks/use-admin-places';
 import { useAdminAmenities } from '@/lib/api/hooks/use-admin-amenities';
 import { usePlaceAmenities } from '@/lib/api/hooks/use-place-amenities';
@@ -42,23 +46,33 @@ import { usePlaceMedia } from '@/lib/api/hooks/use-place-media';
 import type { AdminCity, AdminCategory, AdminOptions } from '@/lib/api/types';
 
 export default function EditPlacePage() {
+  return <Suspense fallback={null}><EditPlaceContent /></Suspense>;
+}
+
+function EditPlaceContent() {
+  const activeTab = useUrlTab(['details', 'amenities', 'tags', 'hours', 'photos', 'menu', 'ads', 'badges']).value;
   const controlCopy = useDashboardCopy();
   const readOnly = useDashboardReadOnly();
   const router = useRouter();
   const { pick, lang } = useDashboardLang();
   const params = useParams();
   const id = params.id as string;
+  const [openedTabs, setOpenedTabs] = useState<{ placeId: string; tabs: string[] }>({ placeId: id, tabs: [] });
+  if (openedTabs.placeId !== id) setOpenedTabs({ placeId: id, tabs: [activeTab] });
+  else if (!openedTabs.tabs.includes(activeTab)) setOpenedTabs({ placeId: id, tabs: [...openedTabs.tabs, activeTab] });
+  const opened = (tab: string) => activeTab === tab || openedTabs.placeId === id && openedTabs.tabs.includes(tab);
+  const detailsOpened = opened('details');
 
   const { data: place, isLoading: loadingPlace, isError: loadError } = useAdminPlace(id);
-  const { data: allAmenities, isLoading: loadingAmenities, isError: loadAmenitiesError } = useAdminAmenities();
+  const { data: allAmenities, isLoading: loadingAmenities, isError: loadAmenitiesError } = useAdminAmenities(opened('amenities'));
   const amenities = usePlaceAmenities(id, []);
-  const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags();
+  const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags(opened('tags'));
   const tags = usePlaceTags(id, []);
   const markAmenitiesSaved = amenities.markSaved;
   const markTagsSaved = tags.markSaved;
-  const hours = usePlaceHours(id);
+  const hours = usePlaceHours(id, opened('hours'));
   const [hoursError, setHoursError] = useState('');
-  const media = usePlaceMedia(id);
+  const media = usePlaceMedia(id, undefined, opened('photos'));
   const [mediaError, setMediaError] = useState('');
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -89,8 +103,10 @@ export default function EditPlacePage() {
   const [priceRange, setPriceRange] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('draft');
+  const [appliedStatus, setAppliedStatus] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!detailsOpened) return;
     Promise.all([
       adminApi.get<AdminOptions<AdminCity>>('/v1/admin/cities', { limit: 100 }),
       adminApi.get<AdminOptions<AdminCategory>>('/v1/admin/categories'),
@@ -100,7 +116,7 @@ export default function EditPlacePage() {
       setCities(Array.isArray(c) ? c : c.data ?? c.items ?? []);
       setCategories(Array.isArray(cats) ? cats : cats.data ?? cats.items ?? []);
     }).catch(() => {});
-  }, []);
+  }, [detailsOpened]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -123,6 +139,7 @@ export default function EditPlacePage() {
         setPriceRange(place.priceRange ? String(place.priceRange) : '');
         setFeatured(place.featured ?? false);
         setStatus(place.status ?? 'draft');
+        setAppliedStatus(place.status ?? 'draft');
 
         // Seed the amenity/tag pickers with what's ALREADY assigned. Without this
         // they started empty on every load, so a saved selection looked like it
@@ -136,7 +153,7 @@ export default function EditPlacePage() {
     return () => window.clearTimeout(timer);
   }, [place, markAmenitiesSaved, markTagsSaved]);
 
-  const formChanges = useFormChanges({ name, nameEn, slug, cityId, categoryId, description, descriptionEn, address, region, phone, website, mapsUrl, instagram, facebook, tiktok, priceRange, featured, status }, { name: place ? place.name : '', nameEn: place ? place.nameEn || '' : '', slug: place ? place.slug : '', cityId: place ? place.cityId ?? '' : '', categoryId: place ? place.categoryId ?? '' : '', description: place ? place.description || '' : '', descriptionEn: place ? place.descriptionEn || '' : '', address: place ? place.address || '' : '', region: place ? place.region || '' : '', phone: place ? place.phone || '' : '', website: place ? place.website || '' : '', mapsUrl: place ? place.mapsUrl || '' : '', instagram: place ? place.instagram || '' : '', facebook: place ? place.facebook || '' : '', tiktok: place ? place.tiktok || '' : '', priceRange: place ? place.priceRange ? String(place.priceRange) : '' : '', featured: place ? place.featured ?? false : false, status: place ? place.status ?? 'draft' : 'draft' });
+  const formChanges = useFormChanges({ name, nameEn, slug, cityId, categoryId, description, descriptionEn, address, region, phone, website, mapsUrl, instagram, facebook, tiktok, priceRange, featured, status }, { name: place ? place.name : '', nameEn: place ? place.nameEn || '' : '', slug: place ? place.slug : '', cityId: place ? place.cityId ?? '' : '', categoryId: place ? place.categoryId ?? '' : '', description: place ? place.description || '' : '', descriptionEn: place ? place.descriptionEn || '' : '', address: place ? place.address || '' : '', region: place ? place.region || '' : '', phone: place ? place.phone || '' : '', website: place ? place.website || '' : '', mapsUrl: place ? place.mapsUrl || '' : '', instagram: place ? place.instagram || '' : '', facebook: place ? place.facebook || '' : '', tiktok: place ? place.tiktok || '' : '', priceRange: place ? place.priceRange ? String(place.priceRange) : '' : '', featured: place ? place.featured ?? false : false, status: appliedStatus ?? (place ? place.status ?? 'draft' : 'draft') });
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setError('');
@@ -147,7 +164,7 @@ export default function EditPlacePage() {
         name, nameEn: optionalText(nameEn), slug,
         cityId, categoryId,
         description: optionalText(description), descriptionEn: optionalText(descriptionEn),
-        address: optionalText(address), region: optionalText(region), phone: optionalText(phone),
+        address: optionalText(address), region: optionalText(region), phone: phone === (place?.phone ?? '') ? optionalText(phone) : phone.trim() ? subscriberPhonePayload(phone) : null,
         website: optionalText(website), mapsUrl: optionalText(mapsUrl), instagram: optionalText(instagram),
         facebook: optionalText(facebook), tiktok: optionalText(tiktok),
         priceRange: priceRange ? parseInt(priceRange) : undefined,
@@ -208,10 +225,11 @@ export default function EditPlacePage() {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div className="flex min-w-0 flex-wrap items-start gap-4"><h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1><PlaceStatusControl place={media.loading || media.isError ? place : { ...place, hasMedia: media.images.length + media.videos.length > 0 }} value={status} onChange={setStatus} disabled={saving || isSoftDeleted} /></div>
+        <div className="flex min-w-0 flex-wrap items-start gap-4"><h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1><PlaceStatusControl place={place} value={status} onChange={setStatus} onApplied={(updated) => setAppliedStatus(updated.status)} disabled={saving || isSoftDeleted} /></div>
         <PageActions form actions={[{ label: "Cancel", href: "/dashboard/places", readOnly: true }]} />
       </div>
 
+      <PlaceEngagement place={place} />
       <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu", "ads", "badges"]}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
@@ -311,7 +329,7 @@ export default function EditPlacePage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="phone"><DashboardText>Phone</DashboardText></Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <PhoneField id="phone" value={phone} onChange={setPhone} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="website"><DashboardText>Website</DashboardText></Label>
@@ -912,7 +930,7 @@ export default function EditPlacePage() {
       </Card>
         </TabsContent>
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
-        <UrlTabsContent value="ads" lazy><PlaceAdsTab placeId={id} canWrite={!readOnly && !isSoftDeleted} promotions={place.promotions} /></UrlTabsContent>
+        <UrlTabsContent value="ads" lazy><PlacePromotionReport placeId={id} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="badges" lazy><PlaceBadgesTab placeId={id} /></UrlTabsContent>
       </UrlTabs>
 

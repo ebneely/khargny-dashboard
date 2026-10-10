@@ -21,10 +21,12 @@ export interface ChangePlanResult {
   current: Subscription;
   difference: { amount: string; currency: 'EGP'; daysLeft: number; credit: boolean };
 }
+export type ChangePlanPreview = Omit<ChangePlanResult, 'current'> & { dryRun: true; current: Omit<Subscription, 'id'> & { id: null } };
 export const plansApi = {
   catalogue: () => adminApi.get<PlanCatalogueRow[]>('/v1/admin/plans'),
   update: (plan: PlanKey, patch: PlanPatch) => adminApi.patch<PlanCatalogueRow>(`/v1/admin/plans/${plan}`, patch),
   publicCatalogue: () => adminApi.get<{ plans: (Omit<PlanCatalogueRow, 'prices' | 'active' | 'updatedAt'> & { prices: Partial<Record<PlanMonths, string>> })[]; renewalPhone: string | null; renewalWhatsapp: string | null }>('/v1/plans'),
   promotions: () => adminApi.get<{ planPromotionsEnabled?: boolean }>('/v1/admin/promotions'),
   change: (id: string, body: { plan: PlanKey; effective: 'now'; payment?: { amount: string; method: string; paidAt: string } }) => adminApi.post<ChangePlanResult>(`/v1/admin/subscriptions/${id}/change-plan`, body),
+  previewChange: (id: string, body: { plan: PlanKey; effective: 'now' }) => adminApi.post<ChangePlanPreview>(`/v1/admin/subscriptions/${id}/change-plan`, { ...body, dryRun: true }),
 };

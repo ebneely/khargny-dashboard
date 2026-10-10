@@ -3,9 +3,12 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { CalendarDays, Search, Tag, Route, Receipt, Layers, SlidersHorizontal, KeyRound, MapPin, Shapes, Sparkles, LayoutGrid } from 'lucide-react';
+import { BadgeIcon } from './badge-icon';
+import type { BadgeIconKey } from '@/lib/api/badges';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 
 const recordIcons = {
+  badge: { icon: Sparkles, en: 'Badge', ar: 'شارة' },
   calendar: { icon: CalendarDays, en: 'Day or period', ar: 'يوم أو فترة' },
   search: { icon: Search, en: 'Search term', ar: 'كلمة بحث' },
   tag: { icon: Tag, en: 'Keyword', ar: 'كلمة مفتاحية' },
@@ -22,12 +25,12 @@ const recordIcons = {
 
 export type RecordIcon = keyof typeof recordIcons;
 
-export function RecordIconTile({ kind }: { kind: RecordIcon }) {
+export function RecordIconTile({ kind, badgeIcon }: { kind: RecordIcon; badgeIcon?: BadgeIconKey }) {
   const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const record = recordIcons[kind];
   const Icon = record.icon;
   return <span data-slot="record-icon" data-kind={kind} className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground" role="img" aria-label={record[lang]}>
-    <Icon className="size-5" aria-hidden="true" />
+    {kind === 'badge' && badgeIcon ? <BadgeIcon icon={badgeIcon} /> : <Icon className="size-5" aria-hidden="true" />}
   </span>;
 }
 
@@ -38,12 +41,13 @@ export function RecordThumbnail({ src, size = 40 }: { src?: string | null; size?
     onError={() => setFailed(src ?? null)} />;
 }
 
-export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, chips, context }: {
+export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badgeIcon, chips, context }: {
   nameAr?: string | null;
   nameEn?: string | null;
   name?: string;
   thumbnail?: string | null;
   icon?: RecordIcon;
+  badgeIcon?: BadgeIconKey;
   chips?: React.ReactNode;
   context?: React.ReactNode;
 }) {
@@ -55,7 +59,7 @@ export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, chips
   const secondary = other && other.toLocaleLowerCase() !== primary.toLocaleLowerCase() ? other : undefined;
   const alignment = { textAlign: lang === 'ar' ? 'right' as const : 'left' as const };
   return <div data-slot="record-cell" dir={lang === 'ar' ? 'rtl' : 'ltr'} style={alignment} className="flex min-w-0 max-w-64 items-center gap-2 whitespace-normal leading-4">
-    {icon ? <RecordIconTile kind={icon} /> : <RecordThumbnail src={thumbnail} />}
+    {icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
     <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-2"><span lang={primaryLang} dir="auto" style={alignment} className="min-w-0 max-w-full line-clamp-2 break-words font-medium" title={primary}>{primary}</span>{chips}</div>
       {secondary && <p lang={secondaryLang} dir="auto" style={alignment} className="line-clamp-2 break-words text-sm leading-4 text-muted-foreground" title={secondary}>{secondary}</p>}

@@ -1,5 +1,7 @@
 'use client';
 
+import { readCampaignList } from '@/lib/ads-campaign-list';
+
 import { RecordCell } from './record-cell';
 import { RecordList } from './record-list';
 import { placeCover } from '@/lib/place-list';
@@ -18,6 +20,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SegmentedControl } from './segmented-control';
 import { useSubscriberText } from './subscriber-ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { surfaceLabels, adsError } from '@/lib/ads-round7b';
 import { adminApi } from '@/lib/api/admin-client';
 import {
   formatCount,
@@ -50,7 +53,7 @@ export function AdsCampaignsPage({ initialFilters, canWrite }: { initialFilters:
 
 function CampaignsContent({ initialFilters, canWrite }: { initialFilters: CampaignListInitialFilters; canWrite: boolean }) {
   const controlCopy = useDashboardCopy();
-  const { text, pick } = useSubscriberText();
+  const { pick } = useSubscriberText();
   const { value: tab, onValueChange } = useUrlTab(TABS.map((item) => item.value), initialFilters.campaignIds?.length ? 'all' : 'live');
   const [campaigns, setCampaigns] = React.useState<AdCampaign[]>([]);
   const requestRef = React.useRef(0);
@@ -63,6 +66,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
     setLoading(true);
     setError(null);
     const params = {
+      kind: 'campaign',
       placement: initialFilters.placement,
       cityId: initialFilters.cityId,
       placeId: initialFilters.placeId,
@@ -71,15 +75,15 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
       let rows: AdCampaign[];
       if (tab === 'ended') {
         const [ended, expired] = await Promise.all([
-          adminApi.get<AdCampaign[]>('/v1/admin/ads/campaigns', { ...params, state: 'ended' }),
-          adminApi.get<AdCampaign[]>('/v1/admin/ads/campaigns', { ...params, state: 'expired' }),
+          readCampaignList((skip, limit) => adminApi.get('/v1/admin/ads/campaigns', { ...params, state: 'ended', skip, limit })),
+          readCampaignList((skip, limit) => adminApi.get('/v1/admin/ads/campaigns', { ...params, state: 'expired', skip, limit })),
         ]);
         rows = [...ended, ...expired].sort((a, b) => b.startDate.localeCompare(a.startDate));
       } else {
-        rows = await adminApi.get<AdCampaign[]>('/v1/admin/ads/campaigns', {
+        rows = await readCampaignList((skip, limit) => adminApi.get('/v1/admin/ads/campaigns', {
           ...params,
-          state: tab === 'all' ? undefined : tab,
-        });
+          state: tab === 'all' ? undefined : tab, skip, limit,
+        }));
       }
       if (initialFilters.campaignIds?.length) {
         const allowed = new Set(initialFilters.campaignIds);
@@ -88,12 +92,12 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
       if (requestId === requestRef.current) setCampaigns(rows);
     } catch (caught) {
       if (requestId === requestRef.current) {
-        setError(caught instanceof Error ? caught.message : 'Could not load campaigns.');
+        setError(controlCopy(adsError(caught)));
       }
     } finally {
       if (requestId === requestRef.current) setLoading(false);
     }
-  }, [initialFilters.campaignIds, initialFilters.cityId, initialFilters.placeId, initialFilters.placement, tab]);
+  }, [controlCopy, initialFilters.campaignIds, initialFilters.cityId, initialFilters.placeId, initialFilters.placement, tab]);
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -138,7 +142,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
               <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book space.</DashboardText></p>
             </div>
           ) : (
-            <RecordList scope="campaigns" records={campaigns} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.advertiserPhone ?? ''}`} filters={[{ key: 'placement', label: 'All surfaces', options: [{ value: 'featured', label: 'Home Featured rail' }, { value: 'top10', label: 'City Top 10' }], value: (campaign) => campaign.placement }]} render={(visible) => <Table layout="campaigns">
+            <RecordList scope="campaigns" records={campaigns} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.advertiserPhone ?? ''}`} filters={[{ key: 'placement', label: 'All surfaces', options: Object.entries(surfaceLabels).map(([value, label]) => ({ value, label })), value: (campaign) => campaign.placement }]} render={(visible) => <Table layout="campaigns">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Place</DashboardText></TableHead>
@@ -165,12 +169,12 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                       <p className="line-clamp-2 leading-4" title={campaign.advertiserName}>{campaign.advertiserName}</p>
                       {campaign.advertiserPhone && <p className="truncate text-xs text-muted-foreground" dir="ltr" title={campaign.advertiserPhone}>{campaign.advertiserPhone}</p>}
                     </TableCell>
-                    <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${campaign.placement === 'featured' ? text('Featured', 'مميز') : text('Top 10', 'أفضل 10')} · ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : text('All Egypt', 'كل مصر')}`}>{campaign.placement === 'featured' ? text('Featured', 'مميز') : text('Top 10', 'أفضل 10')} · {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : text('All Egypt', 'كل مصر')}</p></TableCell>
+                    <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${controlCopy(surfaceLabels[campaign.placement])} · ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} ${campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}`}>{controlCopy(surfaceLabels[campaign.placement])} · {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} {campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</p></TableCell>
                     <TableCell className="text-muted-foreground"><DateRange start={campaign.startDate} end={campaign.endDate} /></TableCell>
                     <TableCell className="text-end tabular-nums">{formatMoney(campaign.amountPaid, campaign.currency)}</TableCell>
-                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals.impressions)}</TableCell>
-                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals.taps)}</TableCell>
-                    <TableCell className="text-end tabular-nums">{formatCtr(campaign.totals.ctr)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals?.impressions)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCount(campaign.totals?.taps)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCtr(campaign.totals?.ctr)}</TableCell>
                     <TableCell column="status"><AdStateBadge state={campaign.state} /></TableCell>
                     <TableCell column="actions" className="text-end">
                       <RowActions recordName={campaign.advertiserName} actions={[

@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { CheckCircle2, MapPin, Trophy } from 'lucide-react';
 import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
+import { RecordList } from './record-list';
+import { RecordCell } from './record-cell';
+import { placeCover } from '@/lib/place-list';
 import { StatusBadge } from './subscriber-ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -99,18 +102,18 @@ export function AdsTop10Page({ initialCity = "all" }: { initialCity?: string }) 
               <p className="text-sm text-muted-foreground"><DashboardText>Ranked by rating, saves, directions and views. Sponsored rows replace the rank number.</DashboardText></p>
             </CardHeader>
             <CardContent className="space-y-2">
-              {preview.items.length > 0 ? preview.items.map((item) => (
+              {preview.items.length > 0 ? <RecordList scope="top10-preview" records={preview.items} searchText={item => `${item.place.name} ${item.place.nameEn ?? ''}`} render={visible => <div className="space-y-2">{visible.map((item) => (
                 <article key={`${item.position}-${item.campaignId ?? item.place.id}`} className={item.sponsored ? 'rounded-lg border border-warning bg-warning-bg p-4' : 'rounded-lg border p-4'}>
                   <div className="flex items-start gap-3">
                     <div className={item.sponsored
                       ? 'flex h-8 min-w-20 shrink-0 items-center justify-center rounded-full bg-warning px-3 text-xs font-semibold text-white'
                       : 'flex size-10 shrink-0 items-center justify-center rounded-full bg-muted font-display text-lg font-semibold tabular-nums'}>
-                      {item.sponsored ? 'Sponsored' : item.rank}
+                      {item.sponsored ? <DashboardText>Sponsored</DashboardText> : item.rank}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
-                          <h2 className="font-medium">{displayName(item.place.name, item.place.nameEn)}</h2>
+                          <RecordCell nameAr={item.place.name} nameEn={item.place.nameEn} thumbnail={placeCover(item.place)} />
                           {item.place.region && <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{item.place.region}</p>}
                         </div>
                         {item.sponsored ? <Badge className="bg-warning text-white"><DashboardText>Sponsored slot</DashboardText> {item.position}</Badge> : <span className="text-sm font-semibold tabular-nums"><DashboardText>Score</DashboardText> {item.score?.toFixed(1) ?? '—'}</span>}
@@ -123,7 +126,7 @@ export function AdsTop10Page({ initialCity = "all" }: { initialCity?: string }) 
                     </div>
                   </div>
                 </article>
-              )) : <p className="py-10 text-center text-sm text-muted-foreground"><DashboardText>No ranking candidates for this scope.</DashboardText></p>}
+              ))}</div>} /> : <p className="py-10 text-center text-sm text-muted-foreground"><DashboardText>No ranking candidates for this scope.</DashboardText></p>}
             </CardContent>
           </Card>
 
@@ -133,18 +136,17 @@ export function AdsTop10Page({ initialCity = "all" }: { initialCity?: string }) 
               <p className="text-sm text-muted-foreground"><DashboardText>All live Top 10 campaigns for this scope. “Shown now” reflects the current 10-minute bucket.</DashboardText></p>
             </CardHeader>
             <CardContent className="space-y-2">
-              {preview.sponsoredQueue.length > 0 ? preview.sponsoredQueue.map((item) => (
+              {preview.sponsoredQueue.length > 0 ? <RecordList scope="top10-queue" records={preview.sponsoredQueue} searchText={item => `${item.placeName} ${item.advertiserName}`} render={visible => <div className="space-y-2">{visible.map((item) => (
                 <Link key={item.campaignId} href={`/dashboard/ads/${item.campaignId}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted">
                   <span className={item.shownNow ? 'mt-0.5 text-success' : 'mt-0.5 text-muted-foreground'}>
                     {item.shownNow ? <CheckCircle2 className="size-4" /> : <span className="block size-4 rounded-full border" />}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{item.placeName}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{item.advertiserName}</span>
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <RecordCell name={item.placeName} context={item.advertiserName} />
+                  </div>
                   <StatusBadge status={item.shownNow ? 'live' : 'scheduled'}>{item.shownNow ? 'Shown now' : 'Queued'}</StatusBadge>
                 </Link>
-              )) : <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground"><DashboardText>No live sponsored campaigns in this scope.</DashboardText></p>}
+              ))}</div>} /> : <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground"><DashboardText>No live sponsored campaigns in this scope.</DashboardText></p>}
             </CardContent>
           </Card>
         </div>

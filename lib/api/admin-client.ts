@@ -5,14 +5,16 @@ export class AdminApiError extends Error {
   readonly code: string;
   readonly fields: Record<string, string>;
   readonly usedOn: string | null;
+  readonly requestId: string | null;
 
-  constructor(status: number, body: { error?: { code?: string; message?: string; fields?: Record<string, string>; usedOn?: string } } | null) {
+  constructor(status: number, body: { error?: { code?: string; message?: string; fields?: Record<string, string>; usedOn?: string; requestId?: string } } | null) {
     super(body?.error?.message || `Request failed with status ${status}`);
     this.name = 'AdminApiError';
     this.status = status;
     this.code = body?.error?.code || 'UNKNOWN_ERROR';
     this.fields = body?.error?.fields ?? {};
     this.usedOn = body?.error?.usedOn ?? null;
+    this.requestId = body?.error?.requestId ?? null;
   }
 }
 
@@ -221,6 +223,22 @@ async function upload<T>(path: string, form: FormData, method: 'POST' | 'PUT' = 
   return ((payload as { data?: T }).data ?? payload) as T;
 }
 
+async function blob(path: string, signal: AbortSignal): Promise<Blob> {
+  const send = () => {
+    const token = getToken();
+    return fetch(`${API_BASE_URL}${path}`, { method: 'GET', credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {}, cache: 'no-store', signal });
+  };
+  let response = await send();
+  if (response.status === 401 && await tryRefresh()) response = await send();
+  if (response.status === 401) handleSessionExpired();
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new AdminApiError(response.status, payload);
+  }
+  if (response.headers.get('content-type')?.split(';')[0] !== 'image/webp') throw new AdminApiError(502, { error: { code: 'INVALID_PROOF_RESPONSE' } });
+  return response.blob();
+}
+
 // Multipart upload with progress. fetch() can't report upload progress, so this
 // uses XMLHttpRequest. Reports 0→100 via onProgress, and on a 401 refreshes the
 // token once (single-flight, shared with request()) and retries.
@@ -283,6 +301,7 @@ export const adminApi = {
   post: <T>(path: string, body?: unknown, options?: { headers?: Record<string, string> }) =>
     request<T>('POST', path, { body, ...options }),
   upload,
+  blob,
   uploadWithProgress,
   put: <T>(path: string, body?: unknown) =>
     request<T>('PUT', path, { body }),

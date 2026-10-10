@@ -1,4 +1,9 @@
 [data-list-table] { isolation: isolate; }
+[data-slot="record-list"] :is(li, article, section, div):has(> [data-slot="row-actions"]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+[data-slot="record-list"] :is(li, article, section, div):has(> [data-slot="row-actions"]) > * { grid-column: 1 / -1; min-width: 0; }
+[data-slot="record-list"] :is(li, article, section, div):has(> [data-slot="row-actions"]) > :first-child { grid-column: 1; grid-row: 1; }
+[data-slot="record-list"] :is(li, article, section, div):has(> [data-slot="row-actions"]) > [data-slot="row-actions"] { grid-column: 2; grid-row: 1; align-self: start; }
+[data-list-table] [data-slot="table-cell"][data-column="actions"] { vertical-align: top; padding-top: 12px; }
 [data-list-table] [data-slot="table-header"] { position: relative; top: auto; transform: translateY(var(--table-header-shift, 0px)); z-index: 30; }
 [data-list-table] [data-slot="table"] { table-layout: fixed; }
 [data-list-table] [data-slot="table-cell"], [data-list-table] [data-slot="table-head"] { padding-inline: 8px; }
@@ -48,4 +53,42 @@
   [data-list-table] [data-slot="table-cell"], [data-list-table] [data-slot="table-head"] { padding-inline: 4px; }
   [data-list-table] [data-slot="row-actions"] { gap: 0; }
   [data-list-table] [data-slot="status-chip"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+[data-list-table="places"] { container-type: inline-size; }
+[data-list-table="places"] [data-slot="table-head"] { vertical-align: middle; white-space: nowrap; }
+[data-list-table="places"] [data-place-field="city"] { width: 128px; }
+[data-list-table="places"] [data-place-field="owner"] { width: 88px; }
+[dir="rtl"] [data-list-table="places"] [data-place-field="owner"] { width: 144px; }
+[data-list-table="places"] [data-place-field="price"] { width: 76px; }
+[data-list-table="places"] [data-place-field="status"] { width: 80px; }
+[data-list-table="places"] [data-place-field="likes"] { width: 88px; }
+[data-list-table="places"] [data-place-field="saves"] { width: 64px; }
+[data-list-table="places"] [data-place-field="views"] { width: 96px; }
+[data-list-table="places"] [data-place-field="directions"] { width: 112px; }
+[data-list-table="places"] [data-place-field="photos"] { width: 72px; }
+[data-list-table="places"] [data-place-field="actions"] { width: 112px; min-width: 112px; }
+[data-list-table="places"] [data-slot="table-cell"]:not([data-place-field="actions"]) { overflow: hidden; }
+[data-list-table="places"] :is([data-place-field="likes"], [data-place-field="saves"], [data-place-field="views"], [data-place-field="directions"], [data-place-field="photos"], [data-place-field="price"]) { text-align: end; font-variant-numeric: tabular-nums; }
+[data-list-table="places"] [data-place-detail] { display: none; }
+@container (max-width: 1040px) {
+  [data-list-table="places"] [data-place-field="photos"] { display: none; }
+  [data-list-table="places"] [data-place-detail="photos"] { display: block; }
+}
+@container (max-width: 980px) {
+  [data-list-table="places"] [data-place-field="price"] { display: none; }
+  [data-list-table="places"] [data-place-detail="price"] { display: block; }
+}
+@container (max-width: 820px) {
+  [data-list-table="places"] [data-place-field="owner"] { display: none; }
+  [data-list-table="places"] [data-place-detail="owner"] { display: block; }
+}
+@container (max-width: 700px) {
+  [data-list-table="places"] [data-place-field="city"] { display: none; }
+  [data-list-table="places"] [data-place-detail="city"] { display: block; }
+}
+@container (max-width: 600px) {
+  [data-list-table="places"] tr > :not([data-place-field="identity"]):not([data-place-field="status"]):not([data-place-field="actions"]) { display: none; }
+  [data-list-table="places"] [data-place-field="status"] { width: 68px; }
+  [data-list-table="places"] [data-place-detail="metrics"] { display: block; }
 }

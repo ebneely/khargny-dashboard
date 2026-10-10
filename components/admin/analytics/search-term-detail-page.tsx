@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
+import { placeCover } from '@/lib/place-list';
 import { termRoute, reverseTerm, type TermDetail } from '@/lib/api/search-insights';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
@@ -61,7 +62,7 @@ export function SearchTermDetailPage({ term }: { term: string }) {
       const city = kind === 'cities' ? cities.find((city) => city.id === text('cityId')) : undefined;
       const nameAr = text('name') ?? city?.name;
       const nameEn = text('nameEn') ?? city?.nameEn;
-      return <li key={text('placeId') ?? text('cityId') ?? text('id') ?? index} className="space-y-2 py-3"><RecordCell icon={kind === "cities" ? "location" : undefined} nameAr={nameAr} nameEn={nameEn} name={!nameAr && !nameEn ? copy(kind === 'cities' && row.cityId === null ? 'Unspecified city' : 'Unknown record') : undefined} thumbnail={kind === 'cities' ? undefined : text('coverImage') ?? null} />{typeof row.searches === 'number' && <p className="text-sm tabular-nums">{number(row.searches)} {copy('Searches')}</p>}{typeof row.zeroResults === 'number' && <p className="text-sm tabular-nums">{number(row.zeroResults)} {copy('Nothing found')}</p>}{typeof row.clicks === 'number' && <p className="text-sm tabular-nums">{number(row.clicks)} {copy('Result taps')}</p>}</li>;
+      return <li key={text('placeId') ?? text('cityId') ?? text('id') ?? index} className="space-y-2 py-3"><RecordCell icon={kind === "cities" ? "location" : undefined} nameAr={nameAr} nameEn={nameEn} name={!nameAr && !nameEn ? copy(kind === 'cities' && row.cityId === null ? 'Unspecified city' : 'Unknown record') : undefined} thumbnail={kind === 'cities' ? undefined : placeCover({ cover: row.cover === null ? null : text('cover'), coverImage: text('coverImage') })} />{typeof row.searches === 'number' && <p className="text-sm tabular-nums">{number(row.searches)} {copy('Searches')}</p>}{typeof row.zeroResults === 'number' && <p className="text-sm tabular-nums">{number(row.zeroResults)} {copy('Nothing found')}</p>}{typeof row.clicks === 'number' && <p className="text-sm tabular-nums">{number(row.clicks)} {copy('Result taps')}</p>}</li>;
     })}</ul>} /></CardContent></Card>)}
   </div>;
 }

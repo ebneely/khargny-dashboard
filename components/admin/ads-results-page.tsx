@@ -1,60 +1,61 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { Printer } from 'lucide-react';
-import { AdsPageHeader } from './ads-page-header';
-import { RecordCell } from './record-cell';
-import { RecordList } from './record-list';
 import { placeCover } from '@/lib/place-list';
+import * as React from 'react';
+import { Download } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { AdsPageHeader } from './ads-page-header';
+import { AdsRange, Measures } from './ads-round-b-ui';
+import { AdsOpportunities } from './ads-opportunities';
+import { AdsShuffleTests } from './ads-shuffle-tests';
+import { RecordList, useListAddress } from './record-list';
+import { RecordCell } from './record-cell';
 import { SegmentedControl } from './segmented-control';
 import { useDashboardCopy } from './dashboard-text';
+import { LoadingState, RequestError } from './subscriber-ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useUrlTab } from '@/lib/use-url-tab';
-import { loadCampaignReports } from '@/lib/ads-data';
-import { reportTotals } from '@/lib/ads-round5';
+import { adsBApi, adsCompatibleRead, adsUsesLocalSearch, type AdsResults, type ResultGroup } from '@/lib/api/ads-round-b';
+import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
+import { sourceLabels, validAdsRange } from '@/lib/ads-round7b';
 import { cairoDate } from '@/lib/api/subscribers';
 import { shiftCalendarDays } from '@/lib/subscription-calendar';
-import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
-import { LoadingState, RequestError, useSubscriberText } from './subscriber-ui';
+import { useUrlTab } from '@/lib/use-url-tab';
+import { useDashboardLang } from '@/lib/dashboard-lang';
+import { matchesRecord } from '@/lib/record-list';
 
-export function AdsResultsPage() {
-  return <React.Suspense fallback={<LoadingState />}><ResultsContent /></React.Suspense>;
-}
-
-function ResultsContent() {
-  const copy = useDashboardCopy();
-  const { pick, lang } = useSubscriberText();
-  const period = useUrlTab(['7d', '30d', 'month'], '7d', 'period');
-  const group = useUrlTab(['campaign', 'surface', 'city'], 'campaign', 'by');
-  const resource = useSubscriberResource(loadCampaignReports);
-  const today = cairoDate();
-  const from = period.value === 'month' ? `${today.slice(0, 7)}-01` : shiftCalendarDays(today, period.value === '30d' ? -29 : -6);
-  const rows = (resource.data ?? []).map((report) => ({ report, ...reportTotals(report, from, today) }));
-  const impressions = rows.reduce((total, row) => total + row.impressions, 0);
-  const taps = rows.reduce((total, row) => total + row.taps, 0);
-  const number = (value: number) => new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en').format(value);
-  const rate = (shown: number, tapped: number) => shown ? new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en', { style: 'percent', maximumFractionDigits: 2 }).format(tapped / shown) : '—';
-  const grouped = new Map<string, { name: string; shown: number; taps: number; href?: string; cover?: string | null; nameAr?: string; nameEn?: string | null }>();
-  for (const row of rows) {
-    if (group.value === 'city' && !row.report.campaign.city) continue;
-    const campaign = row.report.campaign;
-    const key = group.value === 'campaign' ? campaign.id : group.value === 'surface' ? campaign.placement : campaign.cityId!;
-    const current = grouped.get(key) ?? { cover: group.value === 'campaign' ? placeCover(campaign.place) : null, nameAr: group.value === 'campaign' ? campaign.place.name : undefined, nameEn: group.value === 'campaign' ? campaign.place.nameEn : undefined, name: group.value === 'campaign' ? `${pick(campaign.place.name, campaign.place.nameEn)} · ${campaign.advertiserName}` : group.value === 'surface' ? copy(campaign.placement === 'featured' ? 'Home Featured rail' : 'City Top 10') : pick(campaign.city!.name, campaign.city!.nameEn), shown: 0, taps: 0, href: group.value === 'campaign' ? `/dashboard/ads/${campaign.id}/report` : undefined };
-    current.shown += row.impressions;
-    current.taps += row.taps;
-    grouped.set(key, current);
-  }
-  return <div className="space-y-6">
-    <AdsPageHeader title="Results" description="Shows and taps from campaign reports. City means the booked city, not the visitor’s city." actions={[{ label: 'Print / Save PDF', onClick: () => window.print(), readOnly: true, icon: <Printer className="size-4" aria-hidden="true" /> }]} />
-    <SegmentedControl label="Report period" value={period.value} onValueChange={period.onValueChange} options={[{ value: '7d', label: 'Last 7 days' }, { value: '30d', label: 'Last 30 days' }, { value: 'month', label: 'This month' }]} />
-    <p className="text-sm text-muted-foreground"><span dir="ltr">{from} – {today}</span> · {copy('Cairo · includes today')}</p>
-    {resource.loading ? <LoadingState /> : resource.error ? <RequestError message={copy('Could not load campaign reports.')} retry={() => { void resource.refetch(); }} /> : <>
-      <div className="grid gap-4 sm:grid-cols-3">{[{ label: 'Shown', value: number(impressions), unit: 'shows · selected period' }, { label: 'Taps', value: number(taps), unit: 'taps · selected period' }, { label: 'Tap rate', value: rate(impressions, taps), unit: 'taps per show · selected period' }].map((metric) => <Card key={metric.label}><CardContent><p className="text-sm text-muted-foreground">{copy(metric.label)}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{metric.value}</p><p className="text-sm text-muted-foreground">{copy(metric.unit)}</p></CardContent></Card>)}</div>
-      <Card><CardHeader><CardTitle>{copy('Campaign results')}</CardTitle><SegmentedControl label="Group results" value={group.value} onValueChange={group.onValueChange} options={[{ value: 'campaign', label: 'By campaign' }, { value: 'surface', label: 'By surface' }, { value: 'city', label: 'By booked city' }]} /></CardHeader><CardContent>
-        {!grouped.size ? <p className="py-6 text-sm text-muted-foreground">{copy('No campaigns with data for this view.')}</p> : <div className="overflow-x-auto"><RecordList scope="results" records={Array.from(grouped.entries())} searchText={([, row]) => `${row.name} ${row.nameAr ?? ''} ${row.nameEn ?? ''}`} filters={[{ key: 'activity', label: 'All delivery', options: [{ value: 'shown', label: 'With shows' }, { value: 'unseen', label: 'Without shows' }], value: ([, row]) => row.shown ? 'shown' : 'unseen' }]} render={(visible) => <Table layout="list"><TableHeader><TableRow><TableHead>{copy(group.value === 'campaign' ? 'Campaign' : group.value === 'surface' ? 'Where it appears' : 'City')}</TableHead><TableHead className="text-end">{copy('Shown')}</TableHead><TableHead className="text-end">{copy('Taps')}</TableHead><TableHead className="text-end">{copy('Tap rate')}</TableHead></TableRow></TableHeader><TableBody>{visible.map(([key, row]) => <TableRow key={key}><TableCell className="whitespace-normal">{row.href ? <Link href={row.href} className="font-medium underline underline-offset-4"><RecordCell icon={group.value === "campaign" ? undefined : group.value === "city" ? "location" : "section"} name={row.nameAr ? undefined : row.name} nameAr={row.nameAr} nameEn={row.nameEn} thumbnail={row.cover ?? null} context={row.nameAr ? row.name : undefined} /></Link> : <RecordCell icon={group.value === "campaign" ? undefined : group.value === "city" ? "location" : "section"} name={row.nameAr ? undefined : row.name} nameAr={row.nameAr} nameEn={row.nameEn} thumbnail={row.cover ?? null} context={row.nameAr ? row.name : undefined} />}<p className="mt-1 text-xs text-muted-foreground tabular-nums sm:hidden">{number(row.shown)} {copy('Shown')} · {number(row.taps)} {copy('Taps')} · {rate(row.shown, row.taps)} {copy('Tap rate')}</p></TableCell><TableCell className="text-end tabular-nums">{number(row.shown)}</TableCell><TableCell className="text-end tabular-nums">{number(row.taps)}</TableCell><TableCell className="text-end tabular-nums">{rate(row.shown, row.taps)}</TableCell></TableRow>)}</TableBody></Table>} /></div>}
-      </CardContent></Card>
-    </>}
+export function AdsResultsPage({ canWrite = false }: { canWrite?: boolean }) { return <React.Suspense fallback={<LoadingState />}><ResultsContent canWrite={canWrite} /></React.Suspense>; }
+function ResultsContent({ canWrite }: { canWrite: boolean }) {
+  const copy = useDashboardCopy(); const { pick } = useDashboardLang(); const params = useSearchParams(); const today = cairoDate();
+  const section = useUrlTab(['results', 'opportunities', 'shuffle'], 'results'); const group = useUrlTab(['surface', 'area', 'city', 'place', 'source'], 'surface', 'by');
+  const from = params.get('from') ?? shiftCalendarDays(today, -6); const to = params.get('to') ?? today; const valid = validAdsRange(from, to, 366);
+  const address = useListAddress('ad-results'); const page = Math.floor(address.skip / address.limit) + 1; const limit = address.limit;
+  const [exporting, setExporting] = React.useState(false); const exportLock = React.useRef(false); const [exportError, setExportError] = React.useState('');
+  const load = React.useCallback(() => valid && section.value === 'results' ? adsBApi.results(from, to, group.value as ResultGroup, page, limit, address.query || undefined) : Promise.resolve(null), [address.query, from, to, group.value, page, limit, valid, section.value]);
+  const resource = useSubscriberResource(load);
+  const loadSurfaces = React.useCallback(() => adsBApi.surfaces(today, today), [today]); const surfaces = useSubscriberResource(loadSurfaces);
+  const changeDate = (key: string, value: string) => { const next = new URLSearchParams(window.location.search); next.set(key, value); next.delete('ad-results-skip'); window.history.replaceState(null, '', `${window.location.pathname}?${next}`); };
+  const exportResults = async () => {
+    if (!valid || exportLock.current) return; exportLock.current = true; setExporting(true); setExportError('');
+    try {
+      const parts: string[] = []; let expected = 0; let count = 0;
+      for (let nextPage = 1; ; nextPage++) {
+        const result = await adsCompatibleRead<AdsResults>('/v1/admin/ads/results/export', { from, to, groupBy: group.value, page: nextPage, limit: 100 }, { q: address.query || undefined });
+        if (nextPage === 1) expected = result.meta.total;
+        if (!result.csv || result.meta.total !== expected || !result.data.length && count < expected) throw new Error('Incomplete export');
+        parts.push(nextPage === 1 ? result.csv : result.csv.slice(result.csv.indexOf('\n') + 1)); count += result.data.length;
+        if (count >= expected) break;
+      }
+      if (count < expected) throw new Error('Incomplete export');
+      const url = URL.createObjectURL(new Blob(['\uFEFF', parts.join('\n')], { type: 'text/csv;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ads-${group.value}-${from}-${to}.csv`; anchor.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch { setExportError(copy('Could not export the complete report. No partial file was downloaded.')); }
+    finally { exportLock.current = false; setExporting(false); }
+  };
+  const name = (key: string) => group.value === 'source' ? copy(sourceLabels[key as keyof typeof sourceLabels] ?? key) : group.value === 'surface' ? surfaces.data?.data.find(row => row.key === key)?.name ?? key : group.value === 'area' ? surfaces.data?.data.find(row => row.surface === 'area' && row.scope.key === key)?.name ?? key : key;
+  return <div className="min-w-0 space-y-6"><AdsPageHeader title="Results" description="Attributed delivery compared with the preceding range, plus selling opportunities and shuffle tests." actions={section.value === 'shuffle' ? [{ label: 'New shuffle test', href: '/dashboard/ads/shuffle/new', allowed: canWrite }] : [{ label: exporting ? 'Exporting…' : 'Export CSV', onClick: () => { void exportResults(); }, disabled: exporting || !valid, readOnly: true, icon: <Download /> }]} />
+    <SegmentedControl label="Results sections" value={section.value} onValueChange={section.onValueChange} options={[{ value: 'results', label: 'Results' }, { value: 'opportunities', label: 'Opportunities' }, { value: 'shuffle', label: 'Shuffle tests' }]} />
+    {exportError && <RequestError message={exportError} />}
+    {section.value === 'results' && <><Card><CardContent className="space-y-4"><AdsRange maximum={366} from={from} to={to} onFrom={date => changeDate('from', date)} onTo={date => changeDate('to', date)} /><SegmentedControl label="Group results" value={group.value} onValueChange={value => { address.change('skip', '0'); group.onValueChange(value); }} options={[{ value: 'surface', label: 'By surface' }, { value: 'area', label: 'By area' }, { value: 'city', label: 'By city' }, { value: 'place', label: 'By place' }, { value: 'source', label: 'By source' }]} /></CardContent></Card>{valid && <Card><CardHeader><CardTitle>{copy('Attributed promotion results')}</CardTitle></CardHeader><CardContent className="space-y-4">{resource.error ? <RequestError message={copy('Could not load promotion results.')} retry={() => { void resource.refetch(); }} /> : <><p className="text-sm text-muted-foreground">{copy('Current period')}: {from} — {to} · {copy('Previous period')}: {resource.data?.previous.from ?? '—'} — {resource.data?.previous.to ?? '—'}</p><RecordList scope="ad-results" address={address} records={(resource.data?.data ?? []).filter(row => !adsUsesLocalSearch(resource.data) || matchesRecord(`${row.name ?? name(row.key)} ${row.nameEn ?? ''} ${row.key}`, address.query))} total={resource.data?.meta.total ?? 0} busy={resource.loading} searchText={row => row.key} render={visible => <div>{visible.map(row => <div key={row.key} className="min-h-14 space-y-2 border-b py-3"><RecordCell icon={group.value === 'place' ? undefined : group.value === 'city' || group.value === 'area' ? 'location' : 'section'} nameAr={group.value === 'source' ? undefined : row.name ?? undefined} nameEn={group.value === 'source' ? undefined : row.nameEn} name={group.value === 'source' || !row.name ? name(row.key) : undefined} thumbnail={placeCover(row)} context={row.city ? pick(row.city.name, row.city.nameEn) : undefined} /><p className="text-sm font-medium">{copy('Current period')}</p><Measures value={row} /><p className="text-sm text-muted-foreground">{copy('Previous period')}</p><Measures value={row.previous} /></div>)}</div>} /><p className="text-sm text-muted-foreground">{copy('Only attributed directions and saves are counted. Legacy zero counters do not prove complete ingestion. Current Cairo day is partial.')} {adsUsesLocalSearch(resource.data) && copy('Search filters the current server page. Use the pager to inspect other pages.')}</p></>}</CardContent></Card>}</>}
+    {section.value === 'opportunities' && <Card><CardHeader><CardTitle>{copy('Opportunities')}</CardTitle></CardHeader><CardContent>{surfaces.loading ? <LoadingState /> : surfaces.error ? <RequestError message={copy('Could not load surfaces.')} retry={() => { void surfaces.refetch(); }} /> : <AdsOpportunities surfaces={surfaces.data?.data ?? []} canWrite={canWrite} />}</CardContent></Card>}
+    {section.value === 'shuffle' && <AdsShuffleTests canWrite={canWrite} />}
   </div>;
 }

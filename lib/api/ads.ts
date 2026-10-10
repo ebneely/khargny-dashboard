@@ -1,6 +1,6 @@
 import type { AdminCity } from '@/lib/api/types';
 
-export type AdPlacement = 'featured' | 'top10';
+export type AdPlacement = 'featured' | 'top10' | 'city' | 'area' | 'category' | 'search' | 'section';
 export type AdCampaignState = 'live' | 'scheduled' | 'paused' | 'ended' | 'expired';
 export type AdCampaignStatus = 'active' | 'paused' | 'ended';
 
@@ -33,6 +33,12 @@ export interface AdTotals {
 }
 
 export interface AdCampaign {
+  category?: { id: string; nameAr: string; nameEn: string | null } | null;
+  section?: { id: string; titleAr: string; titleEn: string | null } | null;
+  areaKey?: string | null;
+  categoryId?: string | null;
+  sectionId?: string | null;
+  kind?: 'campaign' | 'always_on';
   id: string;
   placeId: string;
   place: AdPlaceSummary;
@@ -154,12 +160,12 @@ export function displayName(
   return arabic?.trim() || english?.trim() || '—';
 }
 
-export function formatCount(value: number): string {
-  return new Intl.NumberFormat('en-US').format(value);
+export function formatCount(value: number | null | undefined): string {
+  return typeof value === 'number' ? new Intl.NumberFormat('en-US').format(value) : '—';
 }
 
-export function formatCtr(value: number | null): string {
-  return value === null ? '—' : `${(value * 100).toFixed(2)}%`;
+export function formatCtr(value: number | null | undefined): string {
+  return typeof value !== 'number' ? '—' : `${(value * 100).toFixed(2)}%`;
 }
 
 export function formatMoney(amount: number, currency: string): string {

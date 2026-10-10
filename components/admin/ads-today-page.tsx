@@ -1,66 +1,47 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { Eye, CalendarDays } from 'lucide-react';
 import { AdsPageHeader } from './ads-page-header';
+import { AdsOpportunities } from './ads-opportunities';
 import { RecordList } from './record-list';
 import { RecordCell } from './record-cell';
-import { placeCover } from '@/lib/place-list';
-import type { AdCampaign } from '@/lib/api/ads';
+import { RowActions } from './row-actions';
+import { DateCell } from './date-cell';
 import { useDashboardCopy } from './dashboard-text';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { LoadingState, RequestError } from './subscriber-ui';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { adminApi, toList } from '@/lib/api/admin-client';
+import { adsBApi, type AdsSummary, type PromotionCampaign } from '@/lib/api/ads-round-b';
+import type { PromotionReport } from '@/lib/api/promotion-report';
+import { campaignHref, hasFreeSpace } from '@/lib/ads-round7b';
 import { cairoDate } from '@/lib/api/subscribers';
-import { loadTodayPromotionData } from '@/lib/ads-data';
-import { reportTotals } from '@/lib/ads-round5';
 import { shiftCalendarDays } from '@/lib/subscription-calendar';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
-import { LoadingState, RequestError, useSubscriberText } from './subscriber-ui';
+import { useDashboardLang } from '@/lib/dashboard-lang';
+import { placeCover } from '@/lib/place-list';
 
 export function AdsTodayPage({ canWrite }: { canWrite: boolean }) {
-  const copy = useDashboardCopy();
-  const { lang } = useSubscriberText();
-  const today = cairoDate();
-  const load = React.useCallback(() => loadTodayPromotionData(today), [today]);
-  const resource = useSubscriberResource(load);
-  const reports = resource.data?.reports ?? [];
-  const campaigns = resource.data?.campaigns ?? [];
-  const failedCampaigns = resource.data?.failedCampaigns ?? [];
-  const live = campaigns.filter((campaign) => campaign.state === 'live');
-  const counts = reports.map((report) => reportTotals(report, today, today));
-  const number = (value: number) => new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en').format(value);
-  const ending = campaigns.filter((campaign) => !['ended', 'expired'].includes(campaign.state) && campaign.endDate >= today && campaign.endDate <= shiftCalendarDays(today, 7));
-  const lastTwo = [shiftCalendarDays(today, -2), shiftCalendarDays(today, -1)];
-  const unseen = reports.filter((report) => report.campaign.state === 'live' && report.campaign.startDate <= lastTwo[0] && lastTwo.every((date) => report.days.some((day) => day.date === date && day.impressions === 0)));
-  const free = resource.data?.capacity?.scopes.flatMap((scope) => scope.days.filter((day) => day.date === today && day.booked < day.capacity).map((day) => ({ scope, day }))) ?? [];
-  return <div className="space-y-6">
-    <AdsPageHeader title="Today" description="Promotion at a glance. Dates follow Cairo time." actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]} />
-    <p className="text-sm text-muted-foreground">{copy("Live paid campaigns only; editorial pins are listed in Always on.")}</p>
+  const copy = useDashboardCopy(); const { lang } = useDashboardLang(); const today = cairoDate();
+  const load = React.useCallback(async () => {
+    const [surfaces, campaigns, promotions, money, results] = await Promise.all([adsBApi.surfaces(today, shiftCalendarDays(today, 6)), adminApi.get('/v1/admin/ads/campaigns'), adminApi.get<PromotionReport>('/v1/admin/promotions', { from: today, to: today }), adminApi.get<AdsSummary>('/v1/admin/ads/summary', { from: `${today.slice(0, 7)}-01`, to: today }), adsBApi.results(today, today, 'source')]);
+    return { surfaces, campaigns: toList<PromotionCampaign>(campaigns).items, promotions, money, results };
+  }, [today]);
+  const resource = useSubscriberResource(load); const campaigns = resource.data?.campaigns ?? [];
+  const ending = campaigns.filter(row => row.kind !== 'always_on' && row.endDate && row.endDate >= today && row.endDate <= shiftCalendarDays(today, 6) && !['ended', 'expired'].includes(row.state));
+  const noExposure = campaigns.filter(row => Number(row.amountPaid) > 0 && row.state === 'live' && row.totals.impressions === 0);
+  const free = (resource.data?.surfaces.data ?? []).filter(hasFreeSpace); const results = resource.data?.results.data ?? [];
+  return <div className="min-w-0 space-y-6"><AdsPageHeader title="Today" description="Decisions first: expiring agreements, exposure to check and space worth selling." actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite }]} />
     {resource.loading ? <LoadingState /> : resource.error ? <RequestError message={copy('Could not load promotion data.')} retry={() => { void resource.refetch(); }} /> : <>
-      {failedCampaigns.length > 0 && <div role="status" className="space-y-3 rounded-md bg-muted p-4">
-        <p className="text-sm">{copy('Some campaign reports could not be read. Shown and taps include readable reports only.')}</p>
-        <CampaignAttention scope="failed-reports" title={copy('Unreadable reports')} campaigns={failedCampaigns} report />
-        <Button variant="outline" onClick={() => { void resource.refetch(); }}>{copy('Retry')}</Button>
-      </div>}
-      <div className="grid gap-4 sm:grid-cols-3">{[
-        { label: 'Promoted now', value: new Set(live.map((campaign) => campaign.placeId)).size, unit: 'places · now' },
-        ...(reports.length || !campaigns.length ? [
-          { label: 'Shown today', value: counts.reduce((total, count) => total + count.impressions, 0), unit: 'shows · today' },
-          { label: 'Taps today', value: counts.reduce((total, count) => total + count.taps, 0), unit: 'taps · today' },
-        ] : []),
-      ].map((metric) => <Card key={metric.label}><CardContent><p className="text-sm text-muted-foreground">{copy(metric.label)}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{number(metric.value)}</p><p className="text-sm text-muted-foreground">{copy(metric.unit)}</p></CardContent></Card>)}</div>
-      <Card><CardHeader><CardTitle>{copy('Needs you')}</CardTitle></CardHeader><CardContent className="space-y-5">
-        <CampaignAttention scope="ending" title={copy('Ending within 7 days')} empty="No campaigns end within 7 days." campaigns={ending} />
-        <CampaignAttention scope="unseen" title={copy('Not shown in the last 2 days')} empty="No confirmed gaps in the last 2 complete Cairo days." campaigns={unseen.map(({ campaign }) => campaign)} report />
-        {resource.data?.capacity ? <section><h3 className="mb-3 font-semibold">{copy('Free capacity today')}</h3><RecordList scope="free-capacity" records={free} searchText={({ scope }) => `${scope.city?.name ?? ''} ${scope.city?.nameEn ?? ''} ${copy(scope.placement === 'featured' ? 'Home Featured rail' : 'City Top 10')}`} filters={[{ key: 'placement', label: 'All surfaces', options: [{ value: 'featured', label: 'Home Featured rail' }, { value: 'top10', label: 'City Top 10' }], value: ({ scope }) => scope.placement }]} empty="No free capacity is reported today." render={(rows) => <ul className="divide-y">{rows.map(({ scope, day }) => <li key={`${scope.placement}-${scope.cityId}`} className="space-y-2 py-3"><Link className="underline underline-offset-4" href={`/dashboard/ads/campaigns?placement=${scope.placement}${scope.cityId ? `&cityId=${scope.cityId}` : ''}`}><RecordCell icon="location" name={scope.city ? undefined : copy('All Egypt')} nameAr={scope.city?.name} nameEn={scope.city?.nameEn} thumbnail={null} context={copy(scope.placement === 'featured' ? 'Home Featured rail' : 'City Top 10')} /></Link><p className="text-sm tabular-nums">{number(day.capacity - day.booked)} {copy('free places · today')}</p></li>)}</ul>} /></section> : <RequestError message={copy('Could not load free capacity.')} retry={() => { void resource.refetch(); }} />}
-      </CardContent></Card>
+      <Card><CardHeader><CardTitle>{copy('Needs you')}</CardTitle></CardHeader><CardContent className="space-y-6"><CampaignAttention title="Ending within 7 days" scope="ending" campaigns={ending} /><CampaignAttention title="Paid agreements with no recorded shows" scope="unseen" campaigns={noExposure} /><p className="text-sm text-muted-foreground">{copy('No recorded exposure is a reason to investigate, not proof of no delivery. Missing and padded counters do not establish complete ingestion.')}</p><h3 className="font-semibold">{copy('Free slots worth selling')}</h3><RecordList scope="free-slots" records={free} searchText={row => row.name} render={visible => <div>{visible.map(surface => <div key={surface.key} className="flex min-h-14 flex-wrap items-center gap-3 border-b py-2"><RecordCell icon="section" name={surface.name} context={`${today} — ${shiftCalendarDays(today, 6)}`} /><p className="ms-auto text-sm tabular-nums">{Math.max(...(surface.days ?? []).map(day => day.free))} {copy('maximum free positions in the next 7 days')}</p>{canWrite && <RowActions recordName={surface.name} actions={[{ label: 'Start a campaign here', icon: <CalendarDays />, href: campaignHref(surface) }]} />}</div>)}</div>} /></CardContent></Card>
+      <div className="grid gap-4 sm:grid-cols-3"><TodayNumber label="Eligible promoted places today" value={new Set(resource.data?.promotions.data.filter(row => row.promotedToday).map(row => row.place.id)).size} /><TodayNumber label="Shown today" value={results.reduce((sum, row) => sum + row.shown, 0)} /><TodayNumber label="Taps today" value={results.reduce((sum, row) => sum + row.taps, 0)} /></div>
+      <Card><CardHeader><CardTitle>{copy('Recorded agreements this month')}</CardTitle></CardHeader><CardContent className="space-y-3"><p className="text-sm text-muted-foreground">{copy('Agreement amounts recorded this Cairo month, not cash received. Currencies are never added together.')} {resource.data?.money.from} — {resource.data?.money.to}</p><RecordList scope="booked-money" records={resource.data?.money.currencies ?? []} searchText={row => row.currency} render={visible => <div>{visible.map(row => <div key={row.currency} className="flex min-h-14 items-center gap-3 border-b py-2"><RecordCell icon="receipt" name={row.currency} context={`${row.bookedCount.toLocaleString(lang)} ${copy('recorded agreements')}`} /><span className="ms-auto tabular-nums">{Number(row.bookedAmount).toLocaleString(lang, { maximumFractionDigits: 2 })} {row.currency}</span></div>)}</div>} /></CardContent></Card>
+      <Card><CardHeader><CardTitle>{copy('Opportunities')}</CardTitle></CardHeader><CardContent><AdsOpportunities surfaces={resource.data?.surfaces.data ?? []} canWrite={canWrite} /></CardContent></Card>
+      <Card><CardHeader><CardTitle>{copy('How promotion works on 5argny')}</CardTitle></CardHeader><CardContent><p className="text-sm">{copy('Choose a surface, choose an eligible place, agree the dates and amount, then compare what visitors did. Paid places are Sponsored; shuffle tests do not change earned ranking, loves or badges.')}</p></CardContent></Card>
     </>}
-    <Card><CardHeader><CardTitle>{copy('How promotion works on 5argny')}</CardTitle></CardHeader><CardContent><ol className="grid gap-5 sm:grid-cols-2">{['Choose where visitors will see the place.', 'Choose an active place and book its dates.', 'The place shares the available space with other booked places.', 'Read its report to see shows, taps and tap rate.'].map((step, index) => <li key={step} className="flex gap-3"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted tabular-nums">{number(index + 1)}</span><p className="text-sm">{copy(step)}</p></li>)}</ol></CardContent></Card>
   </div>;
 }
-
-function CampaignAttention({ scope, title, empty, campaigns, report }: { scope: string; title: string; empty?: string; campaigns: AdCampaign[]; report?: boolean }) {
-  const copy = useDashboardCopy();
-  return <section><h3 className="mb-3 font-semibold">{title}</h3><RecordList scope={scope} records={campaigns} empty={empty} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.city?.name ?? ''} ${campaign.city?.nameEn ?? ''}`} filters={[{ key: 'placement', label: 'All surfaces', options: [{ value: 'featured', label: 'Home Featured rail' }, { value: 'top10', label: 'City Top 10' }], value: (campaign) => campaign.placement }]} render={(rows) => <ul className="divide-y">{rows.map((campaign) => <li key={campaign.id} className="py-3"><Link className="inline-block underline underline-offset-4" href={`/dashboard/ads/${campaign.id}${report ? '/report' : ''}`}><RecordCell nameAr={campaign.place.name} nameEn={campaign.place.nameEn} thumbnail={placeCover(campaign.place)} context={scope === 'unseen' ? `${campaign.advertiserName} · 0 ${copy('shows · last 2 days')}` : `${campaign.advertiserName} · ${copy('Ends on')} ${campaign.endDate}`} /></Link></li>)}</ul>} /></section>;
+function TodayNumber({ label, value }: { label: string; value: number }) { const copy = useDashboardCopy(); const { lang } = useDashboardLang(); return <Card><CardHeader><CardTitle>{copy(label)}</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{value.toLocaleString(lang)}</p><p className="text-sm text-muted-foreground">{copy('Today · Cairo time')}</p></CardContent></Card>; }
+function CampaignAttention({ title, scope, campaigns }: { title: string; scope: string; campaigns: PromotionCampaign[] }) {
+  const copy = useDashboardCopy(); return <section className="space-y-3"><h3 className="font-semibold">{copy(title)}</h3><RecordList scope={scope} records={campaigns} searchText={row => `${row.place.name} ${row.place.nameEn ?? ''} ${row.advertiserName}`} render={visible => <div>{visible.map(row => <div key={row.id} className="flex min-h-14 flex-wrap items-center gap-3 border-b py-2"><RecordCell nameAr={row.place.name} nameEn={row.place.nameEn} thumbnail={placeCover(row.place)} context={row.advertiserName} /><p className="ms-auto text-sm">{row.endDate && <DateCell value={row.endDate} />}</p><RowActions recordName={row.place.name} actions={[{ label: 'View report', href: `/dashboard/ads/${row.id}/report`, icon: <Eye /> }]} /></div>)}</div>} /></section>;
 }

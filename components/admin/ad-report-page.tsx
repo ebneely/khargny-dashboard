@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
+import { surfaceLabels } from '@/lib/ads-round7b';
 import { RecordList } from './record-list';
 import { RecordCell } from './record-cell';
 import * as React from 'react';
@@ -78,9 +79,9 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
 
       <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y bg-card px-4 py-3 text-sm">
         <AdStateBadge state={campaign.state} />
-        <span><strong><DashboardText>Where it appears:</DashboardText></strong> <DashboardText>{campaign.placement === 'featured' ? 'Featured' : 'Top 10'}</DashboardText></span>
-        <span><strong><DashboardText>Scope:</DashboardText></strong> {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : <DashboardText>All Egypt</DashboardText>}</span>
-        <span><strong><DashboardText>Dates:</DashboardText></strong> {formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}</span>
+        <span><strong><DashboardText>Where it appears:</DashboardText></strong> <DashboardText>{surfaceLabels[campaign.placement]}</DashboardText></span>
+        <span><strong><DashboardText>Scope:</DashboardText></strong> {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : <DashboardText>All Egypt</DashboardText>} <span dir="auto">{campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</span></span>
+        <span><strong><DashboardText>Dates:</DashboardText></strong> {formatDate(campaign.startDate)} – {campaign.endDate ? formatDate(campaign.endDate) : controlCopy('No end date')}</span>
         <span><strong><DashboardText>Timezone:</DashboardText></strong> {report.timezone}</span>
       </div>
 

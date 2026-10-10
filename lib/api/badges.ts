@@ -12,11 +12,13 @@ export interface BadgeCatalogue { data: ManagedBadge[]; lastRun: BadgeRun | null
 export interface BadgeScope { type: 'city' | 'city_category'; city: { id: string; name: string; nameEn: string | null; slug: string }; category?: { id: string; name: string; nameEn: string | null } }
 export interface BadgeOverride { id: string; badgeKey: BadgeKey; placeId: string; kind: 'exclude' | 'pin'; reason: string; until: string | null; adminId: string; createdAt: string; expired: boolean }
 export interface BadgeHolder {
+  cover?: string | null;
   placeId?: string; id?: string; name: string; nameEn: string | null; slug?: string; cityId: string; categoryId: string | null;
   rank: number | null; value: number | null; window: { start: string | null; end: string; days: number | null } | null;
   computedAt?: string; scope?: BadgeScope | null; source: 'earned' | 'pinned' | 'status'; override?: BadgeOverride | null;
 }
 export interface BadgeCandidate {
+  cover?: string | null;
   id: string; name: string; nameEn: string | null; slug: string; cityId: string; categoryId: string | null; value: number;
   position: number; candidates: number; rank: number | null; scope?: BadgeScope; city: BadgeScope['city']; category: BadgeScope['category']; override: 'pin' | 'exclude' | null;
 }

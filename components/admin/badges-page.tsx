@@ -24,7 +24,6 @@ import { RecordList, useListAddress } from './record-list';
 import { RecordCell } from './record-cell';
 import { DateCell } from './date-cell';
 import { FormActionBar } from './form-action-bar';
-import { BadgeIcon } from './badge-icon';
 import { BadgeRuleFields } from './badge-rule-fields';
 import { BadgeHolders } from './badge-holders';
 import { BadgeOverrides } from './badge-overrides';
@@ -44,6 +43,7 @@ function BadgesContent({ canWrite }: { canWrite: boolean }) {
   const loadCities = React.useCallback(() => loadAllCities(), []);
   const cities = useSubscriberResource(loadCities);
   const address = useListAddress('badges');
+  const pickerAddress = useListAddress('override-place-picker');
   const cityId = address.get('city');
   const [drafts, setDrafts] = React.useState<Record<string, RuleControls>>({});
   const [ruleErrors, setRuleErrors] = React.useState<Record<string, string>>({});
@@ -53,6 +53,13 @@ function BadgesContent({ canWrite }: { canWrite: boolean }) {
   const writing = React.useRef(false);
   const [wording, setWording] = React.useState<ManagedBadge | null>(null);
   const [override, setOverride] = React.useState<{ badgeKey: BadgeKey; place: SubscriberPlace } | true | null>(null);
+  const overrideDialog = override ?? (['q', 'city', 'skip', 'limit'].some(key => pickerAddress.get(key)) ? true : null);
+  const closeOverride = () => {
+    const params = new URLSearchParams(window.location.search);
+    for (const key of [...params.keys()]) if (key.startsWith('override-place-picker-')) params.delete(key);
+    window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
+    setOverride(null);
+  };
   const [action, setAction] = React.useState<ActionSpec | null>(null);
   const [revision, setRevision] = React.useState(0);
   const [pending, setPending] = React.useState(false);
@@ -137,16 +144,16 @@ function BadgesContent({ canWrite }: { canWrite: boolean }) {
     {error && <RequestError message={error} />}{resource.savedRefreshFailed && <RequestError message={copy('Saved, but the page could not refresh')} retry={() => { void resource.refetch(); }} />}
     <UrlTabs values={['status', 'achievements', 'overrides']}><TabsList aria-label={copy('Badge sections')}><TabsTrigger value="status">{copy('Status badges')}</TabsTrigger><TabsTrigger value="achievements">{copy('Achievement badges')}</TabsTrigger><TabsTrigger value="overrides">{copy('Overrides')}</TabsTrigger></TabsList>
       {tab.value !== 'overrides' && <div className="mt-6 max-w-sm"><FilterSelect label="City" value={cityId || 'all'} onValueChange={(value) => address.change('city', value === 'all' ? '' : value)} options={[{ value: 'all', label: copy('All cities') }, ...(cities.data?.items ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn) }))]} />{cities.error && <RequestError message={copy('Could not load cities. Try again.')} retry={() => { void cities.refetch(); }} />}</div>}
-      <UrlTabsContent value="status" className="space-y-6"><RecordList scope="status-badges" records={badges.filter((badge) => badge.family === 'status')} searchText={(badge) => `${badge.nameAr} ${badge.nameEn} ${badge.descriptionAr} ${badge.descriptionEn}`} filters={[{ key: 'enabled', label: 'All badge states', options: [{ value: 'yes', label: 'Enabled' }, { value: 'no', label: 'Hidden everywhere' }], value: (badge) => badge.enabled ? 'yes' : 'no' }]} render={(visible) => <div className="space-y-6">{visible.map(card)}</div>} /></UrlTabsContent>
+      <UrlTabsContent value="status" className="space-y-6"><RecordList layout="groups" scope="status-badges" records={badges.filter((badge) => badge.family === 'status')} searchText={(badge) => `${badge.nameAr} ${badge.nameEn} ${badge.descriptionAr} ${badge.descriptionEn}`} filters={[{ key: 'enabled', label: 'All badge states', options: [{ value: 'yes', label: 'Enabled' }, { value: 'no', label: 'Hidden everywhere' }], value: (badge) => badge.enabled ? 'yes' : 'no' }]} render={(visible) => <div className="space-y-6">{visible.map(card)}</div>} /></UrlTabsContent>
       <UrlTabsContent value="achievements" className="space-y-6"><Card><CardHeader className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{copy('Last run')}</CardTitle><PageActions form={dirty.length > 0} actions={runActions} /></CardHeader><CardContent className="space-y-3 text-sm">
         {catalogue.lastRun ? <><p>{dashboardDate(catalogue.lastRun.finishedAt ?? catalogue.lastRun.startedAt, lang, true)} · {copy(catalogue.lastRun.trigger === 'manual' ? 'Manual calculation' : 'Automatic calculation')}</p><p className={catalogue.lastRun.error ? 'text-destructive' : undefined}>{copy(catalogue.lastRun.error ? 'Run failed; previous awards are kept.' : catalogue.lastRun.finishedAt ? 'Run completed' : 'Run in progress')} · {copy('Candidates')}: {(catalogue.lastRun.counts?.candidates ?? 0).toLocaleString(lang)} · {copy('Awards')}: {(catalogue.lastRun.counts?.awards ?? 0).toLocaleString(lang)}</p></> : <p>{copy('No run recorded yet')}</p>}
         <p className="text-muted-foreground">{copy('Calculated through yesterday in Cairo. The next read may start a refresh; this is not a timed schedule.')}</p><p className="text-muted-foreground">{copy('Next check day')}: <DateCell value={catalogue.nextDue.day} /> · {catalogue.nextDue.timezone}{catalogue.nextDue.dueNow && <> · {copy('Refresh due on read')}</>}</p>{notice && <p role="status">{copy(notice)}</p>}
-      </CardContent></Card><RecordList scope="achievement-badges" records={badges.filter((badge) => badge.family === 'achievement')} searchText={(badge) => `${badge.nameAr} ${badge.nameEn} ${badge.descriptionAr} ${badge.descriptionEn}`} filters={[{ key: 'enabled', label: 'All badge states', options: [{ value: 'yes', label: 'Enabled' }, { value: 'no', label: 'Hidden everywhere' }], value: (badge) => badge.enabled ? 'yes' : 'no' }]} render={(visible) => <div className="space-y-6">{visible.map(card)}</div>} /></UrlTabsContent>
+      </CardContent></Card><RecordList layout="groups" scope="achievement-badges" records={badges.filter((badge) => badge.family === 'achievement')} searchText={(badge) => `${badge.nameAr} ${badge.nameEn} ${badge.descriptionAr} ${badge.descriptionEn}`} filters={[{ key: 'enabled', label: 'All badge states', options: [{ value: 'yes', label: 'Enabled' }, { value: 'no', label: 'Hidden everywhere' }], value: (badge) => badge.enabled ? 'yes' : 'no' }]} render={(visible) => <div className="space-y-6">{visible.map(card)}</div>} /></UrlTabsContent>
       <UrlTabsContent value="overrides" lazy><BadgeOverrides badges={badges} revision={revision} canWrite={writable} onAdd={() => { if (!writing.current) setOverride(true); }} onRemove={remove} /></UrlTabsContent>
     </UrlTabs>
     {canWrite && <FormActionBar extraActions={<PageActions form actions={runActions} />} active={tab.value === 'achievements' && dirty.length > 0} dirty={dirty.length > 0} saving={busy} disabled={!writable || !!toggleKey} disabledReason={dirty.map((badge) => `${pick(badge.nameAr, badge.nameEn)}: ${copy('rule changed')}`).join(' · ')} error={error} primaryLabel={copy('Save rules')} onSave={() => { void saveRules(); }} onCancel={() => { setDrafts({}); setRuleErrors({}); setError(''); }} />}
     {wording && writable && <BadgeWordingDialog badge={wording} canWrite={writable} refresh={() => refreshAfterWrite(false)} onClose={() => setWording(null)} />}
-    {override && writable && <BadgeOverrideDialog badges={badges.filter((badge) => badge.family === 'achievement')} canWrite={writable} initial={override === true ? undefined : override} refresh={async () => { await refreshAfterWrite(); }} onClose={() => setOverride(null)} />}
+    {overrideDialog && writable && <BadgeOverrideDialog badges={badges.filter((badge) => badge.family === 'achievement')} canWrite={writable} initial={overrideDialog === true ? undefined : overrideDialog} refresh={async () => { await refreshAfterWrite(); }} onClose={closeOverride} />}
     <ActionDialog action={action} onClose={() => setAction(null)} />
   </div>;
 }
@@ -158,11 +165,12 @@ function BadgeCard({ badge, cityId, cities, revision, canWrite, switching, field
   let previewRule = null;
   try { if (fields) previewRule = ruleFromControls(badge.key, fields); } catch { }
   const holders = <BadgeHolders badge={badge} cityId={cityId} cities={cities} revision={revision} canWrite={canWrite} previewRule={previewRule} onExclude={onExclude} onRemovePin={onRemovePin} />;
-  return <Card className="min-w-0"><CardHeader className="flex flex-wrap items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><BadgeIcon icon={badge.icon} /><RecordCell nameAr={badge.nameAr} nameEn={badge.nameEn} chips={<StatusBadge status={badge.enabled ? 'active' : 'inactive'}>{copy(badge.enabled ? 'Shown' : 'Hidden')}</StatusBadge>} /></div>{canWrite && <div className="flex flex-wrap items-center gap-3"><label htmlFor={switchId} className="flex items-center gap-2 text-sm"><Switch id={switchId} checked={badge.enabled} disabled={switching} onCheckedChange={onToggle} />{copy('Show on the website and app')}</label><PageActions form actions={[{ label: 'Edit wording', disabled: switching, onClick: onEdit }]} /></div>}</CardHeader>
+  return <Card data-badge-card={badge.key} className="min-w-0 shadow-none border [&_[data-slot=pager]]:border-0"><CardHeader className="flex flex-wrap items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><RecordCell icon="badge" badgeIcon={badge.icon} nameAr={badge.nameAr} nameEn={badge.nameEn} chips={<StatusBadge status={badge.enabled ? 'active' : 'inactive'}>{copy(badge.enabled ? 'Shown' : 'Hidden')}</StatusBadge>} /></div>{canWrite && <div className="flex flex-wrap items-center gap-3"><label htmlFor={switchId} className="flex items-center gap-2 text-sm"><Switch id={switchId} checked={badge.enabled} disabled={switching} onCheckedChange={onToggle} />{copy('Show on the website and app')}</label><PageActions scope="record" actions={[{ label: 'Edit wording', disabled: switching, onClick: onEdit }]} /></div>}</CardHeader>
     <CardContent className="min-w-0 space-y-4">{!badge.enabled && <p className="text-sm text-muted-foreground">{copy('Hidden everywhere. Places keep the badge and it returns when you switch this on.')}</p>}<p className="text-sm text-muted-foreground">{copy('Places holding it')}: {badge.holderCount.toLocaleString(lang)}</p>
       {badge.family === 'status' ? <><p className="text-sm">{copy('How a place gets it')}: {copy(statusBadgeRules[badge.key as keyof typeof statusBadgeRules])}</p><details onToggle={(event) => setExpanded(event.currentTarget.open)}><summary className="cursor-pointer text-sm font-medium">{copy('Holders now')}</summary><div className="mt-4">{expanded && holders}</div></details></> : <>
-        {canWrite && fields ? <BadgeRuleFields disabled={switching} badge={badge} value={fields} onChange={onRuleChange} error={error || (!previewRule ? copy('Use 1–10 winners and a whole-number minimum of at least 1.') : undefined)} /> : badge.rule && <p className="text-sm">{copy('Give it to the top')} {badge.rule.winners.toLocaleString(lang)} {copy('places in each')} {copy(badge.rule.scope === 'city' ? 'City' : 'City and category')} {copy('by')} {copy(badgeMetric[badge.rule.measure])} {copy('over')} {badge.rule.windowDays === null ? copy('All time') : `${badge.rule.windowDays.toLocaleString(lang)} ${copy('days')}`} {copy('if they have at least')} {badge.rule.floor.toLocaleString(lang)}.</p>}
-        {holders}
+        {canWrite && fields ? <BadgeRuleFields disabled={switching} badge={badge} value={fields} onChange={(value) => { setExpanded(true); onRuleChange(value); }} error={error || (!previewRule ? copy('Use 1–10 winners and a whole-number minimum of at least 1.') : undefined)} /> : badge.rule && <p className="text-sm">{copy('Give it to the top')} {badge.rule.winners.toLocaleString(lang)} {copy('places in each')} {copy(badge.rule.scope === 'city' ? 'City' : 'City and category')} {copy('by')} {copy(badgeMetric[badge.rule.measure])} {copy('over')} {badge.rule.windowDays === null ? copy('All time') : `${badge.rule.windowDays.toLocaleString(lang)} ${copy('days')}`} {copy('if they have at least')} {badge.rule.floor.toLocaleString(lang)}.</p>}
+        {!expanded && <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground"><p>{copy('Activity from paid placements is not counted.')}</p><p>{copy('Open holders to preview this rule.')}</p></div>}
+        <details open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}><summary className="cursor-pointer text-sm font-medium">{copy('Holders now')}</summary><div className="mt-4">{expanded && holders}</div></details>
       </>}
       {canWrite && badge.family === 'status' && <p className="text-sm text-muted-foreground">{copy('Changes are live at once')}</p>}
     </CardContent>

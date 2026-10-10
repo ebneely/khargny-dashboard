@@ -10,7 +10,7 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const { subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit } = filters;
+  const { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit } = filters;
   const generation = useRef(0);
   const fetch = useCallback(async () => {
     const request = ++generation.current;
@@ -18,14 +18,16 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<unknown>('/v1/admin/places', { subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit });
+      const result = await adminApi.get<unknown>('/v1/admin/places', { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit });
       if (request === generation.current) setData(toList<AdminPlace>(result) as AdminPlaceList);
+      return request === generation.current;
     } catch (e) {
       if (request === generation.current) { setIsError(true); setError(e as Error); }
+      return false;
     } finally {
       if (request === generation.current) setIsLoading(false);
     }
-  }, [subscriberId, search, cityId, categoryId, status, hasMedia, sortBy, skip, limit]);
+  }, [subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit]);
 
   useEffect(() => {
     const state = generation;
@@ -89,7 +91,10 @@ export function useAdminPlace(id: string) {
     }
   }, [id]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetch(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }

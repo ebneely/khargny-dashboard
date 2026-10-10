@@ -1,4 +1,43 @@
 import { analyticsCopy } from '@/lib/analytics-copy';
+import { adsLiveCopy } from '@/lib/ads-live-copy';
+import { round8Copy } from '@/lib/round8-copy';
+
+const round7RenewalsCopy: Record<string, string> = {
+  'Renewals': 'التجديدات',
+  'Waiting for review': 'بانتظار المراجعة',
+  'In grace': 'في المهلة',
+  'Ended': 'انتهى',
+  'All renewal timings': 'كل مواعيد التجديد',
+  'All renewal states': 'كل حالات التجديد',
+  'Needs a clearer proof': 'يحتاج إثباتاً أوضح',
+  'Confirmed': 'مؤكد',
+  'Rejected': 'مرفوض',
+  'Any waiting time': 'كل مدد الانتظار',
+  'Older than 24 hours': 'أكثر من ٢٤ ساعة',
+  'Within 24 hours': 'خلال ٢٤ ساعة',
+  'Record cash renewal': 'تسجيل تجديد نقدي',
+  'No renewal requests match these choices.': 'لا توجد طلبات تجديد تطابق هذه الخيارات.',
+  'All preview results': 'كل نتائج المعاينة',
+  'Ready to confirm': 'جاهز للتأكيد',
+  'All results': 'كل النتائج',
+  'Failed': 'فشل',
+  'No open renewal request.': 'لا يوجد طلب تجديد مفتوح.',
+  'Activate this place?': 'تفعيل هذا المكان؟',
+  'Deactivation reason (optional)': 'سبب تعطيل المكان (اختياري)',
+  'Reason must be at most 1000 characters.': 'يجب ألا يتجاوز السبب ١٠٠٠ حرف.',
+  'The status is applied immediately. Media, owner, campaigns and subscriptions are kept. Visitor visibility still follows the backend public state.': 'تُطبق الحالة فوراً وتبقى الوسائط والمالك والحملات والاشتراكات. يظل ظهور المكان للزوار وفق حالته العامة التي يعيدها الخادم.',
+  'Active, not shown: no approved media': 'نشط غير ظاهر: لا توجد وسائط معتمدة',
+  'Active, but not shown: add approved photos or video': 'نشط لكنه غير ظاهر: أضف صوراً أو فيديو معتمداً',
+  'Not shown: no approved media': 'غير ظاهر: لا توجد وسائط معتمدة',
+  'Visibility unavailable': 'حالة الظهور غير متاحة',
+  'Visibility was not returned by the backend.': 'لم يُعد الخادم حالة الظهور.',
+  'Enter a valid international number including its country code.': 'أدخل رقماً دولياً صحيحاً مع رمز البلد.',
+  'Backend reason': 'سبب الخادم',
+  'Renewal request': 'طلب تجديد',
+  'Not shown: deleted': 'غير ظاهر: محذوف',
+  'Not shown: merged into another place': 'غير ظاهر: مدمج في مكان آخر'
+};
+
 
 const round6bCopy: Record<string, string> = {
   'Expired': 'منتهي',
@@ -197,6 +236,7 @@ const round6CombinedCopy: Record<string, string> = {
 };
 
 export const dashboardCopy: Record<string, string> = {
+  ...round7RenewalsCopy,
   ...round6CombinedCopy,
   // Round 6A: separate bilingual Analytics and list-rule additions.
   ...analyticsCopy,
@@ -703,6 +743,9 @@ export const dashboardCopy: Record<string, string> = {
   "Link state": "حالة الربط",
   "View": "عرض",
 };
+
+Object.assign(dashboardCopy, adsLiveCopy);
+Object.assign(dashboardCopy, round8Copy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;

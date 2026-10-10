@@ -10,8 +10,10 @@ export function phoneCountries(lang: 'en' | 'ar') {
 
 export function subscriberPhonePayload(value: string): string {
   const compact = value.trim().replace(/[\s()-]/g, '');
-  if (!isEgyptianMobile(compact)) throw new Error('Only Egyptian mobile numbers can be saved right now.');
-  return compact.replace(/^(?:\+20|0020|20)/, '0');
+  const egyptian = isEgyptianMobile(compact);
+  const number = parsePhoneNumberFromString(egyptian ? compact.replace(/^(?:\+20|0020|20)/, '0') : compact, egyptian ? 'EG' : undefined);
+  if (!number?.isValid() || !egyptian && !compact.startsWith('+')) throw new Error('Enter a valid international number including its country code.');
+  return number.number;
 }
 
 export function subscriberContactErrors(values: { name: string; phone: string; whatsapp: string; email: string }) {
@@ -20,9 +22,7 @@ export function subscriberContactErrors(values: { name: string; phone: string; w
   for (const field of ['phone', 'whatsapp'] as const) {
     const value = values[field].trim();
     if (!value) { if (field === 'phone') errors.phone = 'Phone is required.'; continue; }
-    const number = parsePhoneNumberFromString(value, 'EG');
-    if (number?.country && number.country !== 'EG') errors[field] = 'Only Egyptian mobile numbers can be saved right now.';
-    else if (!number?.isValid() || !isEgyptianMobile(number.number)) errors[field] = 'Enter a valid Egyptian mobile number (01XXXXXXXXX or +20).';
+    try { subscriberPhonePayload(value); } catch { errors[field] = 'Enter a valid international number including its country code.'; }
   }
   if (values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = 'Enter a valid email address.';
   return errors;

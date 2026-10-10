@@ -40,7 +40,7 @@ export function AdsPageHeader({
         {actions && <PageActions actions={actions} form={form} />}
       </div>
 
-      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/placements') || pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/placements' : pathname.startsWith('/dashboard/ads/always-on') ? '/dashboard/ads/always-on' : pathname.startsWith('/dashboard/ads/results') ? '/dashboard/ads/results' : pathname === '/dashboard/ads' ? '/dashboard/ads' : '/dashboard/ads/campaigns'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
+      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/placements') || pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/placements' : pathname.startsWith('/dashboard/ads/always-on') ? '/dashboard/ads/always-on' : pathname.startsWith('/dashboard/ads/results') || pathname.startsWith('/dashboard/ads/shuffle') ? '/dashboard/ads/results' : pathname === '/dashboard/ads' ? '/dashboard/ads' : '/dashboard/ads/campaigns'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
     </div>
   );
 }

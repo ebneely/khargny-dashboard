@@ -11,6 +11,7 @@ export interface AnalyticsTotals {
   draftPlaces: number;
   views: number;
   saves: number;
+  likes?: number;
   directions: number;
 }
 
@@ -21,6 +22,7 @@ export interface AnalyticsBreakdownRow {
   places: number;
   views: number;
   saves: number;
+  likes?: number;
   directions: number;
 }
 
@@ -34,6 +36,7 @@ export interface AnalyticsTopPlace extends PlaceListMedia {
   cityEn: string | null;
   views: number;
   saves: number;
+  likes?: number;
   directions: number;
 }
 

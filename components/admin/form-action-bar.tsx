@@ -13,10 +13,11 @@ export function ActionBarNavigation({ links, children, fallback = false }: { lin
   return <NavigationContext.Provider value={links}>{children}{fallback && links.length > 0 && <FormActionBar dirty={false} saving={false}><></></FormActionBar>}</NavigationContext.Provider>;
 }
 
-export function FormActionBar({ dirty, saving, error, disabled, disabledReason, form, onSave, cancelHref, onCancel, primaryLabel, traceId, active = true, children, extraActions }: {
+export function FormActionBar({ dirty, saving, error, disabled, disabledReason, form, onSave, cancelHref, onCancel, primaryLabel, traceId, creating = false, active = true, children, extraActions }: {
   children?: React.ReactNode;
   extraActions?: React.ReactNode;
   active?: boolean;
+  creating?: boolean;
   dirty: boolean;
   saving: boolean;
   error?: string | null;
@@ -51,7 +52,7 @@ export function FormActionBar({ dirty, saving, error, disabled, disabledReason, 
     return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
   }, []);
   const text = (english: string, arabic: string) => lang === 'ar' ? arabic : english;
-  const message = saving ? text('Saving…', 'جارٍ الحفظ…') : error || disabledReason || (dirty ? text('Unsaved changes', 'تغييرات غير محفوظة') : text('Saved', 'محفوظ'));
+  const message = saving ? text('Saving…', 'جارٍ الحفظ…') : error || disabledReason || (dirty ? text('Unsaved changes', 'تغييرات غير محفوظة') : creating ? text('Not saved yet', 'لم يُحفظ بعد') : text('Saved', 'محفوظ'));
   return <div ref={bar} hidden={!active} data-slot="form-action-bar" dir={lang === 'ar' ? 'rtl' : 'ltr'}
     className="sticky bottom-0 z-40 mt-6 border-t border-border bg-background/80 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 lg:px-8"
     style={bounds ? { position: 'fixed', left: bounds.left, width: bounds.width, marginTop: 0 } : undefined}>

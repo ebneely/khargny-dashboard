@@ -23,6 +23,8 @@ export function useSubscriberText() {
 
 export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
   const messages: Record<string, [string, string]> = {
+    GRACE_OVERRIDE_REQUIRED: ['Another extension needs a super admin and a reason.', 'التمديد مرة أخرى يحتاج المسؤول الأعلى وسبباً.'],
+    PERIOD_RENEWED: ['This period was already renewed. Use its next period.', 'جُددت هذه الفترة بالفعل. استخدم الفترة التالية.'],
     BADGE_RUN_BUSY: ['Another run is already in progress.', 'هناك تشغيل آخر جارٍ بالفعل.'],
     BADGE_RUN_FAILED: ['Run failed; previous awards are kept.', 'فشل التشغيل؛ بقيت الشارات السابقة.'],
     PLAN_PRICE_NOT_SET: ['Both plans need a one-month price before a paid change.', 'يجب تحديد سعر شهر واحد لكلتا الخطتين قبل تغيير اشتراك مدفوع.'],
@@ -31,7 +33,7 @@ export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
     PLACE_ALREADY_OWNED: ['This place belongs to another subscriber. Remove it or ask an admin to unlink it first.', 'هذا المكان مرتبط بمشترك آخر. أزله أو اطلب من المسؤول فك الارتباط أولاً.'],
     SUBSCRIPTION_OVERLAP: ['These dates overlap an existing subscription for this place. Choose another date range.', 'هذه التواريخ تتداخل مع اشتراك قائم لهذا المكان. اختر فترة أخرى.'],
     SUBSCRIPTION_CANCELLED: ['This subscription was cancelled; create a new one instead.', 'تم إلغاء هذا الاشتراك؛ أنشئ اشتراكاً جديداً.'],
-    INVALID_PHONE: ['Enter a valid Egyptian mobile number (01XXXXXXXXX or +20).', 'أدخل رقم محمول مصري صحيحاً (01XXXXXXXXX أو +20).'],
+    INVALID_PHONE: ['Enter a valid international number with its country code (+…), or an Egyptian mobile number.', 'أدخل رقماً دولياً صحيحاً مع رمز البلد (+…) أو رقم محمول مصرياً.'],
     INVALID_AMOUNT: ['Enter a non-negative amount with at most two decimal places.', 'أدخل مبلغاً غير سالب بمنزلتين عشريتين كحد أقصى.'],
     INVALID_MENU_IMAGE_TYPE: ['Choose a JPEG, PNG or WebP image.', 'اختر صورة JPEG أو PNG أو WebP.'],
     MENU_IMAGE_TOO_LARGE: ['The image must be at most 5 MB.', 'يجب ألا يتجاوز حجم الصورة ٥ ميجابايت.'],

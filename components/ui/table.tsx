@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, layout, ...props }: React.ComponentProps<"table"> & { layout?: "list" | "campaigns" }) {
+function Table({ className, layout, ...props }: React.ComponentProps<"table"> & { layout?: "list" | "campaigns" | "places" }) {
   const container = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => {
     if (!layout) return
@@ -103,6 +103,7 @@ function TableCell({ className, column, ...props }: React.ComponentProps<"td"> &
       data-slot="table-cell"
       data-column={column}
       className={cn(
+        column === "actions" && "align-top pt-3",
         "px-[18px] py-1 align-middle whitespace-nowrap [&:has([role=checkbox])]:pe-0 [&:has([data-slot=button])]:text-end [&:has([data-slot=button])>div]:justify-end",
         className
       )}

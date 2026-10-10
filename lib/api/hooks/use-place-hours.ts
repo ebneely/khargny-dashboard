@@ -57,7 +57,7 @@ export interface UsePlaceHoursResult {
   save: () => Promise<void>;
 }
 
-export function usePlaceHours(placeId: string): UsePlaceHoursResult {
+export function usePlaceHours(placeId: string, enabled = true): UsePlaceHoursResult {
   const [hours, setHours] = useState<PlaceHour[]>(() => toSevenDays([]));
   const [loading, setLoading] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
@@ -85,8 +85,10 @@ export function usePlaceHours(placeId: string): UsePlaceHoursResult {
   }, [placeId]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let subscribed = true;
+    queueMicrotask(() => { if (subscribed && enabled) void load(); });
+    return () => { subscribed = false; };
+  }, [load, enabled]);
 
   const setDay = useCallback((day: number, patch: Partial<PlaceHour>) => {
     setHours((prev) => {

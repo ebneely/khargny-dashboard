@@ -19,7 +19,7 @@ export function StatTile({
   loading,
 }: {
   label: string;
-  value: number;
+  value?: number;
   hint?: string;
   icon: LucideIcon;
   loading?: boolean;
@@ -40,7 +40,7 @@ export function StatTile({
         <div className="mt-3 h-8 w-20 animate-pulse rounded bg-muted" aria-hidden="true" />
       ) : (
         <p className="mt-3 font-display text-3xl font-semibold tabular-nums text-foreground">
-          {value.toLocaleString('en-US')}
+          {value === undefined ? '—' : value.toLocaleString('en-US')}
         </p>
       )}
       {hint && (
