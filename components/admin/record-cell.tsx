@@ -60,9 +60,9 @@ export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badge
   const alignment = { textAlign: lang === 'ar' ? 'right' as const : 'left' as const };
   return <div data-slot="record-cell" dir={lang === 'ar' ? 'rtl' : 'ltr'} style={alignment} className="flex min-w-0 max-w-64 items-center gap-2 whitespace-normal leading-4">
     {icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
-    <div className="min-w-0 flex-1">
-      <div className="flex flex-wrap items-center gap-2"><span lang={primaryLang} dir="auto" style={alignment} className="min-w-0 max-w-full line-clamp-2 break-words font-medium" title={primary}>{primary}</span>{chips}</div>
-      {secondary && <p lang={secondaryLang} dir="auto" style={alignment} className="line-clamp-2 break-words text-sm leading-4 text-muted-foreground" title={secondary}>{secondary}</p>}
+    <div data-slot="record-name-text" className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-center gap-2"><span data-slot="record-name-primary" lang={primaryLang} dir="auto" style={alignment} className="min-w-0 max-w-full line-clamp-2 break-words font-medium" title={primary}>{primary}</span>{chips}</div>
+      {secondary && <p data-slot="record-name-secondary" lang={secondaryLang} dir="auto" style={alignment} className="line-clamp-2 break-words text-sm leading-4 text-muted-foreground" title={secondary}>{secondary}</p>}
       {context && <p className="mt-1 break-words text-xs text-muted-foreground">{context}</p>}
     </div>
   </div>;

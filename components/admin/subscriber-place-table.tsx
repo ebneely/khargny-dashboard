@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
+import { PlacePublicStatus } from './place-public-status';
 import { RecordCell } from './record-cell';
 import { RecordList, useListAddress } from './record-list';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -14,6 +15,7 @@ import type { SubscriberPlace } from '@/lib/api/subscribers';
 import { StatusBadge, useSubscriberText } from './subscriber-ui';
 
 export type LinkedPlaceRow = SubscriberPlace & {
+  publicState?: import('@/lib/place-public-state').PlacePublicState;
   coverImage?: string | null;
   images?: { url: string; urls?: { small?: string } }[];
   city?: { name: string; nameEn?: string | null };
@@ -91,9 +93,9 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
     <div data-slot="linked-places-table" className="h-[320px] overflow-auto rounded-lg border sm:h-[420px]" aria-busy={loading}>
       <table className="w-full table-fixed text-start text-sm">
         <thead className="sticky top-0 z-10 bg-muted"><tr>
-          <th scope="col" className="p-2 text-start">{text('Place', 'المكان')}</th>
-          <th scope="col" className="hidden p-2 text-start sm:table-cell">{text('City · category', 'المدينة · التصنيف')}</th>
-          <th scope="col" className="w-36 p-2 text-start sm:w-64">{text('Link state', 'حالة الربط')}</th>
+          <th scope="col" data-linked-field="identity" className="p-2 text-start">{text('Place', 'المكان')}</th>
+          <th scope="col" data-linked-field="city" className="p-2 text-start">{text('City · category', 'المدينة · التصنيف')}</th>
+          <th scope="col" data-linked-field="link" className="p-2 text-start">{text('Link state', 'حالة الربط')}</th>
         </tr></thead>
         <tbody>{visible.map((place) => {
           const chosen = selected(place);
@@ -103,15 +105,15 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
           const location = [place.city ? pick(place.city.name, place.city.nameEn) : '', place.category ? pick(place.category.nameAr, place.category.nameEn) : ''].filter(Boolean).join(' · ');
           return <tr key={place.id} tabIndex={0} className="h-14 border-t hover:bg-muted/40 focus-within:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring dark:hover:bg-background/30 dark:focus-within:bg-background/30"
             onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggle(place); } }}>
-            <td className="min-w-0 px-2 py-1 align-middle"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} />{location && <p className="truncate text-xs leading-3 text-muted-foreground sm:hidden" title={location}>{location}</p>}</td>
-            <td className="hidden px-2 py-1 align-middle text-xs text-muted-foreground sm:table-cell"><p className="truncate" title={location}>{location}</p></td>
-            <td className="px-2 py-1 align-middle"><div data-slot="linked-place-actions" className="flex min-w-0 flex-nowrap items-center justify-end gap-2">
+            <td data-linked-field="identity" className="min-w-0 px-2 py-1 align-middle"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} />{location && <p data-slot="linked-place-location" className="line-clamp-2 text-xs leading-4 text-muted-foreground" title={location}>{location}</p>}</td>
+            <td data-linked-field="city" className="px-2 py-1 align-middle text-xs text-muted-foreground"><p className="line-clamp-2" title={location}>{location}</p></td>
+            <td data-linked-field="link" className="px-2 py-1 align-middle"><div data-slot="linked-place-actions" className="flex min-w-0 flex-nowrap items-center justify-end gap-2">
               {state && <StatusBadge status="linked" className="min-w-0 text-start" title={state}><span className="truncate">{state}</span></StatusBadge>}
               {!readOnly && <Button type="button" size="icon-sm" variant="outline" className="shrink-0" aria-pressed={chosen} disabled={disabled || other}
                 title={other ? state : (chosen ? text('Remove', 'إزالة') : text('Link', 'ربط')) + ' ' + pick(place.name, place.nameEn)} aria-label={other ? pick(place.name, place.nameEn) + ': ' + state : (chosen ? text('Remove', 'إزالة') : text('Link', 'ربط')) + ' ' + pick(place.name, place.nameEn)} onClick={() => toggle(place)}>
                 {chosen ? <Check className="size-5 rounded-full bg-foreground p-0.5 text-background" aria-hidden="true" /> : <Plus className="size-4" aria-hidden="true" />}
               </Button>}
-            </div></td>
+            </div>{place.publicState && <div className="mt-1"><PlacePublicStatus place={place} /></div>}</td>
           </tr>;
         })}
         </tbody>

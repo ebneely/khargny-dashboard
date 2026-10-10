@@ -6,7 +6,14 @@ export function remainingPlaceSelection(selected: string[], results: PlaceStatus
   const succeeded = new Set(results.filter(row => row.ok).map(row => row.id));
   return selected.filter(id => !succeeded.has(id));
 }
-export function bulkPlaceStatus(placeIds: string[], action: PlaceStatusAction, reason?: string) {
+export function bulkPlaceStatus(placeIds: string[], action: PlaceStatusAction) {
   if (!placeIds.length || placeIds.length > 100 || new Set(placeIds).size !== placeIds.length) throw new Error('Invalid bulk selection');
-  return adminApi.post<{ action: PlaceStatusAction; results: PlaceStatusResult[]; meta: { succeeded: number; failed: number } }>('/v1/admin/places/bulk-status', { placeIds, action, ...(action === 'deactivate' ? { reason: reason?.trim() } : {}) });
+  return adminApi.post<{ action: PlaceStatusAction; results: PlaceStatusResult[]; meta: { succeeded: number; failed: number } }>('/v1/admin/places/bulk-status', { placeIds, action });
+}
+
+export function bulkPlaceStatusLabel(action: PlaceStatusAction, count: number, lang: 'en' | 'ar') {
+  const number = count.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en');
+  if (lang === 'en') return `${action === 'activate' ? 'Activate' : 'Deactivate'} ${number} ${count === 1 ? 'place' : 'places'}`;
+  const noun = { zero: `${number} أماكن`, one: 'مكان واحد', two: 'مكانين', few: `${number} أماكن`, many: `${number} مكانًا`, other: `${number} مكان` }[new Intl.PluralRules('ar').select(count)];
+  return `${action === 'activate' ? 'تفعيل' : 'تعطيل'} ${noun}`;
 }

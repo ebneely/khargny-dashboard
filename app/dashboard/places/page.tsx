@@ -1,6 +1,6 @@
 'use client';
 
-import { placePublicState, placeStatusFilters, canDeactivatePlace } from '@/lib/place-public-state';
+import { placeStatusFilters, canDeactivatePlace } from '@/lib/place-public-state';
 import { useListAddress } from '@/components/admin/record-list';
 import { engagementNumber } from '@/lib/engagement';
 import { PlaceBulkStatus } from '@/components/admin/place-bulk-status';
@@ -31,7 +31,7 @@ import { useAdminCategories } from '@/lib/api/hooks/use-admin-categories';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { priceBandLabel } from '@/lib/price-bands';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
-import { StatusBadge } from '@/components/admin/subscriber-ui';
+import { PlacePublicStatus } from '@/components/admin/place-public-status';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
 
@@ -167,33 +167,30 @@ export default function PlacesPage() {
                   {visibleItems.map((place) => {
                     const deletedAt = place.deletedAt ?? null;
                     return (
-                    <TableRow key={place.id}>
+                    <TableRow key={place.id} data-place-id={place.id}>
                       <TableCell data-place-field="identity"><div className="flex items-start gap-2">{canWrite && <Checkbox aria-label={`${copy('Select place')}: ${pickName(place.name, place.nameEn, lang)}`} checked={selected.some(row => row.id === place.id)} disabled={bulkBusy || isLoading || isError || selected.length >= 100 && !selected.some(row => row.id === place.id)} onCheckedChange={checked => select(place, Boolean(checked))} />}
-                        <Link href={`/dashboard/places/${place.id}`} className="hover:text-primary font-medium" data-trace-id={`place-list-name-${place.id}`}>
+                        <Link href={`/dashboard/places/${place.id}`} className="min-w-0 flex-1 hover:text-primary font-medium" data-trace-id={`place-list-name-${place.id}`}>
                           <RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} />
-                        </Link></div><div className="mt-2 space-y-1 text-sm text-muted-foreground tabular-nums">
-                          <p data-place-detail="photos">{copy('Photos')}: {place._count?.images ?? copy('None')}</p>
-                          <p data-place-detail="price">{copy('Price')}: {place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</p>
-                          <p data-place-detail="owner">{copy('Subscriber')}: {place.subscriber?.name ?? '—'}</p>
-                          <p data-place-detail="city">{pickName(place.city?.name, place.city?.nameEn, lang)} · {pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p>
-                          <p data-place-detail="metrics">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} · {copy('Saves')}: {place.saveCount ?? 0} · {copy('Views')}: {place.viewCount ?? 0} · {copy('5argny taps')}: {place.directionsCount ?? 0}</p>
-                        </div>
+                        </Link></div><p data-slot="place-row-details" className="mt-1 line-clamp-2 text-xs leading-4 text-muted-foreground tabular-nums">
+                          <span data-place-detail="photos" title={`${copy('Photos')}: ${place._count?.images ?? copy('None')}`}>{copy('Photos')}: {place._count?.images ?? copy('None')}</span>
+                          <span data-place-detail="price" title={`${copy('Price')}: ${place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}`}>{copy('Price')}: {place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</span>
+                          <span data-place-detail="owner" title={`${copy('Subscriber')}: ${place.subscriber?.name ?? '—'}`}>{copy('Subscriber')}: {place.subscriber?.name ?? '—'}</span>
+                          <span data-place-detail="city" title={`${pickName(place.city?.name, place.city?.nameEn, lang)} · ${pickName(place.category?.nameAr, place.category?.nameEn, lang)}`}>{pickName(place.city?.name, place.city?.nameEn, lang)} · {pickName(place.category?.nameAr, place.category?.nameEn, lang)}</span>
+                          <span data-place-detail="metrics">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} · {copy('Saves')}: {place.saveCount ?? 0} · {copy('Views')}: {place.viewCount ?? 0} · {copy('5argny taps')}: {place.directionsCount ?? 0}</span>
+                        </p>
                       </TableCell>
                       <TableCell data-place-field="city" className="text-muted-foreground"><p className="line-clamp-1 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{pickName(place.city?.name, place.city?.nameEn, lang)}</p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
-                      <TableCell data-place-field="owner" className="text-muted-foreground">{place.subscriber ? <Link className="line-clamp-2 leading-4 hover:underline" title={place.subscriber.name} href={`/dashboard/subscribers/${place.subscriber.id}`}>{place.subscriber.name}</Link>: '—'}</TableCell>
+                      <TableCell data-place-field="owner" className="text-muted-foreground">{place.subscriber ? <Link className="block truncate leading-4 hover:underline" title={place.subscriber.name} href={`/dashboard/subscribers/${place.subscriber.id}`}>{place.subscriber.name}</Link>: '—'}</TableCell>
                       <TableCell data-place-field="price" className="text-muted-foreground">{place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</TableCell>
                       <TableCell data-place-field="status" column="status">
-                        {deletedAt ? (
-                          <StatusBadge status="deleted" data-trace-id={`place-list-status-deleted-${place.id}`} />
-                        ) : (
-                          <div className="space-y-0.5"><StatusBadge status={placePublicState(place).tone}><DashboardText>{placePublicState(place).label}</DashboardText></StatusBadge>{place.publicState && placePublicState(place).tone === 'paused' && <p className="text-[10px] leading-3 text-muted-foreground"><DashboardText>Not shown: no approved media</DashboardText></p>}</div>
-                        )}
+                        <PlacePublicStatus place={place} />
                       </TableCell>
                       <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{engagementNumber(place.likeCount, lang)}</TableCell>
                       <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{place.saveCount ?? 0}</TableCell>
                       <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{place.viewCount ?? 0}</TableCell>
                       <TableCell data-place-field="directions" className="text-end tabular-nums text-muted-foreground">{place.directionsCount ?? 0}</TableCell>
                       <TableCell data-place-field="photos" className="text-end text-muted-foreground tabular-nums">{place._count?.images ?? <DashboardText>None</DashboardText>}</TableCell>
+                      <TableCell data-place-field="metrics"><p data-slot="place-phone-metrics" className="text-xs leading-4 tabular-nums text-muted-foreground">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} · {copy('Saves')}: {place.saveCount ?? 0} · {copy('Views')}: {place.viewCount ?? 0} · {copy('5argny taps')}: {place.directionsCount ?? 0}</p></TableCell>
                       <TableCell data-place-field="actions" column="actions" className="text-end">
                         <RowActions recordName={pickName(place.name, place.nameEn, lang)} actions={[
                           { label: canWrite ? 'Edit' : 'View', icon: <Pencil aria-hidden="true" />, href: `/dashboard/places/${place.id}`, traceId: `place-list-edit-${place.id}` },

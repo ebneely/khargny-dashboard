@@ -53,10 +53,7 @@ export const round8Copy: Record<string, string> = {
   "Deactivate selected places?": "تعطيل الأماكن المحددة؟",
   "Hidden from visitors; promotions pause; the subscription is untouched.": "تُخفى عن الزوار وتتوقف ترويجاتها، دون تغيير الاشتراك.",
   "These places become active. Visitor visibility still depends on approved media.": "تصبح هذه الأماكن نشطة. ظهورها للزوار يظل مرتبطًا بالوسائط المعتمدة.",
-  "Deactivation reason": "سبب التعطيل",
-  "Enter a reason before deactivating places.": "اكتب سببًا قبل تعطيل الأماكن.",
-  "Confirm place status": "تأكيد حالة الأماكن",
-  "Could not change places. Selection and reason are kept.": "تعذّر تغيير الأماكن. احتفظنا بالتحديد والسبب.",
+  "Could not change places. Selection is kept.": "تعذّر تغيير الأماكن. احتفظنا بالتحديد.",
   "Place status results": "نتائج تغيير حالة الأماكن",
   "Successful places are unticked. Places that could not change stay selected.": "أُلغي تحديد الأماكن التي تغيرت بنجاح. الأماكن التي تعذّر تغييرها تظل محددة.",
   "Could not change": "تعذّر التغيير",
@@ -64,5 +61,8 @@ export const round8Copy: Record<string, string> = {
   "Live activity is switched off. Historical reports are still available.": "النشاط المباشر متوقف. التقارير السابقة ما زالت متاحة.",
   "estimated visitor": "زائر تقديري",
   "Done": "تم",
+  "Not shown": "غير ظاهر",
+  "No approved media": "لا توجد وسائط معتمدة",
+  "Merged into another place": "مدمج في مكان آخر",
   "Records": "السجلات"
 };
