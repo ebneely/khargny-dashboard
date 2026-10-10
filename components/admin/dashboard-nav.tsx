@@ -1,6 +1,7 @@
 'use client';
 
 import { useDashboardCopy } from '@/components/admin/dashboard-text';
+import { Award } from 'lucide-react';
 
 import { ProfileHeader } from '@/components/auth/profile-header';
 import { Button } from '@/components/ui/button';
@@ -36,10 +37,14 @@ import {
  * whole dashboard down. So the layout hands over a plain string `iconName` and the mapping
  * to an actual component happens here, on the client.
  */
+const ROUND6B_ICONS = { badges: Award } satisfies Record<string, LucideIcon>;
+
 const ICONS = {
   home: LayoutDashboard,
   storefront: Store,
   ads: Megaphone,
+  // Round 6A: Analytics icon.
+  analytics: LayoutDashboard,
   places: MapPin,
   cities: Building2,
   categories: Shapes,
@@ -48,6 +53,7 @@ const ICONS = {
   admins: Users,
   subscribers: ContactRound,
   settings: Settings,
+  ...ROUND6B_ICONS,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconName = keyof typeof ICONS;
@@ -176,7 +182,12 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   );
 }
 
+const ROUND6B_NAV_AR = { badges: 'الشارات' };
+
 const NAV_AR: Record<NavIconName, string> = {
+  // Round 6A: Analytics copy.
+  analytics: 'التحليلات',
+  ...ROUND6B_NAV_AR,
   home: 'الرئيسية', subscribers: 'المشتركون', ads: 'الإعلانات', storefront: 'واجهة الموقع',
   places: 'الأماكن', cities: 'المدن', categories: 'التصنيفات', amenities: 'المرافق', tags: 'الوسوم',
   admins: 'المسؤولون', settings: 'الإعدادات',

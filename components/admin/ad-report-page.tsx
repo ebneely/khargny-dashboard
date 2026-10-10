@@ -1,6 +1,8 @@
 'use client';
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
+import { RecordList } from './record-list';
+import { RecordCell } from './record-cell';
 import * as React from 'react';
 
 import { ArrowLeft, CalendarDays, Printer } from 'lucide-react';
@@ -106,7 +108,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
         <CardHeader><CardTitle><DashboardText>Daily detail</DashboardText></CardTitle></CardHeader>
         <CardContent>
           {days.length > 0 ? (
-            <Table className="min-w-[680px]">
+            <RecordList scope="report-days" records={days} searchText={(day) => day.date} filters={[{ key: 'delivery', label: 'All delivery', options: [{ value: 'shown', label: 'With shows' }, { value: 'unseen', label: 'Without shows' }], value: (day) => day.impressions ? 'shown' : 'unseen' }]} render={(visible) => <Table layout="list">
               <TableHeader><TableRow>
                 <TableHead><DashboardText>Date</DashboardText></TableHead>
                 <TableHead className="text-right"><DashboardText>Impressions</DashboardText></TableHead>
@@ -114,16 +116,18 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
                 <TableHead className="text-right"><DashboardText>CTR</DashboardText></TableHead>
                 <TableHead className="text-right"><DashboardText>Reach</DashboardText></TableHead>
               </TableRow></TableHeader>
-              <TableBody>{days.map((day) => (
+              <TableBody>{visible.map((day) => (
                 <TableRow key={day.date}>
-                  <TableCell>{formatDate(day.date)}</TableCell>
+                  <TableCell><RecordCell icon="calendar" name={formatDate(day.date)} /><dl className="mt-2 grid grid-cols-2 gap-2 text-sm sm:hidden">{[
+                    ['Impressions', formatCount(day.impressions)], ['Taps', formatCount(day.taps)], ['CTR', formatCtr(day.ctr)], ['Reach', formatCount(day.reach)],
+                  ].map(([label, value]) => <div key={label}><dt className="text-muted-foreground"><DashboardText>{label}</DashboardText></dt><dd className="tabular-nums">{value}</dd></div>)}</dl></TableCell>
                   <TableCell className="text-right tabular-nums">{formatCount(day.impressions)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatCount(day.taps)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatCtr(day.ctr)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatCount(day.reach)}</TableCell>
                 </TableRow>
               ))}</TableBody>
-            </Table>
+            </Table>} />
           ) : <p className="py-8 text-center text-sm text-muted-foreground"><DashboardText>No daily rows yet.</DashboardText></p>}
         </CardContent>
       </Card>

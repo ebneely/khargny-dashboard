@@ -1,3 +1,5 @@
+import type { PlaceListMedia } from '@/lib/place-list';
+
 export interface HomeSection {
   id: string;
   key: string;
@@ -8,7 +10,7 @@ export interface HomeSection {
   enabled: boolean;
 }
 
-export interface HomePin {
+export interface HomePin extends PlaceListMedia {
   id: string;
   name: string;
   nameEn: string | null;

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { PageActions } from './page-actions';
+import { ActionBarNavigation } from './form-action-bar';
 import { ContactRound } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +14,7 @@ import { SubscriberProfileForm } from './subscriber-profile-form';
 import { SubscriberSubscriptions } from './subscriber-subscriptions';
 import { SubscriberBrand } from './subscriber-brand';
 import { TrialBadge } from './trial-badge';
+import { PlanChip } from './plan-choices';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
@@ -25,7 +27,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
   const resource = useSubscriberResource(load);
   const subscriber = resource.data;
   const canWrite = mayWrite && (!subscriberId || (!resource.loading && !resource.error));
-  return <div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+  return <ActionBarNavigation fallback={!canWrite} links={[{ label: 'Back to subscribers', href: '/dashboard/subscribers' }]}><div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
     <header>
       <PageActions form actions={[{ label: 'Back to subscribers', href: "/dashboard/subscribers", readOnly: true }]} />
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
@@ -33,7 +35,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{subscriber?.name ?? text(subscriberId ? 'Subscriber' : 'New subscriber', subscriberId ? 'المشترك' : 'مشترك جديد')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{text('Manage details, places, subscriptions, visits, account and pricing.', 'إدارة البيانات والأماكن والاشتراكات والزيارات والحساب والأسعار.')}</p>
         </div>
-        {subscriber && <div className="flex flex-wrap items-center gap-3"><SubscriberBrand isBrand={subscriber.isBrand} /><StatusBadge status={subscriber.status} /><TrialBadge planName={subscriber.currentSubscription?.planName} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
+        {subscriber && <div className="flex flex-wrap items-center gap-3"><SubscriberBrand isBrand={subscriber.isBrand} /><StatusBadge status={subscriber.status} /><PlanChip plan={subscriber.currentSubscription?.plan} /><TrialBadge planName={subscriber.currentSubscription?.planName} planKind={subscriber.currentSubscription?.planKind} /><span className="text-sm">{text('Paid total', 'إجمالي المدفوع')}: <MoneyText value={subscriber.paidTotal} /></span></div>}
       </div>
     </header>
     {subscriberId && resource.loading && <LoadingState />}
@@ -64,5 +66,5 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
         {subscriber.places.map((place, placeIndex) => <section key={place.id} className="space-y-3"><h3 className="font-semibold">{pick(place.name, place.nameEn)}</h3><PlaceMenuEditor placeId={place.id} canWrite={canWrite} primaryAction={placeIndex === 0} onChanged={resource.refreshAfterSave} /></section>)}
       </UrlTabsContent>
     </UrlTabs>}
-  </div>;
+  </div></ActionBarNavigation>;
 }

@@ -4,7 +4,7 @@ import { PageActions } from './page-actions';
 import { StatusBadge } from './subscriber-ui';
 import { RecordCell } from '@/components/admin/record-cell';
 import { DateCell } from './date-cell';
-import { Pager } from './pager';
+import { RecordList } from './record-list';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { useState } from 'react';
@@ -24,11 +24,10 @@ import { CreateApiKeyDialog } from './create-api-key-dialog';
 export function ApiKeysScreen() {
   const controlCopy = useDashboardCopy();
   const lang = useOptionalDashboardLang()?.lang ?? 'en';
-  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [revoking, setRevoking] = useState<ApiKey | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
-  const keys = useApiKeys(page);
+  const keys = useApiKeys(1, true);
   const session = useCurrentSession();
   const role = session.data?.user.role ?? '';
   const canCreate = !session.isLoading && !session.isError && ['viewer', 'admin', 'super_admin'].includes(role);
@@ -78,12 +77,12 @@ export function ApiKeysScreen() {
           ) : !keys.data?.data.length ? (
             <div className="rounded-md border border-dashed p-8 text-center" role="status"><p className="font-medium"><DashboardText>No keys on this page</DashboardText></p><p className="mt-2 text-sm text-muted-foreground"><DashboardText>Create a named key for each AI assistant so you can revoke access independently.</DashboardText></p></div>
           ) : (
-            <Table layout="list">
+            <RecordList scope="api-keys" records={keys.data.data} searchText={(key) => [key.name, key.prefix, key.owner?.email].join(' ')} filters={[{ key: 'status', label: 'Any status', options: [{ value: 'active', label: 'Active' }, { value: 'expired', label: 'Expired' }, { value: 'revoked', label: 'Revoked' }], value: (key) => key.status }]} render={(visible) => <Table layout="list">
               <TableHeader><TableRow><TableHead><DashboardText>Name / prefix</DashboardText></TableHead><TableHead><DashboardText>Permissions</DashboardText></TableHead><TableHead><DashboardText>Created</DashboardText></TableHead><TableHead><DashboardText>Last used</DashboardText></TableHead><TableHead><DashboardText>Expires</DashboardText></TableHead><TableHead column="status"><DashboardText>Status</DashboardText></TableHead><TableHead className="text-right" column="actions"><DashboardText>Action</DashboardText></TableHead></TableRow></TableHeader>
               <TableBody>
-                {keys.data.data.map((key) => (
+                {visible.map((key) => (
                   <TableRow key={key.id}>
-                    <TableCell><RecordCell name={key.name} /><code className="hidden text-xs text-muted-foreground sm:inline">{key.prefix}…</code>{role === 'super_admin' && key.owner && <p className="hidden max-w-48 truncate text-xs text-muted-foreground sm:block" title={key.owner.email}><DashboardText>Owner:</DashboardText> {key.owner.email}</p>}</TableCell>
+                    <TableCell><RecordCell icon="key" name={key.name} /><code className="hidden text-xs text-muted-foreground sm:inline">{key.prefix}…</code>{role === 'super_admin' && key.owner && <p className="hidden max-w-48 truncate text-xs text-muted-foreground sm:block" title={key.owner.email}><DashboardText>Owner:</DashboardText> {key.owner.email}</p>}</TableCell>
                     <TableCell><div className="flex gap-1">{key.scopes.map((scope) => <Badge key={scope} variant="outline">{scope === 'write' ? 'edit' : scope}</Badge>)}</div></TableCell>
                     <TableCell className="whitespace-nowrap text-xs"><DateCell value={key.createdAt} /></TableCell>
                     <TableCell className="whitespace-nowrap text-xs">{key.lastUsedAt ? <DateCell value={key.lastUsedAt} /> : <DashboardText>Never</DashboardText>}</TableCell>
@@ -93,10 +92,9 @@ export function ApiKeysScreen() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table>} />
           )}
           <p className="text-sm text-muted-foreground"><DashboardText>Revoked keys stay visible.</DashboardText></p>
-          <Pager skip={(page - 1) * 25} pageSize={25} total={keys.data?.meta.total ?? 0} count={keys.data?.data.length ?? 0} busy={keys.isLoading} error={keys.isError} nextDisabled={!keys.data?.meta.has_more} onPrevious={() => setPage((current) => Math.max(1, current - 1))} onNext={() => setPage((current) => current + 1)} />
         </CardContent>
       </Card>
       {creating && <CreateApiKeyDialog role={role} onClose={() => { setCreating(false); void keys.refetch(); }} onCreated={() => { void keys.refetch(); }} />}

@@ -34,6 +34,7 @@ import { useAdminTags } from '@/lib/api/hooks/use-admin-tags';
 import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { PlaceMenuTab } from '@/components/admin/place-menu-page';
+import { PlaceBadgesTab } from '@/components/admin/place-badges-tab';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
@@ -211,7 +212,7 @@ export default function EditPlacePage() {
         <PageActions form actions={[{ label: "Cancel", href: "/dashboard/places", readOnly: true }]} />
       </div>
 
-      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu", "ads"]}>
+      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu", "ads", "badges"]}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
           <TabsTrigger value="amenities">{lang === 'ar' ? 'المرافق' : 'Amenities'}</TabsTrigger>
@@ -220,6 +221,7 @@ export default function EditPlacePage() {
           <TabsTrigger value="photos">{lang === "ar" ? "الوسائط" : "Media"}</TabsTrigger>
           <TabsTrigger value="menu">{lang === "ar" ? "الأسعار" : "Pricing"}</TabsTrigger>
           <TabsTrigger value="ads">{controlCopy("Ads")}</TabsTrigger>
+          <TabsTrigger value="badges">{controlCopy('Badges')}</TabsTrigger>
         </TabsList>
 
         <TabsContent keepMounted value="details">
@@ -911,6 +913,7 @@ export default function EditPlacePage() {
         </TabsContent>
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="ads" lazy><PlaceAdsTab placeId={id} canWrite={!readOnly && !isSoftDeleted} promotions={place.promotions} /></UrlTabsContent>
+        <UrlTabsContent value="badges" lazy><PlaceBadgesTab placeId={id} /></UrlTabsContent>
       </UrlTabs>
 
       {/* Image preview lightbox — click any photo to view it large. */}

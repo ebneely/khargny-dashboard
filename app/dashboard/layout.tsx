@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { DashboardHomeLink } from "@/components/admin/dashboard-text";
 import Image from "next/image";
@@ -21,6 +22,9 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", iconName: "home" },
   { href: "/dashboard/subscribers", label: "Subscribers", iconName: "subscribers", group: "sales" },
   { href: "/dashboard/ads", label: "Ads", iconName: "ads", group: "sales" },
+  // Round 6A: Analytics navigation (independent of Plans and Badges).
+  { href: "/dashboard/analytics", label: "Analytics", iconName: "analytics", group: "sales" },
+  // End Round 6A navigation.
   { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront", group: "sales" },
   { href: "/dashboard/places", label: "Places", iconName: "places", group: "content" },
   { href: "/dashboard/cities", label: "Cities", iconName: "cities", group: "content" },
@@ -29,6 +33,10 @@ const NAV_ITEMS = [
   { href: "/dashboard/tags", label: "Tags", iconName: "tags", group: "content" },
   { href: "/dashboard/admins", label: "Admins", iconName: "admins", group: "team", superAdminOnly: true },
   { href: "/dashboard/settings", label: "Settings", iconName: "settings", group: "team" },
+] as const;
+
+const ROUND6B_CONTENT_ITEMS = [
+  { href: '/dashboard/badges', label: 'Badges', iconName: 'badges', group: 'content' },
 ] as const;
 
 export default async function DashboardLayout({
@@ -41,7 +49,8 @@ export default async function DashboardLayout({
   // A viewer sees everything and can change nothing — the gate disables every field and
   // button in the content area while leaving the nav live.
   const isViewer = session?.user?.role === "viewer";
-  const navItems: NavItem[] = NAV_ITEMS.filter(
+  const badgesPosition = NAV_ITEMS.findIndex((item) => item.href === '/dashboard/tags') + 1;
+  const navItems: NavItem[] = [...NAV_ITEMS.slice(0, badgesPosition), ...ROUND6B_CONTENT_ITEMS, ...NAV_ITEMS.slice(badgesPosition)].filter(
     (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
   ).map((item) => ({ href: item.href, label: item.label, iconName: item.iconName, group: "group" in item ? item.group : undefined }));
 
@@ -91,7 +100,7 @@ export default async function DashboardLayout({
             360px phone, where it cost nearly a fifth of the width. min-w-0 lets wide tables
             scroll inside the main column instead of stretching the page. */}
         <main className="min-w-0 flex-1 bg-background px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-          <ReadOnlyGate readOnly={isViewer}>{children}</ReadOnlyGate>
+          <ReadOnlyGate readOnly={isViewer}><Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-muted" />}>{children}</Suspense></ReadOnlyGate>
         </main>
       </div>
     </DashboardLangProvider>

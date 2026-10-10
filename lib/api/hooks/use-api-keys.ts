@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi } from '../admin-client';
 import { publicApiKey, type ApiKeyList } from '../api-keys';
 
-export function useApiKeys(page: number) {
+export function useApiKeys(page: number, all = false) {
   const [data, setData] = useState<ApiKeyList | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -15,7 +15,18 @@ export function useApiKeys(page: number) {
     setIsLoading(true);
     setIsError(false);
     try {
-      const result = await adminApi.get<ApiKeyList>('/v1/admin/api-keys', { page, limit: 25 });
+      const result = await adminApi.get<ApiKeyList>('/v1/admin/api-keys', { page: all ? 1 : page, limit: 25 });
+      if (all) {
+        let nextPage = 2;
+        let hasMore = result.meta.has_more;
+        while (hasMore) {
+          const next = await adminApi.get<ApiKeyList>('/v1/admin/api-keys', { page: nextPage++, limit: 25 });
+          if (!next.data.length) throw new Error('Incomplete key list');
+          result.data.push(...next.data);
+          hasMore = next.meta.has_more;
+        }
+        result.meta = { ...result.meta, total: result.data.length, has_more: false };
+      }
       if (request !== requests.current.generation) return;
       setData({ ...result, data: result.data.map(publicApiKey) });
     } catch {
@@ -23,7 +34,7 @@ export function useApiKeys(page: number) {
     } finally {
       if (request === requests.current.generation) setIsLoading(false);
     }
-  }, [page]);
+  }, [page, all]);
 
   useEffect(() => {
     const state = requests.current;

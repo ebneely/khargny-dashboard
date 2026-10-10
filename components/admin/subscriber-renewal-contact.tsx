@@ -12,7 +12,7 @@ import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { isEgyptianMobile, type SubscriberSettings } from '@/lib/api/subscribers';
 import { Field, LoadingState, RequestError, SavedRefreshError, subscriberError, subscriberValidation, useSubscriberText } from './subscriber-ui';
 
-export function SubscriberRenewalContact({ canWrite }: { canWrite: boolean }) {
+export function SubscriberRenewalContact({ canWrite, active = true, onEdit }: { canWrite: boolean; active?: boolean; onEdit?: () => void }) {
   const { text, lang } = useSubscriberText();
   const load = React.useCallback(() => adminApi.get<SubscriberSettings>('/v1/admin/subscribers/settings'), []);
   const resource = useSubscriberResource(load);
@@ -28,12 +28,12 @@ export function SubscriberRenewalContact({ canWrite }: { canWrite: boolean }) {
     <CardContent>
       {resource.loading ? <LoadingState /> : resource.error ?
         <RequestError message={subscriberError(resource.error, lang)} retry={() => { void resource.refetch(); }} /> :
-        resource.data && <RenewalContactForm settings={resource.data} canWrite={canWrite} />}
+        resource.data && <RenewalContactForm settings={resource.data} canWrite={canWrite} active={active} onEdit={onEdit} />}
     </CardContent>
   </Card>;
 }
 
-function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettings; canWrite: boolean }) {
+function RenewalContactForm({ settings, canWrite, active, onEdit }: { settings: SubscriberSettings; canWrite: boolean; active: boolean; onEdit?: () => void }) {
   const controlCopy = useDashboardCopy();
   const { text, lang } = useSubscriberText();
   const [phone, setPhone] = React.useState(settings.renewalPhone ?? '');
@@ -101,6 +101,7 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
       {fields.map((field) => <Field key={field.name} label={field.label} error={fieldErrors[field.name]}>
         <Input name={field.name} type="tel" dir="ltr" autoComplete="tel" value={field.value}
           placeholder={controlCopy("01XXXXXXXXX")} onChange={(event) => {
+            onEdit?.();
             field.update(event.target.value);
             setSaved(false);
             setError('');
@@ -108,7 +109,7 @@ function RenewalContactForm({ settings, canWrite }: { settings: SubscriberSettin
       </Field>)}
     </fieldset>
     <div className="flex flex-wrap items-center gap-3">
-      <FormActionBar dirty={formChanges.dirty} saving={busy} error={error || (refreshFailed ? text('Saved, but could not refresh. Retry before saving again.', 'تم الحفظ لكن تعذر التحديث. أعد المحاولة قبل الحفظ مجدداً.') : '')} disabled={refreshFailed} cancelHref="/dashboard/subscribers" primaryLabel={text('Save renewal contact', 'حفظ جهة اتصال التجديد')} />
+      <FormActionBar active={active} dirty={formChanges.dirty} saving={busy} error={error || (refreshFailed ? text('Saved, but could not refresh. Retry before saving again.', 'تم الحفظ لكن تعذر التحديث. أعد المحاولة قبل الحفظ مجدداً.') : '')} disabled={refreshFailed} cancelHref="/dashboard/subscribers" primaryLabel={text('Save renewal contact', 'حفظ جهة اتصال التجديد')} />
       {saved && <p role="status" className="text-sm text-green-700 dark:text-green-400">{text('Renewal contact saved', 'تم حفظ جهة اتصال التجديد')}</p>}
     </div>
     {error && <RequestError message={error} />}

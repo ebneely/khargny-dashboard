@@ -106,6 +106,7 @@ export interface AdminCityList {
 }
 
 export interface AdminCityFilters {
+  search?: string;
   region?: string;
   status?: string;
   skip?: number;

@@ -1,6 +1,9 @@
 'use client';
 
 import { DashboardText } from '@/components/admin/dashboard-text';
+import { RecordList } from '../record-list';
+import { RecordCell } from '../record-cell';
+import { placeCover } from '@/lib/place-list';
 import * as React from 'react';
 import {
   Eye,
@@ -37,8 +40,8 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
   const { data, isLoading, isError, refetch } = useAnalyticsOverview();
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
 
-  const label = (ar: string | null, en: string | null, fallback: string) =>
-    (lang === 'ar' ? ar || en : en || ar) || fallback;
+  const label = React.useCallback((ar: string | null, en: string | null, fallback: string) =>
+    (lang === 'ar' ? ar || en : en || ar) || fallback, [lang]);
 
   const cityRows: RankedRow[] = React.useMemo(
     () =>
@@ -50,7 +53,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           meta: `${c.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
         .sort((a, b) => b.value - a.value),
-    [data, measure, lang],
+    [data, measure, lang, label],
   );
 
   const regionRows: RankedRow[] = React.useMemo(
@@ -171,6 +174,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
               <BarsSkeleton />
             ) : (
               <RankedBars
+                scope="home-cities"
                 rows={cityRows}
                 valueLabel={measure}
                 emptyLabel="No cities yet."
@@ -182,6 +186,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
               <BarsSkeleton />
             ) : (
               <RankedBars
+                scope="home-areas"
                 rows={regionRows}
                 valueLabel={measure}
                 emptyLabel="No places have an area set yet."
@@ -198,58 +203,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
             <DashboardText>Most-viewed places</DashboardText>
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[540px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th scope="col" className="px-4 py-2 font-medium sm:px-5"><DashboardText>Place</DashboardText></th>
-                <th scope="col" className="px-4 py-2 font-medium"><DashboardText>City</DashboardText></th>
-                <th scope="col" className="px-4 py-2 text-right font-medium"><DashboardText>Views</DashboardText></th>
-                <th scope="col" className="px-4 py-2 text-right font-medium"><DashboardText>Saves</DashboardText></th>
-                <th scope="col" className="px-4 py-2 pe-4 text-right font-medium sm:pe-5">
-                  <DashboardText>Directions</DashboardText>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-border last:border-0">
-                    <td colSpan={5} className="px-4 py-3 sm:px-5">
-                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                    </td>
-                  </tr>
-                ))
-              ) : (data?.topPlaces?.length ?? 0) === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground sm:px-5">
-                    <DashboardText>No places yet.</DashboardText>
-                  </td>
-                </tr>
-              ) : (
-                data?.topPlaces.map((p) => (
-                  <tr key={p.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3 font-medium text-foreground sm:px-5">
-                      {label(p.name, p.nameEn, p.slug)}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {label(p.cityAr, p.cityEn, '—')}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-foreground">
-                      {p.views.toLocaleString('en-US')}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-foreground">
-                      {p.saves.toLocaleString('en-US')}
-                    </td>
-                    <td className="px-4 py-3 pe-4 text-right tabular-nums text-foreground sm:pe-5">
-                      {p.directions.toLocaleString('en-US')}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <div className="min-w-0 p-4 sm:p-5"><RecordList scope="home-top" records={data?.topPlaces ?? []} busy={isLoading} searchText={(place) => [place.name, place.nameEn, place.cityAr, place.cityEn].join(' ')} filters={[{ key: 'city', label: 'All cities', options: Array.from(new Map((data?.topPlaces ?? []).map((place) => [place.cityAr ?? '', { value: place.cityAr ?? '', label: label(place.cityAr, place.cityEn, '—') }])).values()).filter((option) => option.value), value: (place) => place.cityAr ?? '' }]} render={(visible) => <ul className="divide-y">{visible.map((place) => <li key={place.id} className="space-y-3 py-3"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} context={label(place.cityAr, place.cityEn, '—')} /><dl className="grid grid-cols-3 gap-3 text-sm">{(['views', 'saves', 'directions'] as const).map((metric) => <div key={metric}><dt className="text-muted-foreground"><DashboardText>{metric === 'views' ? 'Views' : metric === 'saves' ? 'Saves' : 'Directions'}</DashboardText></dt><dd className="tabular-nums">{place[metric].toLocaleString(lang)}</dd></div>)}</dl></li>)}</ul>} /></div>
       </section>
 
       {/* What the numbers mean, from the API itself — so this caption cannot drift out of

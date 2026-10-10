@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '../admin-client';
+import type { PlaceListMedia } from '@/lib/place-list';
 
 export interface AnalyticsTotals {
   places: number;
@@ -23,7 +24,7 @@ export interface AnalyticsBreakdownRow {
   directions: number;
 }
 
-export interface AnalyticsTopPlace {
+export interface AnalyticsTopPlace extends PlaceListMedia {
   id: string;
   slug: string;
   name: string;
@@ -72,7 +73,8 @@ export function useAnalyticsOverview() {
   }, []);
 
   useEffect(() => {
-    fetch();
+    const timer = window.setTimeout(() => { void fetch(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };

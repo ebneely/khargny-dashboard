@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
+const loopbackOrigins = Array.from(new Set([
+  process.env.NEXT_PUBLIC_API_URL,
+  process.env.NEXT_PUBLIC_BACKEND_BASE_URL,
+].flatMap(value => {
+  if (!value) return [];
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) && !url.username && !url.password ? [url.origin] : [];
+  } catch { return []; }
+})));
+const localSources = loopbackOrigins.length ? ` ${loopbackOrigins.join(" ")}` : "";
 
 // Security headers, same baseline as MiniRue's dashboard (security level Medium).
 // frame-ancestors/object-src/base-uri/form-action are strict: they do not affect rendering.
@@ -18,13 +29,13 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   // Place/city photos come from the storage and imgproxy hosts; uploads preview as blob:.
-  "img-src 'self' data: blob: https:",
-  "media-src 'self' blob: https:",
+  `img-src 'self' data: blob: https:${localSources}`,
+  `media-src 'self' blob: https:${localSources}`,
   "font-src 'self' data:",
-  `connect-src 'self' https:${isProd ? "" : " ws: wss: http:"}`,
+  `connect-src 'self' https:${localSources}${isProd ? "" : " ws: wss: http:"}`,
   "frame-src 'none'",
   "worker-src 'self' blob:",
-  ...(isProd ? ["upgrade-insecure-requests"] : []),
+  ...(isProd && !loopbackOrigins.length ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const securityHeaders = [

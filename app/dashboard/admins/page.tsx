@@ -4,7 +4,7 @@ import { PageActions } from '@/components/admin/page-actions';
 
 import { RecordCell } from '@/components/admin/record-cell';
 import { DateCell } from '@/components/admin/date-cell';
-import { Pager } from '@/components/admin/pager';
+import { RecordList } from '@/components/admin/record-list';
 import { RowActions } from '@/components/admin/row-actions';
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
@@ -29,7 +29,6 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { adminApi } from '@/lib/api/admin-client';
 import type { Admin } from '@/lib/api/types';
 
-const PAGE_SIZE = 20;
 
 function roleLabel(r: Admin['role']): string {
   if (r === 'super_admin') return 'Super admin';
@@ -47,23 +46,19 @@ function statusBadge(s: Admin['status']) {
 
 export default function AdminsPage() {
   const router = useRouter();
-  const [page, setPage] = useState(0);
   const [pendingDisable, setPendingDisable] = useState<Admin | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Admin | null>(null);
   const [pendingEnable, setPendingEnable] = useState<Admin | null>(null);
   const [actionInFlight, setActionInFlight] = useState<Admin | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const skip = page * PAGE_SIZE;
-  const { data, isLoading, isError, refetch } = useAdmins({ skip, limit: PAGE_SIZE });
+  const { data, isLoading, isError, refetch } = useAdmins({}, true);
   const { data: session } = useCurrentSession();
 
   const currentUserId = session?.user.id;
   const currentUserRole = session?.user.role;
   const isSuperadmin = currentUserRole === 'super_admin';
 
-  const totalLoaded = data?.items.length ?? 0;
-  const hasNext = totalLoaded === PAGE_SIZE;
 
   const handleDelete = async (admin: Admin) => {
     setActionInFlight(admin);
@@ -187,7 +182,7 @@ export default function AdminsPage() {
               </div>
             ) : data && data.items.length > 0 ? (
               <>
-                <Table layout="list">
+                <RecordList scope="admins" records={data.items} searchText={(admin) => admin.email} filters={[{ key: 'role', label: 'All roles', options: [{ value: 'super_admin', label: 'Super admin' }, { value: 'admin', label: 'Admin' }, { value: 'viewer', label: 'Viewer' }], value: (admin) => (admin.role as string) === 'editor' ? 'admin' : admin.role }, { key: 'status', label: 'Any status', options: [{ value: 'active', label: 'Active' }, { value: 'disabled', label: 'Disabled' }], value: (admin) => admin.status }]} render={(visible) => <Table layout="list">
                   <TableHeader>
                     <TableRow>
                       <TableHead><DashboardText>Email</DashboardText></TableHead>
@@ -199,7 +194,7 @@ export default function AdminsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.items.map((admin) => {
+                    {visible.map((admin) => {
                       const isSelf = currentUserId === admin.id;
                       return (
                         <TableRow key={admin.id}>
@@ -233,9 +228,8 @@ export default function AdminsPage() {
                       );
                     })}
                   </TableBody>
-                </Table>
+                </Table>} />
 
-                <Pager skip={skip} pageSize={PAGE_SIZE} total={undefined} count={totalLoaded} onPrevious={() => setPage((current) => Math.max(0, current - 1))} onNext={() => setPage((current) => current + 1)} nextDisabled={!hasNext} />
               </>
             ) : (
               <div className="text-center py-12">

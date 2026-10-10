@@ -4,13 +4,15 @@ export class AdminApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly fields: Record<string, string>;
+  readonly usedOn: string | null;
 
-  constructor(status: number, body: { error?: { code?: string; message?: string; fields?: Record<string, string> } } | null) {
+  constructor(status: number, body: { error?: { code?: string; message?: string; fields?: Record<string, string>; usedOn?: string } } | null) {
     super(body?.error?.message || `Request failed with status ${status}`);
     this.name = 'AdminApiError';
     this.status = status;
     this.code = body?.error?.code || 'UNKNOWN_ERROR';
     this.fields = body?.error?.fields ?? {};
+    this.usedOn = body?.error?.usedOn ?? null;
   }
 }
 
@@ -81,7 +83,7 @@ interface RequestOptions {
 interface ApiEnvelope<T> {
   success?: boolean;
   data?: T;
-  error?: { code?: string; message?: string; fields?: Record<string, string> };
+  error?: { code?: string; message?: string; fields?: Record<string, string>; usedOn?: string };
 }
 
 async function doFetch(method: string, url: string, opts?: RequestOptions) {

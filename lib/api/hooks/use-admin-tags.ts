@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { adminApi } from '../admin-client';
+import { adminApi, toList } from '../admin-client';
 import type { AdminTag } from '../types';
 
 export function useAdminTags() {
@@ -15,8 +15,14 @@ export function useAdminTags() {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AdminTag[]>('/v1/admin/tags');
-      setData(result);
+      const rows: AdminTag[] = [];
+      while (true) {
+        const page = toList<AdminTag>(await adminApi.get('/v1/admin/tags', { skip: rows.length, limit: 200 }));
+        rows.push(...page.items);
+        if (rows.length >= page.total) break;
+        if (!page.items.length) throw new Error('Incomplete keyword list');
+      }
+      setData(rows);
     } catch (e) {
       setIsError(true);
       setError(e as Error);
@@ -25,7 +31,11 @@ export function useAdminTags() {
     }
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    let subscribed = true;
+    queueMicrotask(() => { if (subscribed) void fetch(); });
+    return () => { subscribed = false; };
+  }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }
@@ -52,7 +62,10 @@ export function useAdminTag(id: string) {
     }
   }, [id]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetch(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetch]);
 
   return { data, isLoading, isError, error, refetch: fetch };
 }

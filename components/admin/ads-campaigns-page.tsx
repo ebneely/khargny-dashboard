@@ -1,6 +1,8 @@
 'use client';
 
 import { RecordCell } from './record-cell';
+import { RecordList } from './record-list';
+import { placeCover } from '@/lib/place-list';
 import { DateRange } from './date-cell';
 import { RowActions, type RowAction } from './row-actions';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
@@ -136,7 +138,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
               <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book space.</DashboardText></p>
             </div>
           ) : (
-            <Table layout="campaigns">
+            <RecordList scope="campaigns" records={campaigns} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.advertiserPhone ?? ''}`} filters={[{ key: 'placement', label: 'All surfaces', options: [{ value: 'featured', label: 'Home Featured rail' }, { value: 'top10', label: 'City Top 10' }], value: (campaign) => campaign.placement }]} render={(visible) => <Table layout="campaigns">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Place</DashboardText></TableHead>
@@ -152,11 +154,11 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {campaigns.map((campaign) => (
+                {visible.map((campaign) => (
                   <TableRow key={campaign.id}>
                     <TableCell>
                       <Link href={canWrite ? `/dashboard/ads/${campaign.id}` : `/dashboard/ads/${campaign.id}/report`} className="font-medium hover:text-primary">
-                        <RecordCell nameAr={campaign.place.name} nameEn={campaign.place.nameEn} thumbnail={campaign.place.coverImage} />
+                        <RecordCell nameAr={campaign.place.name} nameEn={campaign.place.nameEn} thumbnail={placeCover(campaign.place)} />
                       </Link>
                     </TableCell>
                     <TableCell>
@@ -179,7 +181,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table>} />
           )}
         </CardContent>
       </Card>

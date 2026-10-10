@@ -1,6 +1,7 @@
 'use client';
 
 import { placePublicState, placeStatusFilters, canDeactivatePlace } from '@/lib/place-public-state';
+import { useListAddress } from '@/components/admin/record-list';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText } from '@/components/admin/dashboard-text';
@@ -13,7 +14,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Trash2, RotateCcw, Pencil, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
@@ -47,16 +48,24 @@ function publicUrl(place: { slug: string; city?: { slug?: string } }): string | 
 }
 
 export default function PlacesPage() {
-  const [search, setSearch] = useState('');
+  const address = useListAddress('places');
+  const search = address.get('q', '');
+  const setSearch = (value: string) => address.change('q', value);
   // Name column follows the GLOBAL dashboard language toggle (in the header), not a
   // per-page one — the local EN/ع toggle here was a duplicate of it.
   const { lang } = useDashboardLang();
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [cityFilter, setCityFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [mediaFilter, setMediaFilter] = useState('all');
-  const [ownerFilter, setOwnerFilter] = useState('all');
-  const [page, setPage] = useState(0);
+  const statusFilter = address.get('status', 'all');
+  const setStatusFilter = (value: string) => address.change('status', value);
+  const cityFilter = address.get('city', 'all');
+  const setCityFilter = (value: string) => address.change('city', value);
+  const categoryFilter = address.get('category', 'all');
+  const setCategoryFilter = (value: string) => address.change('category', value);
+  const mediaFilter = address.get('media', 'all');
+  const setMediaFilter = (value: string) => address.change('media', value);
+  const ownerFilter = address.get('owner', 'all');
+  const setOwnerFilter = (value: string) => address.change('owner', value);
+  const page = Math.floor(address.skip / PAGE_SIZE);
+  const setPage = (next: number | ((current: number) => number)) => address.change('skip', String(Math.max(0, typeof next === 'function' ? next(page) : next) * PAGE_SIZE));
 
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const [pendingRestore, setPendingRestore] = useState<{ id: string; name: string } | null>(null);

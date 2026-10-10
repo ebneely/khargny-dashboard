@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { RecordList } from '../record-list';
+import { RecordCell } from '../record-cell';
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { translateDashboardCopy } from '@/lib/dashboard-copy';
@@ -32,12 +34,14 @@ export function RankedBars({
   emptyLabel,
   valueLabel,
   max: maxOverride,
+  scope,
 }: {
   rows: RankedRow[];
   emptyLabel: string;
   /** Accessible name for the measure being plotted, e.g. "Views". */
   valueLabel: string;
   max?: number;
+  scope: string;
 }) {
   const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const measureLabel = translateDashboardCopy(valueLabel.charAt(0).toUpperCase() + valueLabel.slice(1), lang);
@@ -50,8 +54,8 @@ export function RankedBars({
   }
 
   return (
-    <ul className="flex flex-col gap-3">
-      {rows.map((row, i) => {
+    <RecordList scope={scope} records={rows} searchText={(row) => row.label} render={(visible) => <ul className="flex flex-col gap-3">
+      {visible.map((row, i) => {
         const pct = Math.round((row.value / max) * 100);
         // Sequential steps: the leader is darkest, the tail lightest, so rank is legible
         // without reading a single number. Four steps, not a per-row gradient — a
@@ -66,9 +70,7 @@ export function RankedBars({
                 : 'var(--brand-400)';
         return (
           <li key={row.key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1">
-            <span className="truncate text-sm font-medium text-foreground" title={row.label}>
-              {row.label}
-            </span>
+            <RecordCell icon="location" name={row.label} thumbnail={null} />
             <span className="text-sm font-semibold tabular-nums text-foreground">
               {row.value.toLocaleString('en-US')}
             </span>
@@ -88,6 +90,6 @@ export function RankedBars({
           </li>
         );
       })}
-    </ul>
+    </ul>} />
   );
 }

@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { AdminApiError } from '@/lib/api/admin-client';
 import { decimalMoney, type Money } from '@/lib/api/subscribers';
+import { PLUS_PROMOTION_NOTE } from '@/lib/subscription-plans';
+import { translateDashboardCopy } from '@/lib/dashboard-copy';
 
 export function useSubscriberText() {
   const { lang, pick } = useDashboardLang();
@@ -21,6 +23,11 @@ export function useSubscriberText() {
 
 export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
   const messages: Record<string, [string, string]> = {
+    BADGE_RUN_BUSY: ['Another run is already in progress.', 'هناك تشغيل آخر جارٍ بالفعل.'],
+    BADGE_RUN_FAILED: ['Run failed; previous awards are kept.', 'فشل التشغيل؛ بقيت الشارات السابقة.'],
+    PLAN_PRICE_NOT_SET: ['Both plans need a one-month price before a paid change.', 'يجب تحديد سعر شهر واحد لكلتا الخطتين قبل تغيير اشتراك مدفوع.'],
+    TRIAL_OVERRIDE_FORBIDDEN: ['Only a super admin may repeat a trial.', 'يمكن للمسؤول الأعلى فقط تكرار التجربة.'],
+    TRIAL_PAYMENT_FORBIDDEN: ['Trials cannot include a payment.', 'لا يمكن تسجيل دفعة للتجارب المجانية.'],
     PLACE_ALREADY_OWNED: ['This place belongs to another subscriber. Remove it or ask an admin to unlink it first.', 'هذا المكان مرتبط بمشترك آخر. أزله أو اطلب من المسؤول فك الارتباط أولاً.'],
     SUBSCRIPTION_OVERLAP: ['These dates overlap an existing subscription for this place. Choose another date range.', 'هذه التواريخ تتداخل مع اشتراك قائم لهذا المكان. اختر فترة أخرى.'],
     SUBSCRIPTION_CANCELLED: ['This subscription was cancelled; create a new one instead.', 'تم إلغاء هذا الاشتراك؛ أنشئ اشتراكاً جديداً.'],
@@ -30,6 +37,7 @@ export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
     MENU_IMAGE_TOO_LARGE: ['The image must be at most 5 MB.', 'يجب ألا يتجاوز حجم الصورة ٥ ميجابايت.'],
   };
   const code = error instanceof AdminApiError ? error.code : error instanceof Error ? error.message : '';
+  if (code === 'PLAN_PROMOTIONS_DISABLED') return translateDashboardCopy(PLUS_PROMOTION_NOTE, lang);
   const known = messages[code];
   if (known) return known[lang === 'ar' ? 1 : 0];
   return lang === 'ar' ? 'تعذر إكمال الطلب. تحقق من الاتصال ثم أعد المحاولة.' : (error instanceof Error ? error.message : 'Request failed. Check your connection and retry.');
@@ -60,7 +68,7 @@ export function SavedRefreshError({ retry }: { retry: () => void }) {
 
 export function StatusBadge({ status, children, ...props }: { status: string } & React.ComponentProps<typeof Badge>) {
   const { text } = useSubscriberText();
-  const labels: Record<string, [string, string]> = { expiring: ['Expiring', 'ينتهي قريباً'], revoked: ['Revoked', 'ملغى'], draft: ['Draft', 'مسودة'], disabled: ['Disabled', 'معطل'], deleted: ['Deleted', 'محذوف'], live: ['Live', 'مباشر'], paused: ['Paused', 'متوقفة'], ended: ['Ended', 'منتهية'], active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'] };
+  const labels: Record<string, [string, string]> = { superseded: ['Superseded', 'مستبدل'], expiring: ['Expiring', 'ينتهي قريباً'], revoked: ['Revoked', 'ملغى'], draft: ['Draft', 'مسودة'], disabled: ['Disabled', 'معطل'], deleted: ['Deleted', 'محذوف'], live: ['Live', 'مباشر'], paused: ['Paused', 'متوقفة'], ended: ['Ended', 'منتهية'], active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'] };
   const label = labels[status] ?? [status, status];
   const tone = ['active', 'live'].includes(status) ? 'success' : ['paused', 'expiring'].includes(status) ? 'warning' : ['deleted', 'cancelled'].includes(status) ? 'danger' : status === 'scheduled' ? 'info' : 'neutral';
   return <Badge {...props} variant="secondary" data-slot="status-chip" data-tone={tone} title={props.title ?? (typeof children === 'string' ? children : text(...label))}>{children ?? text(...label)}</Badge>;

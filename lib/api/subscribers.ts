@@ -1,4 +1,5 @@
 import type { AdminPlace } from './types';
+import type { PlanKey, PlanKind } from './plans';
 
 export function optionalText(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
@@ -9,7 +10,7 @@ export type PaymentMethod = 'cash' | 'instapay' | 'bank_transfer' | 'wallet' | '
 export interface SubscriberPlace {
   coverImage?: string | null;
   coverImageDimensions?: { width: number; height: number } | null;
-  subscriber?: { id: string; name: string } | null;
+  subscriber?: { id: string; name: string; isBrand?: boolean } | null;
   id: string;
   name: string;
   nameEn: string | null;
@@ -30,6 +31,11 @@ export interface Subscription {
   subscriberId: string;
   placeId: string;
   planName: string;
+  plan?: PlanKey;
+  planKind?: PlanKind;
+  trialUsedOn?: string | null;
+  changedFromId?: string | null;
+  supersededAt?: string | null;
   startDate: string;
   endDate: string;
   status: 'scheduled' | 'active' | 'expired' | 'cancelled';

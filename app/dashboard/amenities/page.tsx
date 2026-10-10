@@ -1,16 +1,16 @@
 'use client';
 
+import { RecordList } from '@/components/admin/record-list';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { StatusBadge } from '@/components/admin/subscriber-ui';
 import { RecordCell } from '@/components/admin/record-cell';
-import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
-import { useState, useMemo } from 'react';
+import { DashboardText } from '@/components/admin/dashboard-text';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow,
@@ -21,22 +21,11 @@ import { IconPreview } from '@/components/icon-picker';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 
 export default function AmenitiesPage() {
-  const controlCopy = useDashboardCopy();
   const { lang, pick } = useDashboardLang();
-  const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const { data, isLoading, isError, refetch } = useAdminAmenities();
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    if (!search) return data;
-    const q = search.toLowerCase();
-    return data.filter(
-      (a) =>
-        a.name.toLowerCase().includes(q) ||
-        (a.nameEn && a.nameEn.toLowerCase().includes(q)),
-    );
-  }, [data, search]);
+  const filtered = data ?? [];
 
   return (
     <div>
@@ -46,19 +35,6 @@ export default function AmenitiesPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder={controlCopy("Search amenities...")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-        </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
@@ -72,7 +48,7 @@ export default function AmenitiesPage() {
               <Button variant="outline" onClick={() => refetch()}><DashboardText>Retry</DashboardText></Button>
             </div>
           ) : filtered.length > 0 ? (
-            <Table layout="list">
+            <RecordList scope="amenities" records={filtered} searchText={(amenity) => [amenity.name, amenity.nameEn].join(' ')} filters={[{ key: 'status', label: 'Any status', options: [{ value: 'active', label: 'Active' }, { value: 'deleted', label: 'Deleted' }], value: (amenity) => amenity.deletedAt ? 'deleted' : 'active' }]} render={(visible) => <Table layout="list">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Name</DashboardText></TableHead>
@@ -82,11 +58,11 @@ export default function AmenitiesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((amenity) => (
+                {visible.map((amenity) => (
                   <TableRow key={amenity.id}>
                     <TableCell>
                       <Link href={`/dashboard/amenities/${amenity.id}`} className="hover:text-primary font-medium">
-                        <RecordCell nameAr={amenity.name} nameEn={amenity.nameEn} />
+                        <RecordCell icon="amenity" nameAr={amenity.name} nameEn={amenity.nameEn} />
                       </Link>
                     </TableCell>
                     {/* Show the glyph, not the raw name — the icon is what visitors see. */}
@@ -117,7 +93,7 @@ export default function AmenitiesPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table>} />
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground"><DashboardText>No amenities found</DashboardText></p>

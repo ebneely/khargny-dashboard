@@ -1,5 +1,6 @@
 'use client';
 
+import { useListAddress } from '@/components/admin/record-list';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
@@ -26,8 +27,11 @@ const PAGE_SIZE = 20;
 export default function CategoriesPage() {
   const controlCopy = useDashboardCopy();
   const readOnly = useDashboardReadOnly();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+  const address = useListAddress('categories');
+  const search = address.get('q', '');
+  const setSearch = (value: string) => address.change('q', value);
+  const page = Math.floor(address.skip / PAGE_SIZE);
+  const setPage = (next: number | ((current: number) => number)) => address.change('skip', String(Math.max(0, typeof next === 'function' ? next(page) : next) * PAGE_SIZE));
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
   const skip = page * PAGE_SIZE;
@@ -97,7 +101,7 @@ export default function CategoriesPage() {
                           className="hover:text-primary font-medium"
                           data-trace-id={`category-list-name-${cat.id}`}
                         >
-                          <RecordCell nameAr={cat.nameAr} nameEn={cat.nameEn} />
+                          <RecordCell icon="category" nameAr={cat.nameAr} nameEn={cat.nameEn} />
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
