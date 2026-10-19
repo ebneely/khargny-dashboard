@@ -6,7 +6,7 @@ import { adminCredentials } from './admin-credentials.js';
 // - traffic: an app search (X-Client-Type, no platform) and a browser search (no platform)
 // - overview: periods 7, 30, 90 and custom; platform filter all, app, web (and a stale ?platform=unknown);
 //   city filter; English and Arabic
-// - live: every window from 1 minute to 24 hours; places with a photo, with no photo,
+// - live: one request per refresh; every window from 1 minute to 24 hours; places with a photo, with no photo,
 //   deleted after the view, and merged after the view
 
 const api = process.env.E2E_API_URL ?? 'http://localhost:3110';
@@ -138,6 +138,23 @@ describe('analytics overview', { session: 'admin', tags: ['e2e', 'api'] }, () =>
 });
 
 describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
+  // khargny-dashboard#34: a refresh is one bundle request, not six report calls.
+  test('each live refresh is one request', async ({ app, screen, browser }) => {
+    const calls: string[] = [];
+    await browser.route('**/analytics/live/**', async (route) => {
+      calls.push(new URL(route.request.url).pathname);
+      await route.continue();
+    });
+    await app.open('/dashboard/analytics/live?window=5m');
+    await expect(screen.getByText('Top places')).toBeVisible();
+    // Two refreshes after the first load (short windows refresh every 5 seconds).
+    await browser.waitForResponse('**/analytics/live/bundle**');
+    await browser.waitForResponse('**/analytics/live/bundle**');
+    const reports = calls.filter((path) => !path.includes('/journeys/'));
+    expect(reports.length).toBeGreaterThanOrEqual(3);
+    expect(reports.every((path) => path.endsWith('/analytics/live/bundle'))).toBe(true);
+  });
+
   test('a viewed place carries its photo in every live window', async ({ app, screen }) => {
     const token = await adminToken();
     const place = await seededPlace(token, 'biblioteca-alexandrina');
