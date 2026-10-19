@@ -135,7 +135,7 @@ export const adsLiveCopy: Record<string, string> = {
   'This report describes eligibility and accepted delivery, not a visitor-specific card order. Use Where ads appear for the exact preview.': 'يوضح هذا التقرير الأهلية والظهور المقبول، وليس ترتيب البطاقات لزائر بعينه. استخدم مواضع ظهور الإعلانات للمعاينة الدقيقة.',
   'Today · Cairo time': 'اليوم · توقيت القاهرة', 'Too small to compare': 'العينة أصغر من أن تُقارن', 'Top pages': 'أكثر الصفحات', 'Top places': 'أكثر الأماكن',
   'Total recorded agreement': 'إجمالي الاتفاق المسجل', 'Unique visitors (estimate)': 'زوار فريدون (تقدير)',
-  'Unknown': 'غير معروف', 'Unknown visitors': 'عدد الزوار غير معروف', 'Unknown step': 'خطوة غير معروفة', 'Updated': 'تم التحديث',
+  'Unknown': 'غير معروف', 'Unknown visitors': 'عدد الزوار غير معروف', 'Deleted place': 'مكان محذوف', 'Unknown place': 'مكان غير معروف', 'Unknown step': 'خطوة غير معروفة', 'Updated': 'تم التحديث',
   'View ranked results': 'عرض النتائج المرتبة', 'View report': 'عرض التقرير', 'View subscription': 'عرض الاشتراك', 'View surface': 'عرض موضع الظهور',
   'Visit': 'زيارة', 'Visits': 'الزيارات', 'Visits started': 'زيارات بدأت', 'Waiting for the first live snapshot.': 'بانتظار أول قراءة للنشاط المباشر.',
   'Website or app': 'الموقع أو التطبيق', 'What they searched': 'ما الذي بحثوا عنه',
