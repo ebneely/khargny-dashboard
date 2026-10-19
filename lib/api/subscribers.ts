@@ -74,6 +74,9 @@ export interface SubscriberAccount {
 }
 export interface Subscriber {
   isBrand?: boolean;
+  /** Owner photo permissions (khargny-backend#52). */
+  canUploadPhotos?: boolean;
+  canDeletePhotos?: boolean;
   id: string;
   name: string;
   phone: string;

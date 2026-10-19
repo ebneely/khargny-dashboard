@@ -17,6 +17,7 @@ import { TrialBadge } from './trial-badge';
 import { PlanChip } from './plan-choices';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
+import { SubscriberPhotosPanel } from './subscriber-photos';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
 import { PlaceMenuEditor } from './place-menu-editor';
 import { LoadingState, SavedRefreshError, MoneyText, RequestError, StatusBadge, subscriberError, useSubscriberText } from './subscriber-ui';
@@ -59,7 +60,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
       } />
       <UrlTabsContent value="subscriptions"><SubscriberSubscriptions subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
       <UrlTabsContent value="visits"><SubscriberVisits subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
-      <UrlTabsContent value="account"><SubscriberAccountPanel key={subscriber.id} subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
+      <UrlTabsContent value="account" className="space-y-6"><SubscriberAccountPanel key={subscriber.id} subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /><SubscriberPhotosPanel subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
       <UrlTabsContent value="menus" lazy className="space-y-6">
         <h2 className="text-lg font-semibold">{text('Pricing', 'الأسعار')}</h2>
         {!subscriber.places.length && <Card><CardHeader><CardTitle>{text('No linked places', 'لا توجد أماكن مرتبطة')}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{text('Link a place in the Places tab to add its pricing.', 'اربط مكاناً في تبويب الأماكن لإضافة أسعاره.')}</p></CardContent></Card>}
