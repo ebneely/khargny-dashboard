@@ -31,7 +31,6 @@ export const analyticsCopy: Record<string, string> = {
   'Last 90 days': 'آخر ٩٠ يومًا',
   'Custom range': 'فترة مخصصة',
   'All platforms': 'كل المنصات',
-  'Unknown platform': 'منصة غير معروفة',
   'App': 'التطبيق',
   'Web': 'الموقع',
   'Cairo · inclusive dates': 'القاهرة · تشمل تاريخي البداية والنهاية',

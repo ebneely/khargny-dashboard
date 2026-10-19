@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { CalendarDays, Search, Tag, Route, Receipt, Layers, SlidersHorizontal, KeyRound, MapPin, Shapes, Sparkles, LayoutGrid } from 'lucide-react';
+import { CalendarDays, Globe, Smartphone, Search, Tag, Route, Receipt, Layers, SlidersHorizontal, KeyRound, MapPin, Shapes, Sparkles, LayoutGrid } from 'lucide-react';
 import { BadgeIcon } from './badge-icon';
 import type { BadgeIconKey } from '@/lib/api/badges';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
@@ -10,6 +10,8 @@ import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 const recordIcons = {
   badge: { icon: Sparkles, en: 'Badge', ar: 'شارة' },
   calendar: { icon: CalendarDays, en: 'Day or period', ar: 'يوم أو فترة' },
+  app: { icon: Smartphone, en: 'App', ar: 'التطبيق' },
+  web: { icon: Globe, en: 'Web', ar: 'الموقع' },
   search: { icon: Search, en: 'Search term', ar: 'كلمة بحث' },
   tag: { icon: Tag, en: 'Keyword', ar: 'كلمة مفتاحية' },
   route: { icon: Route, en: 'Page path', ar: 'مسار صفحة' },

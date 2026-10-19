@@ -7,10 +7,6 @@ import { engagementMetrics, engagementNumber } from '@/lib/engagement';
 import { placeCover } from '@/lib/place-list';
 import * as React from 'react';
 import {
-  MapPin,
-  Building2,
-  Shapes,
-  FileEdit,
   RefreshCw,
   TriangleAlert,
 } from 'lucide-react';
@@ -21,7 +17,7 @@ import { SegmentedControl } from '@/components/admin/segmented-control';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { regionLabel } from '@/lib/egypt-regions';
-import { StatTile } from './stat-tile';
+import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
 
 /** The three engagement measures, each plotted on its own axis — never together. */
@@ -83,65 +79,9 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
     );
   }
 
-  const t = data?.totals;
-
   return (
     <div className="flex flex-col gap-6">
-      <section aria-labelledby="insights-engagement">
-        <h2 id="insights-engagement" className="sr-only">
-          <DashboardText>Engagement</DashboardText>
-        </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatTile label="Views" value={t?.views} icon={engagementMetrics[0].icon} loading={isLoading} />
-          <StatTile label="Saves" value={t?.saves} icon={engagementMetrics[1].icon} loading={isLoading} />
-          <StatTile
-            label="5argny taps"
-            value={t?.directions ?? 0}
-            icon={engagementMetrics[3].icon}
-            loading={isLoading}
-          />
-          <StatTile label="Likes" value={t?.likes} icon={engagementMetrics[2].icon} loading={isLoading} />
-          <StatTile
-            label="Live places"
-            value={t?.places ?? 0}
-            hint={t?.draftPlaces ? `${t.draftPlaces} ${lang === 'ar' ? 'في المسودة' : 'in draft'}` : undefined}
-            icon={MapPin}
-            loading={isLoading}
-          />
-        </div>
-      </section>
-
-      {/* Catalogue size — context, deliberately quieter than engagement. */}
-      <section aria-labelledby="insights-catalogue">
-        <h2 id="insights-catalogue" className="sr-only">
-          <DashboardText>Catalogue</DashboardText>
-        </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatTile label="Cities" value={t?.cities ?? 0} icon={Building2} loading={isLoading} />
-          {/* Areas = distinct regions that have at least one live place, since a city can hold
-              many. Counted from the byRegion breakdown the endpoint already returns. */}
-          <StatTile
-            label="Areas"
-            value={data?.byRegion?.length ?? 0}
-            hint="Across all cities"
-            icon={engagementMetrics[3].icon}
-            loading={isLoading}
-          />
-          <StatTile
-            label="Categories"
-            value={t?.categories ?? 0}
-            icon={Shapes}
-            loading={isLoading}
-          />
-          <StatTile
-            label="Drafts"
-            value={t?.draftPlaces ?? 0}
-            hint="Not visible to visitors"
-            icon={FileEdit}
-            loading={isLoading}
-          />
-        </div>
-      </section>
+      <InsightsSummary data={data} loading={isLoading} lang={lang} />
 
       <section className="rounded-lg border border-border bg-card" aria-labelledby="insights-breakdown">
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
