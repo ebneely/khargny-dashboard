@@ -25,6 +25,7 @@ import {
   Users,
   ContactRound,
   Settings,
+  Map as MapIcon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -52,6 +53,7 @@ const ICONS = {
   tags: Tags,
   admins: Users,
   subscribers: ContactRound,
+  tourism: MapIcon,
   settings: Settings,
   ...ROUND6B_ICONS,
 } satisfies Record<string, LucideIcon>;
@@ -190,7 +192,7 @@ const NAV_AR: Record<NavIconName, string> = {
   ...ROUND6B_NAV_AR,
   home: 'الرئيسية', subscribers: 'المشتركون', ads: 'الإعلانات', storefront: 'واجهة الموقع',
   places: 'الأماكن', cities: 'المدن', categories: 'التصنيفات', amenities: 'المرافق', tags: 'الوسوم',
-  admins: 'المسؤولون', settings: 'الإعدادات',
+  admins: 'المسؤولون', settings: 'الإعدادات', tourism: 'الرحلات',
 };
 
 function NavGroups({ items, activeHref, mobile, onNavigate }: { items: NavItem[]; activeHref?: string; mobile?: boolean; onNavigate?: () => void }) {

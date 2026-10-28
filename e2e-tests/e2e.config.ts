@@ -61,7 +61,7 @@ export default {
       name: 'dashboard',
       engine: web(),
       app: {
-        url: 'http://localhost:3111',
+        url: process.env.E2E_DASHBOARD_URL ?? 'http://localhost:3111',
         command: {
           executable: 'node',
           args: ['scripts/dev-local.mjs', '--e2e'],
@@ -85,7 +85,7 @@ export default {
     },
     admin: {
       system: 'You operate a city-guide dashboard and manage its places and catalogue. Verify every saved change on screen and never modify unrelated records.',
-      context: 'The Dashboard navigation has Home; Sales: Subscribers, Ads, Analytics, Storefront; Content: Places, Cities, Categories, Amenities, Tags, Badges; Team: Admins, Settings. Categories uses Add Category, New Category and Save changes. More actions opens the Delete menu for one record.',
+      context: 'The Dashboard navigation has Home; Sales: Subscribers, Ads, Analytics, Trips, Storefront; Content: Places, Cities, Categories, Amenities, Tags, Badges; Team: Admins, Settings. Categories uses Add Category, New Category and Save changes. More actions opens the Delete menu for one record.',
       ...(model === undefined ? {} : { model }),
     },
   },

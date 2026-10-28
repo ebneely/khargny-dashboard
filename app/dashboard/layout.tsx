@@ -25,6 +25,8 @@ const NAV_ITEMS = [
   // Round 6A: Analytics navigation (independent of Plans and Badges).
   { href: "/dashboard/analytics", label: "Analytics", iconName: "analytics", group: "sales" },
   // End Round 6A navigation.
+  // Trips marketplace (tourism P2P): lister checks, trip approval, cash rewards, reports.
+  { href: "/dashboard/tourism", label: "Trips", iconName: "tourism", group: "sales" },
   { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront", group: "sales" },
   { href: "/dashboard/places", label: "Places", iconName: "places", group: "content" },
   { href: "/dashboard/cities", label: "Cities", iconName: "cities", group: "content" },

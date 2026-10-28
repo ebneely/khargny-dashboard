@@ -68,11 +68,14 @@ export function SavedRefreshError({ retry }: { retry: () => void }) {
   return <RequestError message={text('Saved, but the page could not refresh', 'تم الحفظ، لكن تعذر تحديث الصفحة')} retry={retry} />;
 }
 
+// Trips marketplace states (lister KYC, trip review, cash rewards, reports).
+const TOURISM_STATUS_LABELS: Record<string, [string, string]> = { pending: ['To review', 'للمراجعة'], verified: ['Verified', 'موثّق'], rejected: ['Rejected', 'مرفوض'], hidden: ['Hidden', 'مخفية'], waiting: ['Waiting', 'منتظرة'], cash_given: ['Cash given', 'تم تسليم النقد'], confirmed: ['Confirmed', 'مؤكدة'], disputed: ['Disputed', 'متنازع عليها'], reimbursed: ['Reimbursed', 'تم السداد'], void: ['Void', 'ملغاة'], open: ['Open', 'مفتوح'], closed: ['Closed', 'مغلق'] };
+
 export function StatusBadge({ status, children, ...props }: { status: string } & React.ComponentProps<typeof Badge>) {
   const { text } = useSubscriberText();
-  const labels: Record<string, [string, string]> = { superseded: ['Superseded', 'مستبدل'], expiring: ['Expiring', 'ينتهي قريباً'], revoked: ['Revoked', 'ملغى'], draft: ['Draft', 'مسودة'], disabled: ['Disabled', 'معطل'], deleted: ['Deleted', 'محذوف'], live: ['Live', 'مباشر'], paused: ['Paused', 'متوقفة'], ended: ['Ended', 'منتهية'], active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'] };
+  const labels: Record<string, [string, string]> = { superseded: ['Superseded', 'مستبدل'], expiring: ['Expiring', 'ينتهي قريباً'], revoked: ['Revoked', 'ملغى'], draft: ['Draft', 'مسودة'], disabled: ['Disabled', 'معطل'], deleted: ['Deleted', 'محذوف'], live: ['Live', 'مباشر'], paused: ['Paused', 'متوقفة'], ended: ['Ended', 'منتهية'], active: ['Active', 'نشط'], inactive: ['Inactive', 'غير نشط'], scheduled: ['Scheduled', 'مجدول'], expired: ['Expired', 'منتهي'], cancelled: ['Cancelled', 'ملغى'], suspended: ['Suspended', 'موقوف'], none: ['No account', 'بدون حساب'], ...TOURISM_STATUS_LABELS };
   const label = labels[status] ?? [status, status];
-  const tone = ['active', 'live'].includes(status) ? 'success' : ['paused', 'expiring'].includes(status) ? 'warning' : ['deleted', 'cancelled'].includes(status) ? 'danger' : status === 'scheduled' ? 'info' : 'neutral';
+  const tone = ['active', 'live', 'verified', 'confirmed', 'reimbursed'].includes(status) ? 'success' : ['paused', 'expiring', 'pending', 'cash_given', 'disputed', 'open'].includes(status) ? 'warning' : ['deleted', 'cancelled'].includes(status) ? 'danger' : status === 'scheduled' ? 'info' : 'neutral';
   return <Badge {...props} variant="secondary" data-slot="status-chip" data-tone={tone} title={props.title ?? (typeof children === 'string' ? children : text(...label))}>{children ?? text(...label)}</Badge>;
 }
 
@@ -169,7 +172,7 @@ function ActiveActionDialog({ action, onClose }: { action: ActionSpec; onClose: 
         <fieldset disabled={busy} className="max-h-[60vh] space-y-4 overflow-y-auto px-1">
           {action?.fields?.map((field) => <Field key={field.name} label={field.label} error={fieldErrors[field.name]}>
             {field.type === 'select' ? <SubscriberSelect value={String(values[field.name] ?? '')} options={field.options ?? []} disabled={busy} required={field.required} onValueChange={(value) => setValues({ ...values, [field.name]: value })} />
-              : field.type === 'textarea' ? <textarea className={textareaClass} value={String(values[field.name] ?? '')} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />
+              : field.type === 'textarea' ? <textarea className={textareaClass} required={field.required} value={String(values[field.name] ?? '')} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />
               : field.type === 'checkbox' ? <Checkbox checked={Boolean(values[field.name])} disabled={busy} onCheckedChange={(checked) => setValues({ ...values, [field.name]: checked })} />
               : <Input placeholder={field.placeholder} type={field.type === 'money' ? 'text' : field.type ?? 'text'} inputMode={field.type === 'money' ? 'decimal' : undefined} pattern={field.type === 'money' ? '[0-9٠-٩]+([.٫][0-9٠-٩]{1,2})?' : undefined} min={field.min} minLength={field.minLength} autoComplete={field.type === 'password' ? 'new-password' : 'off'} dir={field.type === 'money' || field.type === 'tel' ? 'ltr' : undefined} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />}
           </Field>)}
