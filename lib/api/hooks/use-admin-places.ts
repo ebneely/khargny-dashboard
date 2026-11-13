@@ -10,7 +10,7 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit } = filters;
+  const { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, window: hypeWindow, skip, limit } = filters;
   const generation = useRef(0);
   const fetch = useCallback(async () => {
     const request = ++generation.current;
@@ -18,7 +18,7 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<unknown>('/v1/admin/places', { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit });
+      const result = await adminApi.get<unknown>('/v1/admin/places', { subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sort: sortBy === 'likes' ? sortBy : undefined, rank: sortBy === 'hype' ? sortBy : undefined, window: hypeWindow, skip, limit });
       if (request === generation.current) setData(toList<AdminPlace>(result) as AdminPlaceList);
       return request === generation.current;
     } catch (e) {
@@ -27,7 +27,7 @@ export function useAdminPlaces(filters: AdminPlaceFilters) {
     } finally {
       if (request === generation.current) setIsLoading(false);
     }
-  }, [subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, skip, limit]);
+  }, [subscriberId, search, cityId, categoryId, status, publicState, region, hasMedia, sortBy, hypeWindow, skip, limit]);
 
   useEffect(() => {
     const state = generation;

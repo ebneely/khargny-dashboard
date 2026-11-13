@@ -16,6 +16,7 @@ import { AnalyticsSuggestions } from './suggestions';
 import { SessionTrend } from './session-trend';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { InsightsSummary } from '../insights/insights-summary';
+import { NumbersSmart } from './numbers-smart';
 
 /** The home's catalogue-wide summary; lifetime counters, so the filters above do not apply. */
 function AnalyticsInsights() {
@@ -41,7 +42,7 @@ export function AnalyticsOverviewPage() {
   const sessionDays = movement.funnel.series.filter((row) => typeof row.day === 'string' && typeof row.platform === 'string');
   const number = (value: number) => value.toLocaleString(lang);
   const share = (value: number) => value.toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 });
-  return <div className="space-y-5"><AnalyticsInsights /><h2 className="text-xl font-semibold">{copy('Overview')}</h2>
+  return <div className="space-y-5"><NumbersSmart window={query.window ?? '30d'} /><AnalyticsInsights /><h2 className="text-xl font-semibold">{copy('Overview')}</h2>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
       { title: 'Sessions', value: number(movement.funnel.totals.sessions), unit: 'sessions · selected period' },
       { title: 'Recorded searches', value: number(search.searches), unit: 'searches · selected period' },

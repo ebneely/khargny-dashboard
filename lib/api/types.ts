@@ -9,6 +9,8 @@ export interface AdminPlace {
   name: string;
   nameEn: string | null;
   slug: string;
+  /** Hype score 0-100 in the requested window (admin list with `window`). */
+  hype?: number;
   cityId: string;
   categoryId: string;
   description: string | null;
@@ -72,7 +74,10 @@ export interface AdminPlaceFilters {
   status?: string;
   /** true: only places with a photo or video. false: only those with neither. */
   hasMedia?: boolean;
+  /** likes, or hype (by the hype score in `window`). */
   sortBy?: string;
+  /** Team only: rows carry `hype` (0-100) in this window. */
+  window?: 'live' | '24h' | '7d' | '30d';
   skip?: number;
   limit?: number;
 }

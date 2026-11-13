@@ -18,6 +18,7 @@ import { FilterBar, FilterSearch, FilterSelect } from '@/components/admin/filter
 import { PlaceOwnerFilter } from '@/components/admin/place-owner-filter';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Trash2, RotateCcw, Pencil, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -34,6 +35,9 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { PlacePublicStatus } from '@/components/admin/place-public-status';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
+import { WindowSwitch } from '@/components/admin/analytics/window-switch';
+
+const HYPE_WINDOWS = ['live', '24h', '7d', '30d'] as const;
 
 
 /** Name in the chosen language, falling back to the other so a cell is never blank. */
@@ -57,7 +61,10 @@ export default function PlacesPage() {
   const copy = useDashboardCopy();
   const PAGE_SIZE = address.limit;
   const sortBy = address.get('sort');
-  const filterKey = JSON.stringify([address.query, address.get('status'), address.get('city'), address.get('category'), address.get('media'), address.get('owner'), sortBy]);
+  // Team-only hype score per row, in the window chosen beside the list (default 30 days).
+  const params = useSearchParams(); // WindowSwitch writes the shared `window`, not a list-scoped key
+  const hypeWindow = HYPE_WINDOWS.find((w) => w === params.get('window')) ?? '30d';
+  const filterKey = JSON.stringify([address.query, address.get('status'), address.get('city'), address.get('category'), address.get('media'), address.get('owner'), sortBy, hypeWindow]);
   const [selection, setSelection] = useState<{ key: string; records: AdminPlace[] }>({ key: '', records: [] });
   if (selection.key !== filterKey) setSelection({ key: filterKey, records: [] });
   const selected = selection.key === filterKey ? selection.records : [];
@@ -89,7 +96,8 @@ export default function PlacesPage() {
   const { data: categoryData } = useAdminCategories();
 
   const { data, isLoading, isError, refetch } = useAdminPlaces({
-    sortBy: sortBy === 'likes' ? 'likes' : undefined,
+    sortBy: sortBy === 'likes' || sortBy === 'hype' ? sortBy : undefined,
+    window: hypeWindow,
     subscriberId: ownerFilter === 'all' ? undefined : ownerFilter,
     search: search || undefined,
     ...placeStatusFilters(statusFilter, mediaFilter),
@@ -125,7 +133,8 @@ export default function PlacesPage() {
       {canWrite && <PlaceBulkStatus key={filterKey} selected={selected.map(place => place.id)} records={selected} disabled={isLoading || isError} onBusy={setBulkBusy} refresh={refetch} onSelection={ids => setSelection({ key: filterKey, records: selected.filter(place => ids.includes(place.id)) })} />}
       <Card>
         <CardHeader>
-          <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }]} />
+          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype in</DashboardText></span><WindowSwitch here /></div>
+          <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }, { value: 'hype', label: 'Hype first' }]} />
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
             <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter('all'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />
             <FilterSelect label="Any city" value={cityFilter} onValueChange={(value) => { setCityFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any city' }, ...(cityData?.items ?? []).map((city) => ({ value: city.id, label: pickName(city.name, city.nameEn, lang) }))]} />
@@ -157,6 +166,7 @@ export default function PlacesPage() {
                   <TableHead data-place-field="owner"><span className="block min-w-0 whitespace-nowrap" title={copy('Owner')}><DashboardText>Owner</DashboardText></span></TableHead>
                   <TableHead data-place-field="price"><span className="block min-w-0 whitespace-nowrap" title={copy('Price')}><DashboardText>Price</DashboardText></span></TableHead>
                   <TableHead data-place-field="status" column="status"><span className="block min-w-0 whitespace-nowrap" title={copy('Status')}><DashboardText>Status</DashboardText></span></TableHead>
+                  <TableHead data-place-field="hype" className="text-end"><span className="block min-w-0 whitespace-nowrap" title={copy('Hype')}><DashboardText>Hype</DashboardText></span></TableHead>
                   <TableHead data-place-field="likes" className="text-end"><span className="block min-w-0 whitespace-nowrap" title={copy('Likes')}><DashboardText>Likes</DashboardText></span></TableHead><TableHead data-place-field="saves" className="text-end"><span className="block min-w-0 whitespace-nowrap" title={copy('Saves')}><DashboardText>Saves</DashboardText></span></TableHead>
                   <TableHead data-place-field="views" className="text-end"><span className="block min-w-0 whitespace-nowrap" title={copy('Views')}><DashboardText>Views</DashboardText></span></TableHead>
                   <TableHead data-place-field="directions" className="text-end"><span className="block min-w-0 whitespace-nowrap" title={copy('5argny taps')}><DashboardText>5argny taps</DashboardText></span></TableHead>
@@ -185,6 +195,7 @@ export default function PlacesPage() {
                       <TableCell data-place-field="status" column="status">
                         <PlacePublicStatus place={place} />
                       </TableCell>
+                      <TableCell data-place-field="hype" className="text-end tabular-nums font-medium">{place.hype ?? 0}</TableCell>
                       <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{engagementNumber(place.likeCount, lang)}</TableCell>
                       <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{place.saveCount ?? 0}</TableCell>
                       <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{place.viewCount ?? 0}</TableCell>

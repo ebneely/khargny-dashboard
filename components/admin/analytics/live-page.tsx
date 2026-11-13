@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { NumbersSmart } from './numbers-smart';
 import Link from 'next/link';
 import { LiveBreakdown, liveTime } from './live-breakdown';
 import { Eye, RefreshCw } from 'lucide-react';
@@ -44,7 +45,7 @@ function LiveContent() {
   const datedWindow = current ? cairoDay(current.summary.from) !== cairoDay(current.summary.to) : false;
   const currentVisitors = current?.summary.now?.totals?.visitors;
   const displayState = status === 'disabled' ? 'disabled' : current ? typeof currentVisitors === 'number' ? 'ready' : 'unknown' : status === 'ready' ? 'loading' : status;
-  return <div data-live-state={displayState} className="min-w-0 space-y-6"><header className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-display text-xl font-semibold">{copy('Live')}</h2><p className="text-sm text-muted-foreground" aria-live="polite" data-slot="live-age">{age === null ? copy('Waiting for the first live snapshot.') : `${copy('Updated')} ${age.toLocaleString(lang)} ${copy('seconds ago')}`}</p></div><PageActions mobileMirrorWhenHidden actions={[{ label: 'Refresh live activity', readOnly: true, icon: <RefreshCw />, onClick: () => poller.current?.refresh() }]} /></header>
+  return <div data-live-state={displayState} className="min-w-0 space-y-6"><NumbersSmart window="live" /><header className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-display text-xl font-semibold">{copy('Live')}</h2><p className="text-sm text-muted-foreground" aria-live="polite" data-slot="live-age">{age === null ? copy('Waiting for the first live snapshot.') : `${copy('Updated')} ${age.toLocaleString(lang)} ${copy('seconds ago')}`}</p></div><PageActions mobileMirrorWhenHidden actions={[{ label: 'Refresh live activity', readOnly: true, icon: <RefreshCw />, onClick: () => poller.current?.refresh() }]} /></header>
     {status === 'disabled' ? <Card><CardContent><p role="status" className="text-sm">{copy('Live activity is switched off. Historical reports are still available.')}</p></CardContent></Card> : status === 'error' ? <RequestError message={copy('Live activity is temporarily unavailable. No empty counts have been substituted.')} retry={() => poller.current?.refresh()} /> : !current ? <LoadingState /> : <>
       <section aria-label={copy('Right now')} className="space-y-1"><h3 className="text-sm font-medium text-muted-foreground">{copy('Right now')}</h3><p className="font-display text-4xl font-semibold tabular-nums">{number(currentVisitors)} <span className="text-base font-normal text-muted-foreground">{copy(currentVisitors === 1 ? 'estimated visitor' : 'estimated visitors')}</span></p>{typeof currentVisitors !== 'number' && <p className="text-sm text-muted-foreground">{copy('Recent minutes are missing.')}</p>}<p className="text-sm text-muted-foreground">{liveTime(current.summary.from, lang, datedWindow)} — {liveTime(current.summary.to, lang, datedWindow)} · {copy('Cairo time')}</p></section>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><LiveMetric metric="visitors" label="Unique visitors (estimate)" bundle={current} /><LiveMetric metric="visits" label="Visits started" bundle={current} /><LiveMetric metric="pages" label="Pages viewed" bundle={current} /><LiveMetric metric="actions" label="Actions" bundle={current} /></div>

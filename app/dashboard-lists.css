@@ -62,6 +62,7 @@
 [dir="rtl"] [data-list-table="places"] [data-place-field="owner"] { width: 144px; }
 [data-list-table="places"] [data-place-field="price"] { width: 76px; }
 [data-list-table="places"] [data-place-field="status"] { width: 128px; }
+[data-list-table="places"] [data-place-field="hype"] { width: 72px; }
 [data-list-table="places"] [data-place-field="likes"] { width: 88px; }
 [data-list-table="places"] [data-place-field="saves"] { width: 64px; }
 [data-list-table="places"] [data-place-field="views"] { width: 96px; }
@@ -69,7 +70,7 @@
 [data-list-table="places"] [data-place-field="photos"] { width: 72px; }
 [data-list-table="places"] [data-place-field="actions"] { width: 112px; min-width: 112px; }
 [data-list-table="places"] [data-slot="table-cell"]:not([data-place-field="actions"]) { overflow: hidden; }
-[data-list-table="places"] :is([data-place-field="likes"], [data-place-field="saves"], [data-place-field="views"], [data-place-field="directions"], [data-place-field="photos"], [data-place-field="price"]) { text-align: end; font-variant-numeric: tabular-nums; }
+[data-list-table="places"] :is([data-place-field="hype"], [data-place-field="likes"], [data-place-field="saves"], [data-place-field="views"], [data-place-field="directions"], [data-place-field="photos"], [data-place-field="price"]) { text-align: end; font-variant-numeric: tabular-nums; }
 [data-list-table="places"] [data-place-detail] { display: none; }
 @container (max-width: 1360px) {
   [data-list-table="places"] [data-place-field="photos"] { display: none; }

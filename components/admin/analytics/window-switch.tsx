@@ -28,15 +28,16 @@ export function numbersRange(chosen: NumbersWindow | 'custom', params: URLSearch
   return { from: shiftCalendarDays(today, 1 - CALENDAR_DAYS[chosen]), to: today };
 }
 
-export function WindowSwitch() {
+/** `here`: the window stays a query value on this page (Places hype), Live included, no custom range. */
+export function WindowSwitch({ here = false }: { here?: boolean }) {
   const copy = useDashboardCopy();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const live = pathname.startsWith('/dashboard/analytics/live');
-  const value = live ? 'live' : readNumbersWindow(params);
+  const live = !here && pathname.startsWith('/dashboard/analytics/live');
+  const value = live || (here && params.get('window') === 'live') ? 'live' : readNumbersWindow(params);
   const choose = (next: string) => {
-    if (next === 'live') { router.push('/dashboard/analytics/live'); return; }
+    if (next === 'live' && !here) { router.push('/dashboard/analytics/live'); return; }
     const query = new URLSearchParams(live ? '' : window.location.search);
     query.set('window', next);
     query.delete('period');
@@ -54,7 +55,7 @@ export function WindowSwitch() {
   const { from, to } = numbersRange(value === 'custom' ? 'custom' : '30d', params);
   return <div className="space-y-3"><div className="flex flex-wrap items-center gap-2">
     <SegmentedControl label="Numbers window" value={value === 'custom' ? '' : value} onValueChange={choose} options={CHOICES} />
-    {!live && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
+    {!live && !here && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
   </div>
     {value === 'custom' && <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>}
   </div>;
