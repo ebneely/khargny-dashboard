@@ -54,7 +54,8 @@ export interface AnalyticsOverview {
  * Follows the same hand-rolled fetch shape as the other admin hooks in this folder rather
  * than introducing a second data-fetching idiom for one screen.
  */
-export function useAnalyticsOverview() {
+export function useAnalyticsOverview(range?: { from: string; to: string; window?: string }) {
+  const { from, to, window: chosen } = range ?? {};
   const [data, setData] = useState<AnalyticsOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -65,7 +66,7 @@ export function useAnalyticsOverview() {
     setIsError(false);
     setError(null);
     try {
-      const result = await adminApi.get<AnalyticsOverview>('/v1/admin/analytics/overview');
+      const result = await adminApi.get<AnalyticsOverview>('/v1/admin/analytics/overview', { from, to, window: chosen });
       setData(result ?? null);
     } catch (e) {
       setIsError(true);
@@ -73,7 +74,7 @@ export function useAnalyticsOverview() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [from, to, chosen]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void fetch(); }, 0);

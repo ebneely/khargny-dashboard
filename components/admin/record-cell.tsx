@@ -43,7 +43,14 @@ export function RecordThumbnail({ src, size = 40 }: { src?: string | null; size?
     onError={() => setFailed(src ?? null)} />;
 }
 
-export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badgeIcon, chips, context }: {
+/** A collection's cover: its first places' photos as a 2×2 grid in the same 40px slot. */
+function CoverGrid({ urls }: { urls: string[] }) {
+  return <span aria-hidden="true" className="grid size-10 shrink-0 grid-cols-2 grid-rows-2 gap-px overflow-hidden rounded-lg bg-muted">{[0, 1, 2, 3].map((index) => urls[index]
+    ? <Image key={index} src={urls[index]} alt="" width={20} height={20} loading="lazy" decoding="async" unoptimized className="size-full object-cover" />
+    : <span key={index} className="bg-muted" />)}</span>;
+}
+
+export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badgeIcon, chips, context, cover }: {
   nameAr?: string | null;
   nameEn?: string | null;
   name?: string;
@@ -52,6 +59,7 @@ export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badge
   badgeIcon?: BadgeIconKey;
   chips?: React.ReactNode;
   context?: React.ReactNode;
+  cover?: string[];
 }) {
   const lang = useOptionalDashboardLang()?.lang ?? 'en';
   const primaryLang = name ? undefined : lang === 'ar' ? nameAr?.trim() ? 'ar' : 'en' : nameEn?.trim() ? 'en' : 'ar';
@@ -61,7 +69,7 @@ export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badge
   const secondary = other && other.toLocaleLowerCase() !== primary.toLocaleLowerCase() ? other : undefined;
   const alignment = { textAlign: lang === 'ar' ? 'right' as const : 'left' as const };
   return <div data-slot="record-cell" dir={lang === 'ar' ? 'rtl' : 'ltr'} style={alignment} className="flex min-w-0 max-w-64 items-center gap-2 whitespace-normal leading-4">
-    {icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
+    {cover?.length ? <CoverGrid urls={cover} /> : icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
     <div data-slot="record-name-text" className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-2"><span data-slot="record-name-primary" lang={primaryLang} dir="auto" style={alignment} className="min-w-0 max-w-full line-clamp-2 break-words font-medium" title={primary}>{primary}</span>{chips}</div>
       {secondary && <p data-slot="record-name-secondary" lang={secondaryLang} dir="auto" style={alignment} className="line-clamp-2 break-words text-sm leading-4 text-muted-foreground" title={secondary}>{secondary}</p>}

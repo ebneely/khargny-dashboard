@@ -110,6 +110,13 @@ async function request<T>(method: string, path: string, opts?: RequestOptions): 
 
   let res = await doFetch(method, url.toString(), opts);
 
+  // shortcut: analytics routes reject the unknown `window` param (forbidNonWhitelisted) until
+  // spec 002 T015 lands; retry with the from/to sent beside it. Drop this once T015 is live.
+  if (res.status === 400 && url.searchParams.has('window') && ['24h', '7d', '30d'].includes(url.searchParams.get('window')!)) {
+    url.searchParams.delete('window');
+    res = await doFetch(method, url.toString(), opts);
+  }
+
   // 401 → the access token likely expired. Refresh once and retry the same request.
   if (res.status === 401) {
     if (await tryRefresh()) {

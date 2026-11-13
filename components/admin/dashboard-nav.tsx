@@ -1,31 +1,25 @@
 'use client';
 
 import { useDashboardCopy } from '@/components/admin/dashboard-text';
-import { Award } from 'lucide-react';
+import { SegmentedNavigation } from '@/components/admin/segmented-control';
 
 import { ProfileHeader } from '@/components/auth/profile-header';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { activeNavHref } from '@/lib/dashboard-navigation';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { animate, stagger } from 'animejs';
 import {
   Menu,
   X,
-  LayoutDashboard,
-  Store,
-  Megaphone,
+  Inbox,
   MapPin,
-  Building2,
-  Shapes,
-  Sparkles,
-  Tags,
-  Users,
-  ContactRound,
-  Settings,
+  Wallet,
   Map as MapIcon,
+  ChartLine,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -38,29 +32,41 @@ import {
  * whole dashboard down. So the layout hands over a plain string `iconName` and the mapping
  * to an actual component happens here, on the client.
  */
-const ROUND6B_ICONS = { badges: Award } satisfies Record<string, LucideIcon>;
-
 const ICONS = {
-  home: LayoutDashboard,
-  storefront: Store,
-  ads: Megaphone,
-  // Round 6A: Analytics icon.
-  analytics: LayoutDashboard,
+  inbox: Inbox,
   places: MapPin,
-  cities: Building2,
-  categories: Shapes,
-  amenities: Sparkles,
-  tags: Tags,
-  admins: Users,
-  subscribers: ContactRound,
-  tourism: MapIcon,
+  money: Wallet,
+  marketplace: MapIcon,
+  numbers: ChartLine,
   settings: Settings,
-  ...ROUND6B_ICONS,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconName = keyof typeof ICONS;
 
-export type NavItem = { href: string; label: string; iconName: NavIconName; group?: 'sales' | 'content' | 'team' };
+export type NavItem = { href: string; label: string; iconName: NavIconName; tabs: { href: string; label: string }[] };
+
+/** The section an address belongs to: the one owning the longest matching tab. */
+function activeSection(pathname: string, items: NavItem[]) {
+  const tab = activeNavHref(pathname, items.flatMap((item) => item.tabs));
+  return items.find((item) => item.tabs.some((entry) => entry.href === tab));
+}
+
+// Numbers tabs keep the chosen window and filters, so moving between them never resets the question.
+const NUMBERS_CARRIED = ['window', 'from', 'to', 'platform', 'cityId'];
+
+/** The open section's sub-pages as one row of tabs above every page in it. */
+export function SectionTabs({ items }: { items: NavItem[] }) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const section = activeSection(pathname, items);
+  if (!section || section.tabs.length < 2) return null;
+  const carried = new URLSearchParams();
+  if (section.iconName === 'numbers') for (const key of NUMBERS_CARRIED) if (params.get(key)) carried.set(key, params.get(key)!);
+  const query = carried.size ? `?${carried}` : '';
+  // Live is chosen with the window switch, not a tab, so no tab is lit on the live page.
+  const value = pathname.startsWith('/dashboard/analytics/live') ? '' : activeNavHref(pathname, section.tabs) ?? '';
+  return <div className="mb-6"><SegmentedNavigation label={`${section.label} pages`} value={value} options={section.tabs.map((tab) => ({ value: tab.href, label: tab.label, href: tab.href + query }))} /></div>;
+}
 
 /**
  * Dashboard navigation.
@@ -84,7 +90,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   const [open, setOpen] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
-  const activeHref = activeNavHref(pathname, items);
+  const activeHref = activeSection(pathname, items)?.href;
   const { lang } = useDashboardLang();
 
   React.useEffect(() => {
@@ -184,25 +190,12 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   );
 }
 
-const ROUND6B_NAV_AR = { badges: 'الشارات' };
-
 const NAV_AR: Record<NavIconName, string> = {
-  // Round 6A: Analytics copy.
-  analytics: 'التحليلات',
-  ...ROUND6B_NAV_AR,
-  home: 'الرئيسية', subscribers: 'المشتركون', ads: 'الإعلانات', storefront: 'واجهة الموقع',
-  places: 'الأماكن', cities: 'المدن', categories: 'التصنيفات', amenities: 'المرافق', tags: 'الوسوم',
-  admins: 'المسؤولون', settings: 'الإعدادات', tourism: 'الرحلات',
+  inbox: 'الوارد', places: 'الأماكن', money: 'الفلوس', marketplace: 'السوق', numbers: 'الأرقام', settings: 'الإعدادات',
 };
 
 function NavGroups({ items, activeHref, mobile, onNavigate }: { items: NavItem[]; activeHref?: string; mobile?: boolean; onNavigate?: () => void }) {
-  const { lang } = useDashboardLang();
-  return <>{([undefined, 'sales', 'content', 'team'] as const).map((group) => {
-    const members = items.filter((item) => item.group === group);
-    if (!members.length) return null;
-    const heading = group && { sales: ['Sales', 'المبيعات'], content: ['Content', 'المحتوى'], team: ['Team', 'الفريق'] }[group][lang === 'ar' ? 1 : 0];
-    return <div key={group ?? 'home'} className="space-y-1">{heading && <h2 className="px-3 pb-0.5 pt-2.5 text-xs font-medium text-muted-foreground">{heading}</h2>}{members.map((item) => <NavLink key={item.href} item={item} active={item.href === activeHref} mobile={mobile} onNavigate={onNavigate} />)}</div>;
-  })}</>;
+  return <div className="space-y-1">{items.map((item) => <NavLink key={item.href} item={item} active={item.href === activeHref} mobile={mobile} onNavigate={onNavigate} />)}</div>;
 }
 
 function NavLink({

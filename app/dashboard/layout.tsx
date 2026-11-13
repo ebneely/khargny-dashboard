@@ -5,40 +5,48 @@ import Image from "next/image";
 import { ProfileHeader } from "@/components/auth/profile-header";
 import { getServerSession } from "@/lib/auth-server";
 import { ReadOnlyGate } from "@/components/auth/read-only-gate";
-import { DashboardNav, type NavItem } from "@/components/admin/dashboard-nav";
+import { DashboardNav, SectionTabs, type NavItem } from "@/components/admin/dashboard-nav";
 import { DashboardLangProvider } from "@/lib/dashboard-lang";
 import { DashboardLangToggle } from "@/components/admin/dashboard-lang-toggle";
 
-// `superAdminOnly` items are filtered out server-side, so a non-super-admin never
-// receives the link in the HTML at all — nothing to flash, nothing to find on refresh.
-//
-// Home leads the list: /dashboard is the insights page and had no nav entry at all, so the
-// only way back to it was the logo.
+// Six jobs, nothing else (spec 002 US8): each item is a landing page and every existing route
+// sits in exactly one of them as a tab. `superAdminOnly` tabs are filtered out server-side, so a
+// non-super-admin never receives the link in the HTML at all.
 //
 // Icons are referenced by NAME, not by component: this is a Server Component and the nav is
 // a Client Component, and a lucide icon is a function — passing one across that boundary
 // throws a Server Components render error. The client maps the name to a component.
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home", iconName: "home" },
-  { href: "/dashboard/subscribers", label: "Subscribers", iconName: "subscribers", group: "sales" },
-  { href: "/dashboard/ads", label: "Ads", iconName: "ads", group: "sales" },
-  // Round 6A: Analytics navigation (independent of Plans and Badges).
-  { href: "/dashboard/analytics", label: "Analytics", iconName: "analytics", group: "sales" },
-  // End Round 6A navigation.
-  // Trips marketplace (tourism P2P): lister checks, trip approval, cash rewards, reports.
-  { href: "/dashboard/tourism", label: "Trips", iconName: "tourism", group: "sales" },
-  { href: "/dashboard/storefront", label: "Storefront", iconName: "storefront", group: "sales" },
-  { href: "/dashboard/places", label: "Places", iconName: "places", group: "content" },
-  { href: "/dashboard/cities", label: "Cities", iconName: "cities", group: "content" },
-  { href: "/dashboard/categories", label: "Categories", iconName: "categories", group: "content" },
-  { href: "/dashboard/amenities", label: "Amenities", iconName: "amenities", group: "content" },
-  { href: "/dashboard/tags", label: "Tags", iconName: "tags", group: "content" },
-  { href: "/dashboard/admins", label: "Admins", iconName: "admins", group: "team", superAdminOnly: true },
-  { href: "/dashboard/settings", label: "Settings", iconName: "settings", group: "team" },
-] as const;
-
-const ROUND6B_CONTENT_ITEMS = [
-  { href: '/dashboard/badges', label: 'Badges', iconName: 'badges', group: 'content' },
+const NAV_SECTIONS = [
+  { href: "/dashboard/inbox", label: "Inbox", iconName: "inbox", tabs: [{ href: "/dashboard/inbox", label: "Inbox" }] },
+  { href: "/dashboard/places", label: "Places", iconName: "places", tabs: [
+    { href: "/dashboard/places", label: "Places" },
+    { href: "/dashboard/collections", label: "Collections" },
+    { href: "/dashboard/cities", label: "Cities and areas" },
+    { href: "/dashboard/categories", label: "Categories" },
+    { href: "/dashboard/tags", label: "Keywords" },
+    { href: "/dashboard/amenities", label: "Amenities" },
+    { href: "/dashboard/badges", label: "Badges" },
+  ] },
+  { href: "/dashboard/subscribers", label: "Money", iconName: "money", tabs: [
+    { href: "/dashboard/subscribers", label: "Subscribers" },
+    { href: "/dashboard/ads", label: "Ads" },
+  ] },
+  { href: "/dashboard/tourism", label: "Marketplace", iconName: "marketplace", tabs: [{ href: "/dashboard/tourism", label: "Trips" }] },
+  { href: "/dashboard/insights", label: "Numbers", iconName: "numbers", tabs: [
+    { href: "/dashboard/insights", label: "Places engagement" },
+    { href: "/dashboard/analytics", label: "Search overview" },
+    { href: "/dashboard/analytics/search-terms", label: "Search terms" },
+    { href: "/dashboard/analytics/missing-words", label: "Missing words" },
+    { href: "/dashboard/analytics/movement", label: "Movement" },
+    { href: "/dashboard/analytics/keywords", label: "Keyword searches" },
+  ] },
+  { href: "/dashboard/settings", label: "Settings", iconName: "settings", tabs: [
+    { href: "/dashboard/settings", label: "General" },
+    { href: "/dashboard/settings/api-keys", label: "Connection keys" },
+    { href: "/dashboard/settings/change-password", label: "Password" },
+    { href: "/dashboard/storefront", label: "Website footer" },
+    { href: "/dashboard/admins", label: "Admins", superAdminOnly: true },
+  ] },
 ] as const;
 
 export default async function DashboardLayout({
@@ -51,10 +59,10 @@ export default async function DashboardLayout({
   // A viewer sees everything and can change nothing — the gate disables every field and
   // button in the content area while leaving the nav live.
   const isViewer = session?.user?.role === "viewer";
-  const badgesPosition = NAV_ITEMS.findIndex((item) => item.href === '/dashboard/tags') + 1;
-  const navItems: NavItem[] = [...NAV_ITEMS.slice(0, badgesPosition), ...ROUND6B_CONTENT_ITEMS, ...NAV_ITEMS.slice(badgesPosition)].filter(
-    (item) => !("superAdminOnly" in item && item.superAdminOnly) || isSuperAdmin,
-  ).map((item) => ({ href: item.href, label: item.label, iconName: item.iconName, group: "group" in item ? item.group : undefined }));
+  const navItems: NavItem[] = NAV_SECTIONS.map((section) => ({
+    href: section.href, label: section.label, iconName: section.iconName,
+    tabs: section.tabs.filter((tab) => !("superAdminOnly" in tab) || isSuperAdmin).map(({ href, label }) => ({ href, label })),
+  }));
 
   return (
     // The whole dashboard is wrapped in the language provider so the global EN/ع toggle and
@@ -102,6 +110,7 @@ export default async function DashboardLayout({
             360px phone, where it cost nearly a fifth of the width. min-w-0 lets wide tables
             scroll inside the main column instead of stretching the page. */}
         <main className="min-w-0 flex-1 bg-background px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+          <Suspense fallback={null}><SectionTabs items={navItems} /></Suspense>
           <ReadOnlyGate readOnly={isViewer}><Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-muted" />}>{children}</Suspense></ReadOnlyGate>
         </main>
       </div>

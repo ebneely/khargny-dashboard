@@ -12,31 +12,27 @@ import { placeCover } from '@/lib/place-list';
 import { RecordCell, type RecordIcon } from '../record-cell';
 import { RowActions } from '../row-actions';
 import { PageActions } from '../page-actions';
-import { SegmentedControl } from '../segmented-control';
 import { useDashboardCopy } from '../dashboard-text';
 import { LoadingState, RequestError } from '../subscriber-ui';
 import { useDashboardLang } from '@/lib/dashboard-lang';
-import { useUrlTab } from '@/lib/use-url-tab';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { adminApi } from '@/lib/api/admin-client';
 import { loadLiveBundle } from '@/lib/api/live-status';
-import { createLivePoller, liveWindows, liveState, lineSegments, liveStepLabels, type LiveBundle, type LiveWindow, type LiveMeasure, type LivePoint, type LiveRank, type LiveJourney } from '@/lib/live-status';
+import { createLivePoller, liveState, lineSegments, liveStepLabels, type LiveBundle, type LiveWindow, type LiveMeasure, type LivePoint, type LiveRank, type LiveJourney } from '@/lib/live-status';
 
-const presetLabels = ['1 minute', '5 minutes', '15 minutes', '30 minutes', '1 hour', '3 hours', '6 hours', '12 hours', '24 hours'];
 export function LivePage() { return <React.Suspense fallback={<LoadingState />}><LiveContent /></React.Suspense>; }
 function LiveContent() {
-  const copy = useDashboardCopy(); const { lang } = useDashboardLang(); const preset = useUrlTab([...liveWindows], '5m', 'window'); const windowChoice = preset.value as LiveWindow;
+  const copy = useDashboardCopy(); const { lang } = useDashboardLang(); // Live is the 5-minute view; longer windows are chosen with the Numbers window switch.
+  const windowChoice: LiveWindow = '5m';
   const [bundle, setBundle] = React.useState<LiveBundle | null>(null); const [status, setStatus] = React.useState<'loading' | 'ready' | 'disabled' | 'error'>('loading'); const [now, setNow] = React.useState(0);
   const [selected, setSelected] = React.useState<string | null>(null); const poller = React.useRef<ReturnType<typeof createLivePoller<LiveBundle>> | null>(null);
   React.useEffect(() => {
     const control = createLivePoller({ window: '5m', hidden: () => document.hidden, load: loadLiveBundle, scheduler: { set: (fn, ms) => setTimeout(fn, ms), clear: token => window.clearTimeout(token) }, onResult: value => { setBundle(value); setStatus('ready'); setNow(Date.now()); }, onError: error => { setStatus(liveState(error)); } });
     poller.current = control;
-    const initial = new URLSearchParams(window.location.search).get('window'); if (initial && liveWindows.includes(initial as LiveWindow)) control.setWindow(initial as LiveWindow);
     control.start(); const visibility = () => control.visibility(); document.addEventListener('visibilitychange', visibility);
     const clock = setInterval(() => { if (!document.hidden) setNow(Date.now()); }, 1000);
     return () => { control.stop(); clearInterval(clock); document.removeEventListener('visibilitychange', visibility); if (poller.current === control) poller.current = null; };
   }, []);
-  React.useEffect(() => { poller.current?.setWindow(windowChoice); }, [windowChoice]);
   const current = bundle?.summary.window === windowChoice ? bundle : null;
   const age = current ? Math.max(0, Math.floor((now - Date.parse(current.summary.generatedAt)) / 1000)) : null;
   const number = (value: number | null | undefined) => value === null || value === undefined ? '—' : value.toLocaleString(lang);
@@ -49,7 +45,6 @@ function LiveContent() {
   const currentVisitors = current?.summary.now?.totals?.visitors;
   const displayState = status === 'disabled' ? 'disabled' : current ? typeof currentVisitors === 'number' ? 'ready' : 'unknown' : status === 'ready' ? 'loading' : status;
   return <div data-live-state={displayState} className="min-w-0 space-y-6"><header className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-display text-xl font-semibold">{copy('Live')}</h2><p className="text-sm text-muted-foreground" aria-live="polite" data-slot="live-age">{age === null ? copy('Waiting for the first live snapshot.') : `${copy('Updated')} ${age.toLocaleString(lang)} ${copy('seconds ago')}`}</p></div><PageActions mobileMirrorWhenHidden actions={[{ label: 'Refresh live activity', readOnly: true, icon: <RefreshCw />, onClick: () => poller.current?.refresh() }]} /></header>
-    <SegmentedControl label="Live window" value={windowChoice} onValueChange={preset.onValueChange} options={liveWindows.map((value, index) => ({ value, label: presetLabels[index] }))} />
     {status === 'disabled' ? <Card><CardContent><p role="status" className="text-sm">{copy('Live activity is switched off. Historical reports are still available.')}</p></CardContent></Card> : status === 'error' ? <RequestError message={copy('Live activity is temporarily unavailable. No empty counts have been substituted.')} retry={() => poller.current?.refresh()} /> : !current ? <LoadingState /> : <>
       <section aria-label={copy('Right now')} className="space-y-1"><h3 className="text-sm font-medium text-muted-foreground">{copy('Right now')}</h3><p className="font-display text-4xl font-semibold tabular-nums">{number(currentVisitors)} <span className="text-base font-normal text-muted-foreground">{copy(currentVisitors === 1 ? 'estimated visitor' : 'estimated visitors')}</span></p>{typeof currentVisitors !== 'number' && <p className="text-sm text-muted-foreground">{copy('Recent minutes are missing.')}</p>}<p className="text-sm text-muted-foreground">{liveTime(current.summary.from, lang, datedWindow)} — {liveTime(current.summary.to, lang, datedWindow)} · {copy('Cairo time')}</p></section>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><LiveMetric metric="visitors" label="Unique visitors (estimate)" bundle={current} /><LiveMetric metric="visits" label="Visits started" bundle={current} /><LiveMetric metric="pages" label="Pages viewed" bundle={current} /><LiveMetric metric="actions" label="Actions" bundle={current} /></div>

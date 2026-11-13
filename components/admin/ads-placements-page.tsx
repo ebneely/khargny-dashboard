@@ -1,12 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { useSearchParams } from 'next/navigation';
 import { AdsSubscriptionAction } from './ads-subscription-action';
-import { Plus, CalendarDays } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { AdsPageHeader } from './ads-page-header';
 import { AdsRange, SurfaceList } from './ads-round-b-ui';
-import { HomeSections } from './ads-home-sections';
 import { RecordList, useListAddress } from './record-list';
 import { RecordCell } from './record-cell';
 import { DateCell, DateRange } from './date-cell';
@@ -26,7 +24,7 @@ import { placeCover } from '@/lib/place-list';
 
 export function AdsPlacementsPage({ canWrite = false }: { canWrite?: boolean }) { return <React.Suspense fallback={<LoadingState />}><PlacementsContent canWrite={canWrite} /></React.Suspense>; }
 function PlacementsContent({ canWrite }: { canWrite: boolean }) {
-  const copy = useDashboardCopy(); const params = useSearchParams();
+  const copy = useDashboardCopy();
   const [from, setFrom] = React.useState(cairoDate); const [to, setTo] = React.useState(cairoDate);
   const valid = validAdsRange(from, to, 92);
   const address = useListAddress('surfaces');
@@ -42,12 +40,11 @@ function PlacementsContent({ canWrite }: { canWrite: boolean }) {
   const loadSummary = React.useCallback(() => valid && paged ? adsBApi.surfacesSummary(from, to) : Promise.resolve(null), [from, to, valid, paged]);
   const summary = useSubscriberResource(loadSummary);
   const selected = resource.data?.data.find(row => row.key === chosen?.key) ?? null;
-  return <div className="min-w-0 space-y-6"><AdsPageHeader form={params.get('add') === 'section' && canWrite} title="Where ads appear" description="Choose where a visitor sees a place, see bookings and preview the actual cards." actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite }, { label: 'Add a section', href: '/dashboard/ads/placements?add=section#homepage-sections', allowed: canWrite, icon: <Plus /> }]} />
+  return <div className="min-w-0 space-y-6"><AdsPageHeader title="Where ads appear" description="Choose where a visitor sees a place, see bookings and preview the actual cards." actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite }]} />
     <Card><CardHeader><CardTitle>{copy('Booking range')}</CardTitle></CardHeader><CardContent><AdsRange from={from} to={to} onFrom={setFrom} onTo={setTo} /></CardContent></Card>
     {paged && <Card data-slot="surface-summary"><CardHeader><CardTitle>{copy('All surfaces in the booking range')}</CardTitle></CardHeader><CardContent>{summary.loading ? <LoadingState /> : summary.error ? <RequestError message={copy('Could not load surfaces.')} retry={() => { void summary.refetch(); }} /> : summary.data && <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">{[['Surfaces grouped by kind and city', summary.data.totals.surfaces], ['With free space', summary.data.totals.withFreeSpace], ['Nobody promoted', summary.data.totals.nobodyPromoted]].map(([label, count]) => <div key={label}><dt className="text-sm text-muted-foreground">{copy(String(label))}</dt><dd className="text-xl font-semibold tabular-nums">{count}</dd></div>)}</dl>}</CardContent></Card>}
     {valid && <Card><CardHeader><CardTitle>{copy('Surfaces grouped by kind and city')}</CardTitle></CardHeader><CardContent>{resource.loading ? <LoadingState /> : resource.error ? <RequestError message={copy('Could not load surfaces.')} retry={() => { void resource.refetch(); }} /> : <SurfaceList scope="surfaces" address={address} total={resource.data?.meta?.total} surfaces={resource.data?.data ?? []} cities={cities.data ?? []} onChoose={setChosen} />}</CardContent></Card>}
     {selected && <SurfaceDetails key={selected.key} surface={selected} from={from} to={to} canWrite={canWrite} />}
-    <HomeSections canWrite={canWrite} />
     <p className="text-sm text-muted-foreground">{copy('Bookings include paused reservations. Candidates are not simultaneous occupants; use the visitor preview for the exact current order.')}</p>
   </div>;
 }

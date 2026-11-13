@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { SegmentedControl } from '@/components/admin/segmented-control';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
+import { useSearchParams } from 'next/navigation';
+import { numbersRange, readNumbersWindow } from '@/components/admin/analytics/window-switch';
 import { regionLabel } from '@/lib/egypt-regions';
 import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
@@ -27,7 +29,9 @@ type MeasureKey = (typeof MEASURES)[number]['key'];
 export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | 'en' }) {
   const { lang: currentLanguage } = useDashboardLang();
   const lang = requestedLanguage ?? currentLanguage;
-  const { data, isLoading, isError, refetch } = useAnalyticsOverview();
+  const params = useSearchParams();
+  const chosen = readNumbersWindow(params);
+  const { data, isLoading, isError, refetch } = useAnalyticsOverview({ ...numbersRange(chosen, params), window: chosen === 'custom' ? undefined : chosen });
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
 
   const label = React.useCallback((ar: string | null, en: string | null, fallback: string) =>
