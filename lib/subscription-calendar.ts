@@ -1,3 +1,4 @@
+import { AR_LOCALE } from '@/lib/locale';
 export type CalendarLength = { months: number; days?: never } | { days: number; months?: never };
 
 export function daysInCalendarMonth(year: number, month: number): number {
@@ -54,5 +55,5 @@ export function renewalStart(end: string, today: string): string {
 }
 
 export function formatCalendarDate(value: string, lang: 'en' | 'ar', month: 'short' | 'long' = 'short'): string {
-  return new Intl.DateTimeFormat(lang === 'ar' ? 'ar-EG' : 'en-GB', { day: 'numeric', month, year: 'numeric', timeZone: 'UTC' }).format(calendarStamp(value));
+  return new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { day: 'numeric', month, year: 'numeric', timeZone: 'UTC' }).format(calendarStamp(value));
 }

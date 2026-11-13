@@ -11,6 +11,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { activeNavHref } from '@/lib/dashboard-navigation';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { animate, stagger } from 'animejs';
+import { adminApi } from '@/lib/api/admin-client';
 import {
   Menu,
   X,
@@ -211,6 +212,7 @@ function NavLink({
 }) {
   const Icon = ICONS[item.iconName];
   const { lang } = useDashboardLang();
+  const waiting = useInboxWaiting(item.iconName === 'inbox');
   return (
     <Link
       href={item.href}
@@ -229,6 +231,22 @@ function NavLink({
       {active && <span aria-hidden="true" className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-brand-700" />}
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       {lang === 'ar' ? NAV_AR[item.iconName] : item.label}
+      {waiting > 0 && <span className="ms-auto rounded-full bg-brand-50 px-2 text-xs font-medium tabular-nums text-brand-700" aria-label={`${waiting} ${lang === 'ar' ? 'بانتظار الرد' : 'waiting'}`}>{waiting}</span>}
     </Link>
   );
+}
+
+/** Corrections and reports waiting on a person, from the inbox counts; refreshed on each page change. */
+function useInboxWaiting(enabled: boolean) {
+  const pathname = usePathname();
+  const [waiting, setWaiting] = React.useState(0);
+  React.useEffect(() => {
+    if (!enabled) return;
+    let live = true;
+    adminApi.get<{ counts?: { corrections?: number; reports?: number } }>('/v1/admin/inbox', { type: 'corrections', limit: 1 })
+      .then((res) => { if (live) setWaiting((res.counts?.corrections ?? 0) + (res.counts?.reports ?? 0)); })
+      .catch(() => undefined);
+    return () => { live = false; };
+  }, [enabled, pathname]);
+  return waiting;
 }

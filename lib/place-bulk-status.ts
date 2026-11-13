@@ -1,4 +1,5 @@
 import { adminApi } from './api/admin-client';
+import { AR_LOCALE } from '@/lib/locale';
 
 export type PlaceStatusAction = 'activate' | 'deactivate';
 export type PlaceStatusResult = { id: string; ok: boolean; state?: string; code?: string; message?: string };
@@ -12,7 +13,7 @@ export function bulkPlaceStatus(placeIds: string[], action: PlaceStatusAction) {
 }
 
 export function bulkPlaceStatusLabel(action: PlaceStatusAction, count: number, lang: 'en' | 'ar') {
-  const number = count.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en');
+  const number = count.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en');
   if (lang === 'en') return `${action === 'activate' ? 'Activate' : 'Deactivate'} ${number} ${count === 1 ? 'place' : 'places'}`;
   const noun = { zero: `${number} أماكن`, one: 'مكان واحد', two: 'مكانين', few: `${number} أماكن`, many: `${number} مكانًا`, other: `${number} مكان` }[new Intl.PluralRules('ar').select(count)];
   return `${action === 'activate' ? 'تفعيل' : 'تعطيل'} ${noun}`;

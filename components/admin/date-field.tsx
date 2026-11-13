@@ -11,6 +11,7 @@ import { cairoDate } from '@/lib/api/subscribers';
 import { calendarStamp, daysInCalendarMonth, isCalendarDate, shiftCalendarDays, shiftCalendarMonth } from '@/lib/subscription-calendar';
 import { useDashboardCopy } from './dashboard-text';
 import { cn } from '@/lib/utils';
+import { AR_LOCALE } from '@/lib/locale';
 
 type DateFieldProps = Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & { value: string; onChange: (value: string) => void; min?: string; max?: string; readOnlyControl?: boolean };
 
@@ -28,7 +29,7 @@ export function DateField({ value, onChange, min = '1000-01-01', max = '9999-12-
   if (observed !== value) { setObserved(value); setTyped(null); }
   const inputRef = React.useRef<HTMLInputElement>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
-  const locale = lang === 'ar' ? 'ar-EG' : 'en-GB';
+  const locale = lang === 'ar' ? AR_LOCALE : 'en-GB';
   const format = (date: string) => new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(calendarStamp(date));
   const fullDate = (date: string) => new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeZone: 'UTC' }).format(calendarStamp(date));
   const [year, monthNumber] = month.split('-').map(Number);

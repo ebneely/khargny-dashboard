@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 /** Western digits in both languages (owner rule). */
 const digits = (n: number) => n.toLocaleString('en-US');
-const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'this hour', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days' };
+const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'the last 5 minutes', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days' };
 const KIND_WORDS: Record<InsightCard['kind'], string> = { rising: 'Rising', fading: 'Fading', hype_now: 'Hype now', gap: 'Gap', money: 'Money' };
 
 function Skeleton({ rows }: { rows: number }) {

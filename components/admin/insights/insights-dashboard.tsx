@@ -21,6 +21,7 @@ import { numbersRange, readNumbersWindow } from '@/components/admin/analytics/wi
 import { regionLabel } from '@/lib/egypt-regions';
 import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
+import { AR_LOCALE } from '@/lib/locale';
 
 /** The three engagement measures, each plotted on its own axis — never together. */
 const MEASURES = engagementMetrics;
@@ -44,7 +45,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           key: c.key,
           label: label(c.labelAr, c.labelEn, c.key),
           value: c[measure],
-          meta: `${c.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
+          meta: `${c.places.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
         .sort((a, b) => (b.value ?? -1) - (a.value ?? -1)),
     [data, measure, lang, label],
@@ -59,7 +60,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           // the shared catalog, the same way every other surface resolves it.
           label: regionLabel(r.key, lang) || r.key,
           value: r[measure],
-          meta: `${r.places.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
+          meta: `${r.places.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
         .sort((a, b) => (b.value ?? -1) - (a.value ?? -1)),
     [data, measure, lang],

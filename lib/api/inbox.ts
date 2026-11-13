@@ -16,6 +16,10 @@ export interface CorrectionRow {
   source: 'visit' | 'staff' | 'online';
   photoUrl?: string | null;
   createdAt: string;
+  /** Open corrections on the same place (rows arrive grouped, busiest place first). */
+  placeOpen?: number;
+  /** The sender's record: corrections sent, applied and rejected. */
+  reporter?: { total: number; applied: number; rejected: number };
 }
 
 export interface AppReportRow {
@@ -32,12 +36,23 @@ export interface NoHoursRow extends PlaceListMedia {
   nameEn?: string | null;
 }
 
-export async function loadInbox<T>(type: InboxType) {
-  const raw = await adminApi.get<unknown>('/v1/admin/inbox', { type, limit: 100 });
-  return toList<T>(raw).items;
+export interface InboxPage<T> { rows: T[]; total: number }
+
+/** `pages` pages of 100, in order; total is the server's count for the list, not the rows loaded. */
+export async function loadInbox<T>(type: InboxType, pages = 1): Promise<InboxPage<T>> {
+  const rows: T[] = [];
+  let total = 0;
+  for (let page = 1; page <= pages; page++) {
+    const raw = await adminApi.get<{ rows?: T[]; counts?: Record<InboxType, number> }>('/v1/admin/inbox', { type, page, limit: 100 });
+    rows.push(...(raw.rows ?? toList<T>(raw).items));
+    total = raw.counts?.[type] ?? rows.length;
+    if (rows.length >= total) break;
+  }
+  return { rows, total };
 }
 
-export const applyCorrection = (id: string) => adminApi.post(`/v1/admin/corrections/${id}/apply`);
+export const applyCorrection = (id: string) => adminApi.post<{ written?: boolean }>(`/v1/admin/corrections/${id}/apply`);
+export const closeReport = (id: string, reply: string) => adminApi.post(`/v1/admin/reports/${id}/close`, { reply });
 export const rejectCorrection = (id: string, reply: string) => adminApi.post(`/v1/admin/corrections/${id}/reject`, { reply });
 
 // Owner change requests from the owner portal (verification module, live today).
@@ -49,5 +64,5 @@ export interface OwnerRequestRow {
   createdAt: string;
 }
 
-export const loadOwnerRequests = async () => toList<OwnerRequestRow>(await adminApi.get('/v1/admin/verification/requests', { state: 'open', limit: 100 })).items;
+export const loadOwnerRequests = async (): Promise<InboxPage<OwnerRequestRow>> => { const list = toList<OwnerRequestRow>(await adminApi.get('/v1/admin/verification/requests', { state: 'open', limit: 100 })); return { rows: list.items, total: list.total }; };
 export const replyOwnerRequest = (id: string, state: 'done' | 'declined', reply: string) => adminApi.put(`/v1/admin/verification/requests/${id}`, { state, reply });

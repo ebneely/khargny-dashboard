@@ -11,11 +11,12 @@ import { AdminApiError, adminApi } from '@/lib/api/admin-client';
 import { TOURISM_API, tripCover, type TourismReport, type TourismTrip } from '@/lib/api/tourism';
 import { DateRange } from '../date-cell';
 import { ActionDialog, RequestError, StatusBadge, type ActionSpec, useSubscriberText } from '../subscriber-ui';
+import { AR_LOCALE } from '@/lib/locale';
 
 /** Words the website and the lister portal use (briefs/tourism-parity.md). */
 export function useTourismText() {
   const { text, lang, pick } = useSubscriberText();
-  const num = React.useCallback((value: number) => value.toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-GB'), [lang]);
+  const num = React.useCallback((value: number) => value.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en-GB'), [lang]);
   const egp = React.useCallback((value: number) => text(`${num(value)} EGP`, `${num(value)} جنيه`), [num, text]);
   return { text, lang, pick, num, egp };
 }

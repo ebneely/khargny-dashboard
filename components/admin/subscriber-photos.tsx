@@ -12,6 +12,7 @@ import type { SubscriberDetail } from '@/lib/api/subscribers';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { ActionDialog, type ActionSpec, RequestError, useSubscriberText } from './subscriber-ui';
 import { LoadingState } from './subscriber-ui';
+import { AR_LOCALE } from '@/lib/locale';
 
 interface PhotoSubmission {
   id: string;
@@ -73,7 +74,7 @@ function PendingPhotos({ subscriberId, canWrite }: { subscriberId: string; canWr
       : <ul className="grid gap-3 sm:grid-cols-2">{rows.map((row) => <li key={row.id} className="space-y-2 rounded-lg border p-3">
         <PrivatePhoto path={`/v1/admin/photo-submissions/${row.id}/image`} alt={text(`Photo for ${row.placeNameEn ?? row.placeName}`, `صورة لـ ${row.placeName}`)} />
         <p className="text-sm font-medium">{lang === 'ar' ? row.placeName : row.placeNameEn ?? row.placeName}</p>
-        <p className="text-xs text-muted-foreground">{row.width}×{row.height} {new Intl.DateTimeFormat(lang === 'ar' ? 'ar-EG' : 'en-GB', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(row.createdAt))}</p>
+        <p className="text-xs text-muted-foreground">{row.width}×{row.height} {new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(row.createdAt))}</p>
         {canWrite && <div className="flex gap-2">
           <Button size="sm" onClick={() => { void review(row.id, 'approve'); }}><Check aria-hidden="true" />{text('Approve', 'قبول')}</Button>
           <Button size="sm" variant="outline" onClick={() => setAction({ title: text('Reject this photo?', 'رفض هذه الصورة؟'), destructive: true, description: text('The owner sees your reason in the portal.', 'يرى صاحب المكان السبب في البوابة.'), fields: [{ name: 'reason', label: text('Reason', 'السبب'), type: 'textarea', required: true }], submit: async (values) => { await review(row.id, 'reject', { reason: String(values.reason) }); } })}><X aria-hidden="true" />{text('Reject', 'رفض')}</Button>

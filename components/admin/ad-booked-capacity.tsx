@@ -8,6 +8,7 @@ import { bookedRange } from '@/lib/ads-round5';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useDashboardCopy } from './dashboard-text';
 import { LoadingState, RequestError, useSubscriberText } from './subscriber-ui';
+import { AR_LOCALE } from '@/lib/locale';
 
 export function AdBookedCapacity({ from, to, placement, cityId }: { from: string; to: string; placement: AdPlacement; cityId: string | null }) {
   const copy = useDashboardCopy();
@@ -20,6 +21,6 @@ export function AdBookedCapacity({ from, to, placement, cityId }: { from: string
   if (resource.error) return <RequestError message={copy('Could not load booked space.')} retry={() => { void resource.refetch(); }} />;
   const days = resource.data ? bookedRange(resource.data, placement, cityId, from, to) : [];
   if (!days.length) return null;
-  const number = (value: number) => new Intl.NumberFormat(lang === 'ar' ? 'ar-EG' : 'en').format(value);
+  const number = (value: number) => new Intl.NumberFormat(lang === 'ar' ? AR_LOCALE : 'en').format(value);
   return <section className="space-y-2 rounded-lg bg-muted p-4"><h3 className="font-semibold">{copy('Booked space for these dates')}</h3><p className="text-sm"><span dir="ltr">{from} – {to}</span> {copy('Cairo')}</p><p className="text-sm tabular-nums">{number(Math.min(...days.map((day) => day.booked)))} – {number(Math.max(...days.map((day) => day.booked)))} {copy('booked places per day')} {number(Math.min(...days.map((day) => Math.max(0, day.capacity - day.booked))))} {copy('minimum free places per day')}</p>{days.some((day) => day.booked >= day.capacity) && <p className="text-sm text-warning">{copy('Some dates are full. Extra bookings rotate; check the warning after saving.')}</p>}</section>;
 }

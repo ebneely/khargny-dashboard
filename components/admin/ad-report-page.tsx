@@ -22,6 +22,7 @@ import {
   type AdCampaignReport,
   type AdReportDay,
 } from '@/lib/api/ads';
+import { AR_LOCALE } from '@/lib/locale';
 
 export function AdReportPage({ campaignId }: { campaignId: string }) {
   const controlCopy = useDashboardCopy();
@@ -62,7 +63,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
 
   const { campaign, totals, days, methodology } = report;
   const placeName = pick(campaign.place.name, campaign.place.nameEn) || '—';
-  const generatedAt = new Intl.DateTimeFormat(lang === 'ar' ? 'ar-EG' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: report.timezone }).format(new Date(report.generatedAt));
+  const generatedAt = new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: report.timezone }).format(new Date(report.generatedAt));
 
   return (
     <div className="ad-report">

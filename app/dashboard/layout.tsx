@@ -32,9 +32,9 @@ const NAV_SECTIONS = [
     { href: "/dashboard/ads", label: "Ads" },
   ] },
   { href: "/dashboard/tourism", label: "Marketplace", iconName: "marketplace", tabs: [{ href: "/dashboard/tourism", label: "Trips" }] },
-  { href: "/dashboard/insights", label: "Numbers", iconName: "numbers", tabs: [
+  { href: "/dashboard/analytics", label: "Numbers", iconName: "numbers", tabs: [
+    { href: "/dashboard/analytics", label: "Answers and overview" },
     { href: "/dashboard/insights", label: "Places engagement" },
-    { href: "/dashboard/analytics", label: "Search overview" },
     { href: "/dashboard/analytics/search-terms", label: "Search terms" },
     { href: "/dashboard/analytics/missing-words", label: "Missing words" },
     { href: "/dashboard/analytics/movement", label: "Movement" },
