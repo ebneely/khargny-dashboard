@@ -90,7 +90,7 @@ export function AdCampaignActionDialog({
         <DialogHeader>
           <DialogTitle>{text(copy.title)}</DialogTitle>
           <DialogDescription>
-            {campaign ? `${campaign.place.name || campaign.place.nameEn} · ${campaign.advertiserName}. ` : ''}
+            {campaign ? `${campaign.place.name || campaign.place.nameEn} ${campaign.advertiserName}. ` : ''}
             {text(copy.description)}
           </DialogDescription>
         </DialogHeader>

@@ -24,6 +24,7 @@ function Skeleton({ rows }: { rows: number }) {
 /** T045: the fixed questions, answered first. */
 function Answers({ window }: { window: NumbersWindow }) {
   const copy = useDashboardCopy();
+  const { lang } = useDashboardLang();
   const load = React.useCallback(() => loadAnswers(window), [window]);
   const res = useSubscriberResource(load);
   return <Card data-slot="numbers-answers">
@@ -32,8 +33,8 @@ function Answers({ window }: { window: NumbersWindow }) {
       {res.loading ? <Skeleton rows={7} /> : res.error || !res.data ? <RequestError message={copy('Could not load the answers.')} retry={() => { void res.refetch(); }} /> :
         <ul className="divide-y">{res.data.answers.map((a) => <li key={a.key}>
           <Link href={a.href} className="group flex min-h-14 items-center gap-4 rounded-lg px-2 py-3 -mx-2 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none">
-            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{copy(a.question)}</p><p className="mt-0.5">{a.sentence}</p></div>
-            {a.number && <span dir="ltr" className="shrink-0 rounded-full bg-muted px-3 py-1 text-sm font-medium tabular-nums">{a.number}</span>}
+            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{copy(a.question)}</p><p className="mt-0.5">{lang === 'ar' ? a.sentenceAr : a.sentence}</p></div>
+            {a.number && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-sm font-medium tabular-nums"><bdi>{lang === 'ar' ? a.numberAr : a.number}</bdi></span>}
             <ArrowUpRight aria-hidden="true" className="size-4 shrink-0 rtl:-scale-x-100 text-muted-foreground group-hover:text-foreground" />
           </Link></li>)}</ul>}
     </CardContent>
@@ -43,6 +44,7 @@ function Answers({ window }: { window: NumbersWindow }) {
 /** T044: insight cards, ranked by the backend (change × volume). */
 function Insights({ window }: { window: NumbersWindow }) {
   const copy = useDashboardCopy();
+  const { lang } = useDashboardLang();
   const load = React.useCallback(() => loadInsights(window), [window]);
   const res = useSubscriberResource(load);
   return <section aria-labelledby="numbers-insights" className="space-y-3">
@@ -55,8 +57,8 @@ function Insights({ window }: { window: NumbersWindow }) {
             <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-medium', card.kind === 'rising' || card.kind === 'hype_now' ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground')}>{copy(KIND_WORDS[card.kind])}</span>
             <span dir="ltr" className="text-2xl font-semibold tabular-nums">{card.number}</span>
           </div>
-          <p className="font-medium">{card.sentence}</p>
-          <p className="text-sm text-muted-foreground">{card.why}</p>
+          <p className="font-medium">{lang === 'ar' ? card.sentenceAr : card.sentence}</p>
+          <p className="text-sm text-muted-foreground">{lang === 'ar' ? card.whyAr : card.why}</p>
           <Link href={card.action.href} className="mt-auto inline-flex items-center gap-1 self-start text-sm font-medium text-primary hover:underline">{copy(card.action.label)}<ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" /></Link>
         </CardContent>
       </Card>)}</div>}

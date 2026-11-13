@@ -864,7 +864,7 @@ function EditPlaceContent() {
               <DashboardText>Upload short clips (MP4/WebM, up to 100MB each). They stream in the place&apos;s public gallery.</DashboardText>
             </p>
             {!isSoftDeleted && (
-              <FileUpload label={lang === 'ar' ? 'اختر فيديوهات' : 'Choose videos'} description={lang === 'ar' ? 'MP4 / WebM · حتى 100 ميجابايت لكل ملف.' : 'MP4 / WebM · up to 100 MB per file.'}
+              <FileUpload label={lang === 'ar' ? 'اختر فيديوهات' : 'Choose videos'} description={lang === 'ar' ? 'MP4 / WebM حتى 100 ميجابايت لكل ملف.' : 'MP4 / WebM up to 100 MB per file.'}
                   accept="video/*"
                   multiple
                   disabled={media.busy}

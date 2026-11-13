@@ -15,7 +15,7 @@ export function ruleFromControls(key: BadgeKey, fields: RuleControls): BadgeRule
 }
 export function badgeValueText(value: number, measure: BadgeRule['measure'], days: number | null, lang: 'en' | 'ar') {
   const copy = (text: string) => translateDashboardCopy(text, lang);
-  return `${value.toLocaleString(lang)} ${copy(badgeMetric[measure])} · ${days === null ? copy('All time') : `${days.toLocaleString(lang)} ${copy('days')}`}`;
+  return `${value.toLocaleString(lang)} ${copy(badgeMetric[measure])} ${days === null ? copy('All time') : `${days.toLocaleString(lang)} ${copy('days')}`}`;
 }
 export function badgeExplanation(status: PlaceBadgeStatus, rule: BadgeRule | null, lang: 'en' | 'ar') {
   const copy = (text: string) => translateDashboardCopy(text, lang);
@@ -26,8 +26,8 @@ export function badgeExplanation(status: PlaceBadgeStatus, rule: BadgeRule | nul
   const value = status.value === null ? '—' : badgeValueText(status.value, rule.measure, status.windowDays, lang);
   const city = status.scope?.city;
   const category = status.scope?.category;
-  const scope = [city ? (lang === 'ar' ? city.name : city.nameEn || city.name) : '', category ? (lang === 'ar' ? category.name : category.nameEn || category.name) : ''].filter(Boolean).join(' · ');
-  return status.held ? `${copy('Rank')} ${status.rank?.toLocaleString(lang) ?? '—'} ${copy('of')} ${status.candidates?.toLocaleString(lang) ?? '—'} ${copy('in')} ${scope || '—'}: ${value}` : `${copy('Not held')}: ${value}${status.floor !== null && (status.value ?? 0) < status.floor ? ` · ${copy('needs')} ${status.floor.toLocaleString(lang)}` : ` · ${copy('Below the winners')}`}`;
+  const scope = [city ? (lang === 'ar' ? city.name : city.nameEn || city.name) : '', category ? (lang === 'ar' ? category.name : category.nameEn || category.name) : ''].filter(Boolean).join(' ');
+  return status.held ? `${copy('Rank')} ${status.rank?.toLocaleString(lang) ?? '—'} ${copy('of')} ${status.candidates?.toLocaleString(lang) ?? '—'} ${copy('in')} ${scope || '—'}: ${value}` : `${copy('Not held')}: ${value}${status.floor !== null && (status.value ?? 0) < status.floor ? ` ${copy('needs')} ${status.floor.toLocaleString(lang)}` : ` ${copy('Below the winners')}`}`;
 }
 export function overrideRequest(placeId: string, kind: 'pin' | 'exclude', reason: string, date: string) {
   if (!date) return { placeId, kind, reason: reason.trim() };

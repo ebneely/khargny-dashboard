@@ -29,7 +29,7 @@ export function KeywordEditor({ keyword, disabled, onSaved }: { keyword?: Keywor
   const submitting = React.useRef(false);
   const [refreshFailed, setRefreshFailed] = React.useState(false);
   const changes = useFormChanges(draft, original);
-  if (readOnly) return <div className="space-y-3"><p className="text-sm text-muted-foreground">{copy('Read only: viewers cannot change keywords or decisions.')}</p><p>{keyword?.name} · {keyword?.nameEn}</p><p>{copy(GROUP_LABELS[draft.group])}</p><p className="break-words">{keyword?.aliases.join(' · ')}</p><p className="whitespace-pre-wrap break-words">{keyword?.notes}</p></div>;
+  if (readOnly) return <div className="space-y-3"><p className="text-sm text-muted-foreground">{copy('Read only: viewers cannot change keywords or decisions.')}</p><p>{keyword?.name} {keyword?.nameEn}</p><p>{copy(GROUP_LABELS[draft.group])}</p><p className="break-words">{keyword?.aliases.join(' ')}</p><p className="whitespace-pre-wrap break-words">{keyword?.notes}</p></div>;
   const addSpelling = () => {
     const value = spelling.trim();
     if (!value || value.length > 40 || draft.aliases.length >= 30) { setError(copy('Use up to 30 spellings, each between 1 and 40 characters.')); return; }

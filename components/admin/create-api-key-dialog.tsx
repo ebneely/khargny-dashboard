@@ -66,7 +66,7 @@ export function CreateApiKeyDialog({ role, onClose, onCreated }: { role: string;
         {secret ? (
           <>
             <ApiKeySetup secret={secret} />
-            <DialogFooter><Button type="button" onClick={close}><DashboardText>I have saved it · Close</DashboardText></Button></DialogFooter>
+            <DialogFooter><Button type="button" onClick={close}><DashboardText>I have saved it Close</DashboardText></Button></DialogFooter>
           </>
         ) : (
           <form onSubmit={submit} className="space-y-5">

@@ -94,7 +94,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
       <table className="w-full table-fixed text-start text-sm">
         <thead className="sticky top-0 z-10 bg-muted"><tr>
           <th scope="col" data-linked-field="identity" className="p-2 text-start">{text('Place', 'المكان')}</th>
-          <th scope="col" data-linked-field="city" className="p-2 text-start">{text('City · category', 'المدينة · التصنيف')}</th>
+          <th scope="col" data-linked-field="city" className="p-2 text-start">{text('City category', 'المدينة التصنيف')}</th>
           <th scope="col" data-linked-field="link" className="p-2 text-start">{text('Link state', 'حالة الربط')}</th>
         </tr></thead>
         <tbody>{visible.map((place) => {
@@ -102,7 +102,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
           const other = linkedToAnother(place, subscriberId);
           const state = other ? text('Linked to', 'مرتبط بـ') + ' ' + (placeOwner(place)?.name ?? text('another subscriber', 'مشترك آخر')) :
             chosen ? text('Linked here', 'مرتبط هنا') : (place.subscriber !== undefined ? place.subscriber === null : place.subscriberId === null) ? text('Free', 'متاح') : '';
-          const location = [place.city ? pick(place.city.name, place.city.nameEn) : '', place.category ? pick(place.category.nameAr, place.category.nameEn) : ''].filter(Boolean).join(' · ');
+          const location = [place.city ? pick(place.city.name, place.city.nameEn) : '', place.category ? pick(place.category.nameAr, place.category.nameEn) : ''].filter(Boolean).join(' ');
           return <tr key={place.id} tabIndex={0} className="h-14 border-t hover:bg-muted/40 focus-within:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring dark:hover:bg-background/30 dark:focus-within:bg-background/30"
             onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggle(place); } }}>
             <td data-linked-field="identity" className="min-w-0 px-2 py-1 align-middle"><RecordCell nameAr={place.name} nameEn={place.nameEn} thumbnail={placeCover(place)} />{location && <p data-slot="linked-place-location" className="line-clamp-2 text-xs leading-4 text-muted-foreground" title={location}>{location}</p>}</td>

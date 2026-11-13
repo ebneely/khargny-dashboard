@@ -96,7 +96,7 @@ export function CityImageUpload({ cityId, imageUrl, onChange }: CityImageUploadP
                 if (file) void upload(file);
               }}
             />
-          {busy && <p role="status" className="text-sm">{lang === 'ar' ? 'جارٍ الرفع' : 'Uploading'} · {percent}%</p>}
+          {busy && <p role="status" className="text-sm">{lang === 'ar' ? 'جارٍ الرفع' : 'Uploading'} {percent}%</p>}
           {imageUrl && !busy && (
             <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-[var(--error)]" onClick={remove}>
               <Trash2 className="h-4 w-4" /> <DashboardText>Remove</DashboardText>

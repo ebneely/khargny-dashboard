@@ -211,7 +211,7 @@ export function HoursEditor({
                 <span className="text-xs text-muted-foreground">
                   {lang === 'ar' ? `تم ملء ${pasteResult.applied} يوم.` : `Filled ${pasteResult.applied} day${pasteResult.applied === 1 ? '' : 's'}.`}
                   {pasteResult.unparsed.length > 0 &&
-                    `${lang === 'ar' ? ' تعذرت قراءة: ' : " Couldn't read: "}${pasteResult.unparsed.slice(0, 3).join(' · ')}`}
+                    `${lang === 'ar' ? ' تعذرت قراءة: ' : " Couldn't read: "}${pasteResult.unparsed.slice(0, 3).join(' ')}`}
                 </span>
               )}
             </div>

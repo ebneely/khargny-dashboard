@@ -26,7 +26,7 @@ export function PlaceBadgesTab({ placeId }: { placeId: string }) {
     const status = resource.data?.statuses?.find((row) => row.key === badge.key);
     return <div key={badge.key} className="min-w-0 space-y-3 py-4"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><RecordCell icon="badge" badgeIcon={badge.icon} nameAr={badge.nameAr} nameEn={badge.nameEn} /></div><StatusBadge status={badge.enabled && status?.held ? 'active' : 'inactive'}>{copy(!badge.enabled ? 'Hidden everywhere' : status?.held ? 'Held' : 'Not held')}</StatusBadge></div>
       <p className="break-words text-sm text-muted-foreground">{status ? badge.family === 'status' && badge.enabled ? copy(statusBadgeRules[badge.key as keyof typeof statusBadgeRules]) : badgeExplanation(status, badge.rule, lang) : copy('Badge explanations are unavailable on this server.')}</p>
-      {status?.override && !status.override.expired && <p className="text-sm text-muted-foreground">{copy('Until')}: {status.override.until ? <DateCell value={status.override.until} /> : copy('No end')} · <Link className="underline" href="/dashboard/badges?tab=overrides">{copy('Overrides')}</Link></p>}
+      {status?.override && !status.override.expired && <p className="text-sm text-muted-foreground">{copy('Until')}: {status.override.until ? <DateCell value={status.override.until} /> : copy('No end')} <Link className="underline" href="/dashboard/badges?tab=overrides">{copy('Overrides')}</Link></p>}
     </div>;
   })}</div>} />}</CardContent></Card>;
 }

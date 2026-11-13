@@ -111,14 +111,14 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
     await pause(30_000);
     try {
       await app.open('/dashboard/tourism?tab=cash');
-      await expect(screen.getByText(/250 EGP per reward · budget 25,000 EGP/)).toBeVisible();
+      await expect(screen.getByText(/250 EGP per reward budget 25,000 EGP/)).toBeVisible();
       await screen.getByRole('button', 'Change reward rules').tap();
       await screen.getByRole('switch', 'Cash rewards on').tap();
       await screen.getByLabel('Total budget (EGP)').fill('30000');
       await screen.getByRole('button', 'Save reward rules').tap();
       await expect.poll(async () => adminGet('/settings')).toMatchObject({ ...SEED_SETTINGS, rewardsEnabled: false, budgetEgp: 30000 });
 
-      await expect(screen.getByText(/Off: no new rewards · 250 EGP per reward · budget 30,000 EGP/)).toBeVisible();
+      await expect(screen.getByText(/Off: no new rewards 250 EGP per reward budget 30,000 EGP/)).toBeVisible();
       await screen.getByRole('button', 'Change reward rules').tap();
       await screen.getByRole('switch', 'Cash rewards on').tap();
       await screen.getByLabel('Total budget (EGP)').fill('25000');

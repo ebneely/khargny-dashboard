@@ -76,7 +76,7 @@ export function CityPicker({
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{c.value}</span>
                   <span className="block truncate text-[10px] text-muted-foreground">
-                    {c.nameAr} · {areaCount} <DashboardText>area</DashboardText>{areaCount === 1 ? '' : 's'}
+                    {c.nameAr} {areaCount} <DashboardText>area</DashboardText>{areaCount === 1 ? '' : 's'}
                   </span>
                 </span>
                 {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}

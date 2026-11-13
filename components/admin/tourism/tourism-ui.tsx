@@ -129,7 +129,7 @@ export function TripDialog({ trip, canWrite, onClose, onChanged }: { trip: Touri
     [text('Lister', 'المنظّم'), <ListerName key="l" name={trip.agency.name} verified={trip.agency.verified} href={`/dashboard/tourism/listers/${trip.agency.id}`} />],
     [text('Level', 'المستوى'), <LevelChip key="v" verified={trip.monitored} />],
     [text('Type', 'النوع'), trip.kind === 'event' ? text('Event', 'إيفنت') : text('Trip', 'رحلة')],
-    [text('Destination', 'الوجهة'), `${trip.destination} · ${text('from', 'من')} ${trip.departureCity}`],
+    [text('Destination', 'الوجهة'), `${trip.destination} ${text('from', 'من')} ${trip.departureCity}`],
     [text('Dates', 'المواعيد'), <DateRange key="d" start={trip.startsAt} end={trip.endsAt} />],
     [text('Price per seat', 'سعر الكرسي'), egp(trip.priceEgp)],
     [text('Seats booked', 'الكراسي المحجوزة'), text(`${num(trip.seatsBooked)} of ${num(trip.seatsTotal)}`, `${num(trip.seatsBooked)} من ${num(trip.seatsTotal)}`)],
@@ -149,7 +149,7 @@ export function TripDialog({ trip, canWrite, onClose, onChanged }: { trip: Touri
       <section className="space-y-1"><h3 className="flex items-center gap-1 text-sm font-semibold"><Flag className="size-4" aria-hidden="true" />{text('Open reports', 'بلاغات مفتوحة')}</h3>
         {!openReports ? <CalmLine>{text('No open reports on this trip ✓', 'مفيش بلاغات مفتوحة على الرحلة ✓')}</CalmLine>
           : reportsFailed ? <RequestError message={text('Could not load the reports.', 'تعذر تحميل البلاغات.')} />
-          : <ul className="space-y-1 text-sm">{(reports ?? []).map((report) => <li key={report.id} className="rounded-lg bg-muted p-2">“{report.reason}” · {report.customerName}</li>)}</ul>}
+          : <ul className="space-y-1 text-sm">{(reports ?? []).map((report) => <li key={report.id} className="rounded-lg bg-muted p-2">“{report.reason}” {report.customerName}</li>)}</ul>}
       </section>
       {actions.length > 0 && <div className="flex flex-wrap justify-end gap-2 border-t pt-4">{actions.map((action, index) => <Button key={action.key} variant={index === 0 && action.key === 'approve' ? 'default' : action.destructive ? 'destructive' : 'outline'} disabled={busy} onClick={action.onClick}>{action.icon}{action.label}</Button>)}</div>}
       <ActionDialog action={ask} onClose={() => setAsk(null)} />

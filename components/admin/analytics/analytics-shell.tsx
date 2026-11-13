@@ -51,7 +51,7 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
     {!live && <div className="space-y-3">
       <FilterBar filters={2}><FilterSelect label="All platforms" value={query.platform ?? 'all'} onValueChange={(value) => change('platform', value)} options={[{ value: 'all', label: 'All platforms' }, { value: 'app', label: 'App' }, { value: 'web', label: 'Web' }]} /><FilterSelect label="All cities" value={query.cityId ?? 'all'} onValueChange={(value) => change('cityId', value)} options={[{ value: 'all', label: 'All cities' }, ...(cities.data ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn) }))]} /></FilterBar>
       {cities.error && <p role="alert" className="text-sm text-destructive">{copy('Could not load cities.')} <Button data-ro-allow="true" type="button" variant="outline" onClick={() => { void cities.refetch(); }}>{copy('Retry')}</Button></p>}
-      <p className="text-sm text-muted-foreground"><span dir="ltr">{from} – {to}</span> · {copy('Cairo · inclusive dates')}</p>
+      <p className="flex flex-wrap gap-x-4 text-sm text-muted-foreground"><span dir="ltr">{from} – {to}</span><span>{copy('Cairo time, both dates included')}</span></p>
       {!valid && <p role="alert" className="text-sm text-destructive">{copy('Choose an ordered range of at most 401 days.')}</p>}
     </div>}
     {(valid || live) && children}

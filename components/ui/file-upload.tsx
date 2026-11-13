@@ -25,7 +25,7 @@ export function FileUpload({ label, description, onChange, disabled, className, 
   };
   const picker = <Button type="button" variant="outline" size={thumbnail ? 'icon' : 'default'}
     className={thumbnail ? 'group relative size-12 shrink-0 overflow-hidden rounded-lg p-0 active:scale-[0.98]' : `h-auto max-w-full whitespace-normal text-start active:scale-[0.98] ${compact ? 'min-h-10 px-2 text-xs' : 'min-h-11'}`}
-    disabled={disabled} onClick={() => input.current?.click()} aria-controls={props.id ?? id} aria-label={thumbnail ? label : undefined} aria-describedby={id + '-help'} title={thumbnail ? label + ' · ' + description : undefined}>
+    disabled={disabled} onClick={() => input.current?.click()} aria-controls={props.id ?? id} aria-label={thumbnail ? label : undefined} aria-describedby={id + '-help'} title={thumbnail ? label + ' ' + description : undefined}>
     {thumbnail ? <>
       <Image src={thumbnail.src && thumbnail.src !== failedSource ? thumbnail.src : '/place-cover-placeholder.svg'} alt="" width={48} height={48} unoptimized className="size-full object-cover" onError={() => setFailedSource(thumbnail.src ?? null)} />
       <span className={`absolute bottom-0.5 end-0.5 rounded-full bg-card p-0.5 text-foreground ${thumbnail.replace ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : ''}`}>

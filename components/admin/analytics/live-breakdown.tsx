@@ -21,7 +21,7 @@ export function LiveBreakdown({ title, rows = [] }: { title: string; rows?: Live
     {!rows.length ? <p className="text-sm text-muted-foreground">{copy('No counted activity in this breakdown.')}</p> : <dl data-slot="live-breakdown" className="space-y-4">{rows.map(row => <div key={row.id} className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-3"><dt className="min-w-0 break-words text-sm font-medium">{name(row)}</dt><dd className="shrink-0 text-sm tabular-nums">{number(row.count)} <span className="text-muted-foreground">{copy('counted events')}</span></dd></div>
       <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(0, Math.min(100, (row.count ?? 0) / maximum * 100))}%` }} /></div>
-      <dd className="text-sm text-muted-foreground">{number(row.visitors)} {copy(row.visitors === 1 ? 'estimated visitor' : 'estimated visitors')} · {number(row.actions)} {copy('Actions')}{!row.complete && <> · {copy('Incomplete')}</>}</dd>
+      <dd className="text-sm text-muted-foreground">{number(row.visitors)} {copy(row.visitors === 1 ? 'estimated visitor' : 'estimated visitors')} {number(row.actions)} {copy('Actions')}{!row.complete && <> {copy('Incomplete')}</>}</dd>
     </div>)}</dl>}
   </CardContent></Card>;
 }

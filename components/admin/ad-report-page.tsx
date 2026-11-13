@@ -69,7 +69,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
       {/* The dashboard chrome (logo, sidebar) is hidden in print, so the one-pager carries
           its own masthead for the advertiser. */}
       <p className="mb-4 hidden border-b pb-2 text-sm font-semibold print:block">
-        <DashboardText>Khargny · خرجني — Sponsored placement report</DashboardText>
+        <DashboardText>Khargny خرجني — Sponsored placement report</DashboardText>
       </p>
       <AdsPageHeader
         title={lang === 'ar' ? `تقرير حملة ${placeName}` : `${placeName} campaign report`}

@@ -125,7 +125,7 @@ export function RegionPicker({
             <MapPin className="h-3.5 w-3.5" />
             <span className="font-medium">{selected.value}</span>
             <span>
-              — {selected.nameAr} · {selected.governorate}
+              — {selected.nameAr} {selected.governorate}
             </span>
           </span>
         ) : value ? (

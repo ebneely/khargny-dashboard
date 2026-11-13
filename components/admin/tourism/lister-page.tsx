@@ -33,7 +33,7 @@ export function ListerPage({ listerId, canWrite, canSeeDocuments }: { listerId: 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><MapIcon className="size-5 text-primary" aria-hidden="true" />{lister?.name ?? text('Lister', 'المنظّم')}{lister?.verified && <VerifiedSeal size={22} />}</h1>
-          {lister && <p className="mt-1 text-sm text-muted-foreground">{kind(lister.kind)} · {lister.city} · {text('joined', 'انضم')} <DateCell value={lister.createdAt} /></p>}
+          {lister && <p className="mt-1 text-sm text-muted-foreground">{kind(lister.kind)} {lister.city} {text('joined', 'انضم')} <DateCell value={lister.createdAt} /></p>}
         </div>
         {lister && <div className="flex flex-wrap items-center gap-2"><LevelChip verified={lister.verified} />{!lister.verified && <KycChip status={lister.kycStatus} />}<StatusBadge status={lister.status} /></div>}
       </div>
@@ -53,7 +53,7 @@ export function ListerPage({ listerId, canWrite, canSeeDocuments }: { listerId: 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card><CardHeader><CardTitle>{text('How its trips do', 'أداء رحلاته')}</CardTitle></CardHeader><CardContent className="space-y-2">
           <Metrics likes={lister.metrics.likeCount} views={lister.metrics.viewCount} rating={lister.metrics.rating} ratingCount={lister.metrics.ratingCount} />
-          <p className="text-sm text-muted-foreground">{text(`${num(lister.metrics.trips)} trips · ${num(lister.metrics.seatsBooked)} seats booked`, `${num(lister.metrics.trips)} رحلة · ${num(lister.metrics.seatsBooked)} كرسي محجوز`)}</p>
+          <p className="text-sm text-muted-foreground">{text(`${num(lister.metrics.trips)} trips ${num(lister.metrics.seatsBooked)} seats booked`, `${num(lister.metrics.trips)} رحلة ${num(lister.metrics.seatsBooked)} كرسي محجوز`)}</p>
         </CardContent></Card>
         <Card><CardHeader><CardTitle>{text('Cash rewards money', 'فلوس مكافآت الكاش')}</CardTitle><CardDescription>{text('What 5argny owes this lister for cash it handed to customers.', 'اللي على خرجني للمنظّم ده مقابل الكاش اللي سلّمه للعملاء.')}</CardDescription></CardHeader><CardContent className="space-y-3">
           <dl className="grid grid-cols-2 gap-3 text-sm">{([[text('To pay now', 'مطلوب دفعه دلوقتي'), lister.redemptions.owedEgp], [text('Waiting for the customer to confirm', 'مستني تأكيد العميل'), lister.redemptions.waitingAnswerEgp], [text('Disputed', 'متنازع عليه'), lister.redemptions.disputedEgp], [text('Already paid back', 'اترجّع خلاص'), lister.redemptions.reimbursedEgp]] as const).map(([label, value]) => <div key={label}><dt className="text-muted-foreground">{label}</dt><dd className="text-lg font-semibold tabular-nums">{egp(value)}</dd></div>)}</dl>
