@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 
 export function MissingWordsPage() {
   const { query } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const address = useListAddress('gaps');
   const { query: q, skip, limit } = address;
   const copy = useDashboardCopy();
@@ -34,7 +34,7 @@ export function MissingWordsPage() {
   const { query: search, skip: keywordSkip, limit: keywordLimit } = keywordAddress;
   const loadKeywords = React.useCallback(() => choosing ? adminApi.get<ReportPage<Keyword>>('/v1/admin/tags', { search, skip: keywordSkip, limit: keywordLimit }) : Promise.resolve({ data: [], meta: { total: 0, skip: 0, limit: keywordLimit } }), [choosing, search, keywordSkip, keywordLimit]);
   const keywords = useSubscriberResource(loadKeywords);
-  const load = React.useCallback(() => adminApi.get<ReportPage<GapRow>>('/v1/admin/analytics/search/gaps', { from, to, platform, cityId, q, skip, limit }), [from, to, platform, cityId, q, skip, limit]);
+  const load = React.useCallback(() => adminApi.get<ReportPage<GapRow>>('/v1/admin/analytics/search/gaps', { from, to, window: span, platform, cityId, q, skip, limit }), [from, to, span, platform, cityId, q, skip, limit]);
   const resource = useSubscriberResource(load);
   const locked = busy || resource.loading || resource.savedRefreshFailed || !!resource.error;
   const decide = async (term: string, tagId?: string, reverse = false) => {

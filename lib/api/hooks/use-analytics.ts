@@ -54,7 +54,7 @@ export interface AnalyticsOverview {
  * Follows the same hand-rolled fetch shape as the other admin hooks in this folder rather
  * than introducing a second data-fetching idiom for one screen.
  */
-export function useAnalyticsOverview(range?: { from: string; to: string; window?: string }) {
+export function useAnalyticsOverview(range?: { from?: string; to?: string; window?: string }) {
   const { from, to, window: chosen } = range ?? {};
   const [data, setData] = useState<AnalyticsOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);

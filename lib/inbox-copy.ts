@@ -70,4 +70,7 @@ export const inboxCopy: Record<string, string> = {
   'Hype of': 'رواج', 'Loves': 'الإعجابات', 'Shares': 'المشاركات',
   'Could not load the hype.': 'تعذر تحميل الرواج.', 'No views, loves, saves, shares or 5argny taps in': 'لا مشاهدات ولا إعجابات ولا حفظ ولا مشاركات ولا ضغطات خرجني في',
   'Show the top 10': 'أعلى 10 فقط', 'Show all': 'عرض الكل', 'Hype in': 'الرواج في', 'Hype first': 'الأكثر رواجاً أولاً',
+  'Hype and counts in': 'الرواج والأعداد في', 'Numbers': 'الأرقام', 'Every number here counts back from now:': 'كل رقم هنا يُعد رجوعاً من الآن:',
+  'Answers, insights and hype count back from now; choose Live, 24 h, 7 days or 30 days to see them.': 'الإجابات والملاحظات والرواج تُعد رجوعاً من الآن؛ اختر مباشر أو 24 ساعة أو 7 أيام أو 30 يوماً لتراها.',
+  'Who is here now, minute by minute': 'من هنا الآن، دقيقة بدقيقة', 'A custom range counts whole Cairo days, both dates included.': 'النطاق المخصص يعد أيام القاهرة كاملة، بما فيها اليومان.',
 };

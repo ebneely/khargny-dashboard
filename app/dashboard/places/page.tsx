@@ -2,7 +2,6 @@
 
 import { placeStatusFilters, canDeactivatePlace } from '@/lib/place-public-state';
 import { useListAddress } from '@/components/admin/record-list';
-import { engagementNumber } from '@/lib/engagement';
 import { PlaceBulkStatus } from '@/components/admin/place-bulk-status';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { AdminPlace } from '@/lib/api/types';
@@ -35,8 +34,8 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { PlacePublicStatus } from '@/components/admin/place-public-status';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
-import { GovIcon } from '@/components/gov-icon';
 import { WindowSwitch } from '@/components/admin/analytics/window-switch';
+import { GovIcon } from '@/components/gov-icon';
 
 const HYPE_WINDOWS = ['live', '24h', '7d', '30d'] as const;
 
@@ -134,7 +133,7 @@ export default function PlacesPage() {
       {canWrite && <PlaceBulkStatus key={filterKey} selected={selected.map(place => place.id)} records={selected} disabled={isLoading || isError} onBusy={setBulkBusy} refresh={refetch} onSelection={ids => setSelection({ key: filterKey, records: selected.filter(place => ids.includes(place.id)) })} />}
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype in</DashboardText></span><WindowSwitch here /></div>
+          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype and counts in</DashboardText></span><WindowSwitch here /></div>
           <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }, { value: 'hype', label: 'Hype first' }]} />
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
             <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter('all'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />
@@ -187,7 +186,7 @@ export default function PlacesPage() {
                           <span data-place-detail="price" title={`${copy('Price')}: ${place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}`}>{copy('Price')}: {place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</span>
                           <span data-place-detail="owner" title={`${copy('Subscriber')}: ${place.subscriber?.name ?? '—'}`}>{copy('Subscriber')}: {place.subscriber?.name ?? '—'}</span>
                           <span data-place-detail="city" title={`${pickName(place.city?.name, place.city?.nameEn, lang)} ${pickName(place.category?.nameAr, place.category?.nameEn, lang)}`}>{pickName(place.city?.name, place.city?.nameEn, lang)} {pickName(place.category?.nameAr, place.category?.nameEn, lang)}</span>
-                          <span data-place-detail="metrics">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} {copy('Saves')}: {place.saveCount ?? 0} {copy('Views')}: {place.viewCount ?? 0} {copy('5argny taps')}: {place.directionsCount ?? 0}</span>
+                          <span data-place-detail="metrics">{copy('Likes')}: {place.counts?.likes ?? 0} {copy('Saves')}: {place.counts?.saves ?? 0} {copy('Views')}: {place.counts?.views ?? 0} {copy('5argny taps')}: {place.counts?.goes ?? 0}</span>
                         </p>
                       </TableCell>
                       <TableCell data-place-field="city" className="text-muted-foreground"><p className="flex items-center gap-1.5 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{place.city && <GovIcon city={place.city} />}<span className="line-clamp-1 min-w-0">{pickName(place.city?.name, place.city?.nameEn, lang)}</span></p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
@@ -197,12 +196,12 @@ export default function PlacesPage() {
                         <PlacePublicStatus place={place} />
                       </TableCell>
                       <TableCell data-place-field="hype" className="text-end tabular-nums font-medium">{place.hype ?? 0}</TableCell>
-                      <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{engagementNumber(place.likeCount, lang)}</TableCell>
-                      <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{place.saveCount ?? 0}</TableCell>
-                      <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{place.viewCount ?? 0}</TableCell>
-                      <TableCell data-place-field="directions" className="text-end tabular-nums text-muted-foreground">{place.directionsCount ?? 0}</TableCell>
+                      <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{place.counts?.likes ?? 0}</TableCell>
+                      <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{place.counts?.saves ?? 0}</TableCell>
+                      <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{place.counts?.views ?? 0}</TableCell>
+                      <TableCell data-place-field="directions" className="text-end tabular-nums text-muted-foreground">{place.counts?.goes ?? 0}</TableCell>
                       <TableCell data-place-field="photos" className="text-end text-muted-foreground tabular-nums">{place._count?.images ?? <DashboardText>None</DashboardText>}</TableCell>
-                      <TableCell data-place-field="metrics"><p data-slot="place-phone-metrics" className="text-xs leading-4 tabular-nums text-muted-foreground">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} {copy('Saves')}: {place.saveCount ?? 0} {copy('Views')}: {place.viewCount ?? 0} {copy('5argny taps')}: {place.directionsCount ?? 0}</p></TableCell>
+                      <TableCell data-place-field="metrics"><p data-slot="place-phone-metrics" className="text-xs leading-4 tabular-nums text-muted-foreground">{copy('Likes')}: {place.counts?.likes ?? 0} {copy('Saves')}: {place.counts?.saves ?? 0} {copy('Views')}: {place.counts?.views ?? 0} {copy('5argny taps')}: {place.counts?.goes ?? 0}</p></TableCell>
                       <TableCell data-place-field="actions" column="actions" className="text-end">
                         <RowActions recordName={pickName(place.name, place.nameEn, lang)} actions={[
                           { label: canWrite ? 'Edit' : 'View', icon: <Pencil aria-hidden="true" />, href: `/dashboard/places/${place.id}`, traceId: `place-list-edit-${place.id}` },

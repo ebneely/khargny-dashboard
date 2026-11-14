@@ -11,10 +11,10 @@ import { RequestError } from '../subscriber-ui';
 import { SegmentedControl } from '../segmented-control';
 import { useDashboardCopy } from '../dashboard-text';
 import { cn } from '@/lib/utils';
+import { WINDOW_WORDS } from './window-switch';
 
 /** Western digits in both languages (owner rule). */
 const digits = (n: number) => n.toLocaleString('en-US');
-const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'the last 5 minutes', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days' };
 const KIND_WORDS: Record<InsightCard['kind'], string> = { rising: 'Rising', fading: 'Fading', hype_now: 'Hype now', gap: 'Gap', money: 'Money' };
 
 function Skeleton({ rows }: { rows: number }) {
@@ -33,7 +33,8 @@ function Answers({ window }: { window: NumbersWindow }) {
       {res.loading ? <Skeleton rows={7} /> : res.error || !res.data ? <RequestError message={copy('Could not load the answers.')} retry={() => { void res.refetch(); }} /> :
         <ul className="divide-y">{res.data.answers.map((a) => <li key={a.key}>
           <Link href={a.href} className="group flex min-h-14 items-center gap-4 rounded-lg px-2 py-3 -mx-2 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none">
-            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{copy(a.question)}</p><p className="mt-0.5">{lang === 'ar' ? a.sentenceAr : a.sentence}</p></div>
+            <div className="min-w-0 flex-1"><p className="text-sm text-muted-foreground">{copy(a.question)}</p><p className="mt-0.5">{lang === 'ar' ? a.sentenceAr : a.sentence}</p>
+              {!!a.also?.length && <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">{a.also.map((more) => <li key={more.href + more.sentence}>{lang === 'ar' ? more.sentenceAr : more.sentence}</li>)}</ul>}</div>
             {a.number && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-sm font-medium tabular-nums"><bdi>{lang === 'ar' ? a.numberAr : a.number}</bdi></span>}
             <ArrowUpRight aria-hidden="true" className="size-4 shrink-0 rtl:-scale-x-100 text-muted-foreground group-hover:text-foreground" />
           </Link></li>)}</ul>}
@@ -48,7 +49,7 @@ function Insights({ window }: { window: NumbersWindow }) {
   const load = React.useCallback(() => loadInsights(window), [window]);
   const res = useSubscriberResource(load);
   return <section aria-labelledby="numbers-insights" className="space-y-3">
-    <div><h2 id="numbers-insights" className="font-display text-xl font-semibold">{copy('What moved')}</h2><p className="mt-1 text-sm text-muted-foreground">{res.data ? `${copy('Compared:')} ${copy(res.data.compared)}.` : copy('What moved, compared with its usual pace.')}</p></div>
+    <div><h2 id="numbers-insights" className="font-display text-xl font-semibold">{copy('What moved')}</h2><p className="mt-1 text-sm text-muted-foreground">{res.data ? `${copy('Compared:')} ${lang === 'ar' ? res.data.comparedAr ?? res.data.compared : res.data.compared}.` : copy('What moved, compared with its usual pace.')}</p></div>
     {res.loading ? <Skeleton rows={3} /> : res.error || !res.data ? <RequestError message={copy('Could not load the insights.')} retry={() => { void res.refetch(); }} /> :
       !res.data.cards.length ? <Card><CardContent><p className="text-muted-foreground">{copy('Nothing moved enough to call out in')} {copy(WINDOW_WORDS[window])}. {copy('Small numbers are left out on purpose.')}</p></CardContent></Card> :
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{res.data.cards.map((card, i) => <Card key={i} data-insight-kind={card.kind} className="flex flex-col">
@@ -59,6 +60,7 @@ function Insights({ window }: { window: NumbersWindow }) {
           </div>
           <p className="font-medium">{lang === 'ar' ? card.sentenceAr : card.sentence}</p>
           <p className="text-sm text-muted-foreground">{lang === 'ar' ? card.whyAr : card.why}</p>
+          <p className="text-xs text-muted-foreground">{copy('Compared:')} {lang === 'ar' ? card.comparedAr ?? card.compared : card.compared}</p>
           <Link href={card.action.href} className="mt-auto inline-flex items-center gap-1 self-start text-sm font-medium text-primary hover:underline">{copy(card.action.label)}<ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" /></Link>
         </CardContent>
       </Card>)}</div>}

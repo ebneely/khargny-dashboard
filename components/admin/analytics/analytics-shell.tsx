@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { WindowSwitch, numbersRange, readNumbersWindow } from './window-switch';
+import { WindowSwitch, customRange, numbersRange, readNumbersWindow } from './window-switch';
 import { Button } from '@/components/ui/button';
 import { FilterBar, FilterSelect } from '../filter-bar';
 import { useDashboardCopy } from '../dashboard-text';
@@ -31,11 +31,12 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const chosen = readNumbersWindow(params);
   // `period` stays the day count the ads opportunities report reads (7 or 30 only).
-  const period = { '24h': '1', '7d': '7', '30d': '30', custom: 'custom' }[chosen];
-  const { from, to } = numbersRange(chosen, params);
+  const period = { live: '1', '24h': '1', '7d': '7', '30d': '30', custom: 'custom' }[chosen];
   const platform = params.get('platform');
-  const query: InsightQuery = { from, to, window: chosen === 'custom' ? undefined : chosen, platform: platform === 'app' || platform === 'web' ? platform : undefined, cityId: params.get('cityId') || undefined };
-  const valid = isCalendarDate(from) && isCalendarDate(to) && from <= to && calendarStamp(to) - calendarStamp(from) <= 400 * 86400000;
+  // A window goes as `window` (back from now); only a custom range sends whole days.
+  const query: InsightQuery = { ...numbersRange(chosen, params), platform: platform === 'app' || platform === 'web' ? platform : undefined, cityId: params.get('cityId') || undefined };
+  const { from, to } = customRange(params);
+  const valid = chosen !== 'custom' || (isCalendarDate(from) && isCalendarDate(to) && from <= to && calendarStamp(to) - calendarStamp(from) <= 400 * 86400000);
   const loadCities = React.useCallback(() => loadInsightOptions<AdminCity>('/v1/admin/cities'), []);
   const cities = useSubscriberResource(loadCities);
   const change = (name: string, value: string) => {
@@ -44,14 +45,14 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
     for (const key of Array.from(next.keys())) if (key.endsWith('-skip')) next.delete(key);
     window.history.replaceState(null, '', `${pathname}?${next}`);
   };
-  const live = pathname.startsWith('/dashboard/analytics/live');
+  const live = pathname.startsWith('/dashboard/analytics/live'); // the minute-by-minute visitors page
   return <FiltersContext.Provider value={{ query, valid, period, cities: cities.data ?? [] }}><div className="min-w-0 space-y-6">
-    <header><h1 className="font-display text-2xl font-semibold">{copy('Analytics')}</h1><p className="mt-1 text-sm text-muted-foreground">{copy('Search and movement, measured in Cairo calendar days.')}</p></header>
-    <WindowSwitch />
+    <header><h1 className="font-display text-2xl font-semibold">{copy('Numbers')}</h1></header>
+    {!live && <WindowSwitch />}
     {!live && <div className="space-y-3">
       <FilterBar filters={2}><FilterSelect label="All platforms" value={query.platform ?? 'all'} onValueChange={(value) => change('platform', value)} options={[{ value: 'all', label: 'All platforms' }, { value: 'app', label: 'App' }, { value: 'web', label: 'Web' }]} /><FilterSelect label="All cities" value={query.cityId ?? 'all'} onValueChange={(value) => change('cityId', value)} options={[{ value: 'all', label: 'All cities' }, ...(cities.data ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn) }))]} /></FilterBar>
       {cities.error && <p role="alert" className="text-sm text-destructive">{copy('Could not load cities.')} <Button data-ro-allow="true" type="button" variant="outline" onClick={() => { void cities.refetch(); }}>{copy('Retry')}</Button></p>}
-      <p className="flex flex-wrap gap-x-4 text-sm text-muted-foreground">{chosen !== 'custom' && <span>{copy('Answers, insights and hype count back from now.')}</span>}<span>{copy('Search and movement lists count whole Cairo days:')}</span><span dir="ltr">{from} – {to}</span></p>
+      {chosen === 'custom' && <p className="text-sm text-muted-foreground">{copy('A custom range counts whole Cairo days, both dates included.')}</p>}
       {!valid && <p role="alert" className="text-sm text-destructive">{copy('Choose an ordered range of at most 401 days.')}</p>}
     </div>}
     {(valid || live) && children}

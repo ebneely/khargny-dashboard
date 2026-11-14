@@ -11,6 +11,8 @@ export interface AdminPlace {
   slug: string;
   /** Hype score 0-100 in the requested window (admin list with `window`). */
   hype?: number;
+  /** The hype window's counts (admin list with `window`): what the Likes, Saves, Views and 5argny columns show. */
+  counts?: { views: number; likes: number; saves: number; shares: number; goes: number };
   cityId: string;
   categoryId: string;
   description: string | null;

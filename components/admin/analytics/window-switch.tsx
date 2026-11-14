@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import type { NumbersWindow } from '@/lib/api/numbers';
 import { SegmentedControl } from '../segmented-control';
 import { DateField } from '../date-field';
 import { Button } from '@/components/ui/button';
@@ -10,41 +11,42 @@ import { shiftCalendarDays } from '@/lib/subscription-calendar';
 
 /** Every number is a window that ends now (DIRECTION "Rolling windows"); one switch on every Numbers page. */
 const CHOICES = [{ value: 'live', label: 'Live now' }, { value: '24h', label: '24 h' }, { value: '7d', label: '7 days' }, { value: '30d', label: '30 days' }];
-export type NumbersWindow = '24h' | '7d' | '30d';
+export type { NumbersWindow };
 
-// The analytics routes still read whole Cairo days (from/to), so 24 h asks for yesterday and today.
-const CALENDAR_DAYS: Record<NumbersWindow, number> = { '24h': 2, '7d': 7, '30d': 30 };
+/** What each window counts, said on screen. */
+export const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'the last 5 minutes', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days' };
 
 /** The chosen window from the address; old `?period=7|30|custom` links still open their window. */
 export function readNumbersWindow(params: URLSearchParams): NumbersWindow | 'custom' {
   const chosen = params.get('window') ?? ({ '7': '7d', '30': '30d', custom: 'custom' } as Record<string, string>)[params.get('period') ?? ''];
-  return chosen === '24h' || chosen === '7d' || chosen === 'custom' ? chosen : '30d';
+  return chosen === 'live' || chosen === '24h' || chosen === '7d' || chosen === 'custom' ? chosen : '30d';
 }
 
-/** The from/to the backend understands today, kept beside `window` until every route reads the window. */
-export function numbersRange(chosen: NumbersWindow | 'custom', params: URLSearchParams) {
+/** A custom range's whole Cairo days (the only from/to the dashboard still sends). */
+export function customRange(params: URLSearchParams) {
   const today = cairoDate();
-  if (chosen === 'custom') return { from: params.get('from') ?? shiftCalendarDays(today, -29), to: params.get('to') ?? today };
-  return { from: shiftCalendarDays(today, 1 - CALENDAR_DAYS[chosen]), to: today };
+  return { from: params.get('from') ?? shiftCalendarDays(today, -29), to: params.get('to') ?? today };
+}
+
+/** What a report route gets: `window` (back from now), or from/to for a custom range. */
+export function numbersRange(chosen: NumbersWindow | 'custom', params: URLSearchParams): { window?: NumbersWindow; from?: string; to?: string } {
+  return chosen === 'custom' ? customRange(params) : { window: chosen };
 }
 
 /** `here`: the window stays a query value on this page (Places hype), Live included, no custom range. */
 export function WindowSwitch({ here = false }: { here?: boolean }) {
   const copy = useDashboardCopy();
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const live = !here && pathname.startsWith('/dashboard/analytics/live');
-  const value = live || (here && params.get('window') === 'live') ? 'live' : readNumbersWindow(params);
+  const chosen = readNumbersWindow(params);
+  const value = here && chosen === 'custom' ? '30d' : chosen;
   const choose = (next: string) => {
-    if (next === 'live' && !here) { router.push('/dashboard/analytics/live'); return; }
-    const query = new URLSearchParams(live ? '' : window.location.search);
+    const query = new URLSearchParams(window.location.search);
     query.set('window', next);
     query.delete('period');
     if (next !== 'custom') { query.delete('from'); query.delete('to'); }
     for (const key of Array.from(query.keys())) if (key.endsWith('-skip')) query.delete(key);
-    if (live) router.push(`/dashboard/analytics?${query}`);
-    else window.history.replaceState(null, '', `${pathname}?${query}`);
+    window.history.replaceState(null, '', `${pathname}?${query}`);
   };
   const setDate = (name: 'from' | 'to', date: string) => {
     const query = new URLSearchParams(window.location.search);
@@ -52,11 +54,12 @@ export function WindowSwitch({ here = false }: { here?: boolean }) {
     for (const key of Array.from(query.keys())) if (key.endsWith('-skip')) query.delete(key);
     window.history.replaceState(null, '', `${pathname}?${query}`);
   };
-  const { from, to } = numbersRange(value === 'custom' ? 'custom' : '30d', params);
+  const { from, to } = customRange(params);
   return <div className="space-y-3"><div className="flex flex-wrap items-center gap-2">
     <SegmentedControl label="Numbers window" value={value === 'custom' ? '' : value} onValueChange={choose} options={CHOICES} />
-    {!live && !here && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
+    {!here && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
   </div>
-    {value === 'custom' && <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>}
+    {value === 'custom' ? <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>
+      : <p className="text-sm text-muted-foreground">{copy('Every number here counts back from now:')} {copy(WINDOW_WORDS[value])}.</p>}
   </div>;
 }

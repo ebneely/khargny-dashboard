@@ -16,7 +16,7 @@ import { useDashboardCopy } from '../dashboard-text';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export async function loadTermDetail(term: string, query: { from: string; to: string; platform?: string; cityId?: string }) {
+export async function loadTermDetail(term: string, query: { from?: string; to?: string; window?: string; platform?: string; cityId?: string }) {
   const report = await adminApi.get<TermDetail>(termRoute(term), { ...query, skip: 0, limit: 200 });
   const keys = ['cities', 'clickedPlaces', 'placesThatWouldMatchNow'] as const;
   const total = Math.max(...keys.map((key) => report[key].meta.total));
@@ -32,14 +32,14 @@ export async function loadTermDetail(term: string, query: { from: string; to: st
 
 export function SearchTermDetailPage({ term }: { term: string }) {
   const { query, cities } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const readOnly = useDashboardReadOnly();
   const [busy, setBusy] = React.useState(false);
   const submitting = React.useRef(false);
   const [error, setError] = React.useState('');
-  const load = React.useCallback(() => loadTermDetail(term, { from, to, platform, cityId }), [term, from, to, platform, cityId]);
+  const load = React.useCallback(() => loadTermDetail(term, { from, to, window: span, platform, cityId }), [term, from, to, span, platform, cityId]);
   const resource = useSubscriberResource(load);
   if (resource.loading) return <LoadingState />;
   if (resource.error || !resource.data) return <RequestError message={copy('Could not load term details.')} retry={() => { void resource.refetch(); }} />;

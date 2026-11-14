@@ -33,7 +33,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
   const lang = requestedLanguage ?? currentLanguage;
   const params = useSearchParams();
   const chosen = readNumbersWindow(params);
-  const { data, isLoading, isError, refetch } = useAnalyticsOverview({ ...numbersRange(chosen, params), window: chosen === 'custom' ? undefined : chosen });
+  const { data, isLoading, isError, refetch } = useAnalyticsOverview(numbersRange(chosen, params));
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
 
   const label = React.useCallback((ar: string | null, en: string | null, fallback: string) =>

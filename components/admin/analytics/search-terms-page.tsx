@@ -16,7 +16,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export function SearchTermsPage() {
   const { query } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const address = useListAddress('terms');
   const { query: q, skip, limit } = address;
   const requested = address.get('sort', 'searches');
@@ -24,7 +24,7 @@ export function SearchTermsPage() {
   const copy = useDashboardCopy();
   const params = useSearchParams();
   const { lang } = useDashboardLang();
-  const load = React.useCallback(() => adminApi.get<ReportPage<TermRow>>('/v1/admin/analytics/search/terms', { from, to, platform, cityId, q, skip, limit, sort }), [from, to, platform, cityId, q, skip, limit, sort]);
+  const load = React.useCallback(() => adminApi.get<ReportPage<TermRow>>('/v1/admin/analytics/search/terms', { from, to, window: span, platform, cityId, q, skip, limit, sort }), [from, to, span, platform, cityId, q, skip, limit, sort]);
   const resource = useSubscriberResource(load);
   const number = (value: number) => value.toLocaleString(lang);
   return <div className="space-y-4"><h2 className="text-xl font-semibold">{copy('Search terms')}</h2><p className="text-sm text-muted-foreground">{copy('Trend compares searches with the previous equal-length period. Taps can exceed searches.')}</p>

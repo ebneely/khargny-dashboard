@@ -12,7 +12,7 @@ import { LoadingState, RequestError } from '../subscriber-ui';
 import { useDashboardCopy } from '../dashboard-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export async function loadMovement(query: { from: string; to: string; platform?: string; cityId?: string }) {
+export async function loadMovement(query: { from?: string; to?: string; window?: string; platform?: string; cityId?: string }) {
   const report = await adminApi.get<Movement>('/v1/admin/analytics/movement', { ...query, skip: 0, limit: 200 });
   const total = Math.max(report.entries.meta.total, report.exits.meta.total, report.transitions.meta.total);
   for (let skip = 200; skip < total; skip += 200) {
@@ -29,10 +29,10 @@ export async function loadMovement(query: { from: string; to: string; platform?:
 
 export function MovementPage() {
   const { query } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
-  const load = React.useCallback(() => loadMovement({ from, to, platform, cityId }), [from, to, platform, cityId]);
+  const load = React.useCallback(() => loadMovement({ from, to, window: span, platform, cityId }), [from, to, span, platform, cityId]);
   const resource = useSubscriberResource(load);
   if (resource.loading) return <LoadingState />;
   if (resource.error || !resource.data) return <RequestError message={copy('Could not load movement.')} retry={() => { void resource.refetch(); }} />;

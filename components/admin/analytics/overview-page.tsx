@@ -7,20 +7,20 @@ import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { DashboardText, useDashboardCopy } from '../dashboard-text';
 import { LoadingState, RequestError } from '../subscriber-ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useInsightFilters } from './analytics-shell';
-import { RecordList } from '../record-list';
-import { RecordCell } from '../record-cell';
 import { AnalyticsLikes } from './likes-report';
-import { AnalyticsSuggestions } from './suggestions';
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import { WINDOW_WORDS } from './window-switch';
 import { SessionTrend } from './session-trend';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { InsightsSummary } from '../insights/insights-summary';
 import { NumbersSmart } from './numbers-smart';
 
-/** The home's catalogue-wide summary; lifetime counters, so the filters above do not apply. */
-function AnalyticsInsights() {
-  const { data, isLoading, isError, refetch } = useAnalyticsOverview();
+/** The catalogue-wide summary for the chosen window (or custom days). */
+function AnalyticsInsights({ range }: { range: { window?: string; from?: string; to?: string } }) {
+  const { data, isLoading, isError, refetch } = useAnalyticsOverview(range);
   const copy = useDashboardCopy();
   return <section aria-labelledby="analytics-insights" className="space-y-3"><div><h2 id="analytics-insights" className="font-display text-xl font-semibold"><DashboardText>Insights</DashboardText></h2><p className="mt-1 text-sm text-muted-foreground"><DashboardText>What visitors are doing across the catalogue.</DashboardText></p></div>
     {isError ? <RequestError message={copy('Could not load analytics.')} retry={() => { void refetch(); }} /> : <InsightsSummary data={data} loading={isLoading} />}</section>;
@@ -28,29 +28,30 @@ function AnalyticsInsights() {
 
 export function AnalyticsOverviewPage() {
   const { query } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const load = React.useCallback(async () => {
-    const [search, movement] = await Promise.all([searchOverview({ from, to, platform, cityId }), adminApi.get<Movement>('/v1/admin/analytics/movement', { from, to, platform, cityId, limit: 1 })]);
+    const [search, movement] = await Promise.all([searchOverview({ from, to, window: span, platform, cityId }), adminApi.get<Movement>('/v1/admin/analytics/movement', { from, to, window: span, platform, cityId, limit: 1 })]);
     return { search, movement };
-  }, [from, to, platform, cityId]);
+  }, [from, to, span, platform, cityId]);
   const resource = useSubscriberResource(load);
   if (resource.loading) return <LoadingState />;
   if (resource.error || !resource.data) return <RequestError message={copy('Could not load analytics.')} retry={() => { void resource.refetch(); }} />;
   const { search, movement } = resource.data;
-  const sessionDays = movement.funnel.series.filter((row) => typeof row.day === 'string' && typeof row.platform === 'string');
+  const unit = span ? copy(WINDOW_WORDS[span]) : `${from} – ${to}`;
   const number = (value: number) => value.toLocaleString(lang);
   const share = (value: number) => value.toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 });
-  return <div className="space-y-5"><NumbersSmart window={query.window ?? '30d'} /><AnalyticsInsights /><h2 className="text-xl font-semibold">{copy('Overview')}</h2>
+  return <div className="space-y-5">
+    {span ? <NumbersSmart window={span} /> : <p className="text-sm text-muted-foreground">{copy('Answers, insights and hype count back from now; choose Live, 24 h, 7 days or 30 days to see them.')}</p>}
+    {span === 'live' && <Link href="/dashboard/analytics/live" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">{copy('Who is here now, minute by minute')}<ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" /></Link>}
+    <AnalyticsInsights range={{ from, to, window: span }} /><h2 className="text-xl font-semibold">{copy('Overview')}</h2>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
-      { title: 'Sessions', value: number(movement.funnel.totals.sessions), unit: 'sessions selected period' },
-      { title: 'Recorded searches', value: number(search.searches), unit: 'searches selected period' },
-      { title: 'Nothing found share', value: share(search.searches ? search.zeroResults / search.searches : 0), unit: 'of recorded searches selected period' },
-      { title: 'Result taps', value: number(search.clicks), unit: 'taps selected period' },
-    ].map((tile) => <Card key={tile.title}><CardContent><p className="text-sm text-muted-foreground">{copy(tile.title)}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{tile.value}</p><p className="text-sm text-muted-foreground">{copy(tile.unit)}</p>{tile.title === 'Sessions' && <SessionTrend series={movement.funnel.series} />}</CardContent></Card>)}</div>
-    <p className="text-sm text-muted-foreground">{copy('Recorded terms exclude private text and very short searches. Taps are events, not unique people.')}</p>
-    {!!sessionDays.length && <Card><CardHeader><CardTitle>{copy('Sessions by day')}</CardTitle><p className="text-sm text-muted-foreground">{copy('Only stored session days are shown; missing days are not invented.')}</p></CardHeader><CardContent><RecordList scope="overview-days" records={sessionDays} searchText={(row) => `${row.day} ${row.platform}`} filters={[{ key: 'platform', label: 'All platforms', options: [{ value: 'app', label: 'App' }, { value: 'web', label: 'Web' }], value: (row) => row.platform ?? '' }]} render={(rows) => <ul className="divide-y">{rows.map((row, index) => <li key={`${row.day}-${row.platform}-${index}`} className="flex flex-wrap justify-between gap-3 py-3"><RecordCell icon={row.platform === 'app' ? 'app' : 'web'} name={row.day} context={copy(row.platform === 'app' ? 'App' : 'Web')} /><p className="tabular-nums">{number(row.sessions)} {copy('Sessions')}</p></li>)}</ul>} /></CardContent></Card>}
-    <AnalyticsLikes /><AnalyticsSuggestions />
+      { title: 'Sessions', value: number(movement.funnel.totals.sessions), unit },
+      { title: 'Recorded searches', value: number(search.searches), unit },
+      { title: 'Nothing found share', value: share(search.searches ? search.zeroResults / search.searches : 0), unit },
+      { title: 'Result taps', value: number(search.clicks), unit },
+    ].map((tile) => <Card key={tile.title}><CardContent><p className="text-sm text-muted-foreground">{copy(tile.title)}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{tile.value}</p><p className="text-sm text-muted-foreground">{tile.unit}</p>{tile.title === 'Sessions' && <SessionTrend series={movement.funnel.series} />}</CardContent></Card>)}</div>
+    <AnalyticsLikes />
   </div>;
 }

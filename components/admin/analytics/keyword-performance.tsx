@@ -13,10 +13,10 @@ import { LoadingState, RequestError } from '../subscriber-ui';
 
 export function KeywordPerformance() {
   const { query } = useInsightFilters();
-  const { from, to, platform, cityId } = query;
+  const { from, to, window: span, platform, cityId } = query;
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
-  const load = React.useCallback(() => searchOverview({ from, to, platform, cityId }), [from, to, platform, cityId]);
+  const load = React.useCallback(() => searchOverview({ from, to, window: span, platform, cityId }), [from, to, span, platform, cityId]);
   const report = useSubscriberResource(load);
   if (report.loading) return <LoadingState />;
   if (report.error) return <RequestError message={copy('Could not load keywords.')} retry={() => { void report.refetch(); }} />;
