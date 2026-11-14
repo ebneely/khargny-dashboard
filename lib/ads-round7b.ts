@@ -2,8 +2,9 @@ import type { AdSurface, AdTarget, Agreement, ShuffleRank } from '@/lib/api/ads-
 import { matchesRecord } from '@/lib/record-list';
 import { isCalendarDate, calendarStamp } from '@/lib/subscription-calendar';
 
-export const surfaceLabels = { featured: 'Home Featured rail', top10: 'Top 10', city: 'City list', area: 'Area list', category: 'Category list', search: 'Search results', section: 'Home section' } as const;
-export const sourceLabels = { campaign: 'Campaign', always_on: 'By hand', plan: 'Owner Plus plan', organic: 'Organic', shuffle: 'Shuffle test' } as const;
+// Where an ad shows, in the words the team sells it with; the last three are older bookings that keep running.
+export const surfaceLabels = { featured: 'Everyone in Egypt', top10: 'Top 10 list (old booking)', city: 'One city', area: 'One area', category: 'One category', search: 'Search results (old booking)', section: 'Home section (old booking)' } as const;
+export const sourceLabels = { campaign: 'Campaign', always_on: 'No end date', plan: 'Owner Plus plan', organic: 'Organic', shuffle: 'Shuffle test' } as const;
 export const promotionReasonLabels: Record<string, string> = { promotions_disabled: 'Plan promotion is switched off; subscriptions do not serve promotions.', multiple_active_subscriptions: 'Several active subscriptions need review.', media_less: 'The place needs a picture or video.', no_media: 'The place needs a picture or video.', inactive: 'The place is not active.', draft: 'The place is still a draft.', expired: 'The subscription has expired.', scheduled: 'The subscription has not started.', grace: 'The subscription is in its grace period.', manual: 'Manual access does not include plan promotion.' };
 export function groupSurfaces(surfaces: AdSurface[]) {
   const groups = new Map<string, { key: string; kind: AdSurface['surface']; cityId: string | null; surfaces: AdSurface[] }>();

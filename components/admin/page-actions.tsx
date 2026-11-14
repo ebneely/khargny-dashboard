@@ -20,19 +20,20 @@ export interface PageAction {
   traceId?: string;
 }
 
-export function PageActions({ actions, form = false, mobileMirrorWhenHidden = false, scope = 'page' }: { actions: PageAction[]; form?: boolean; mobileMirrorWhenHidden?: boolean; scope?: 'page' | 'record' }) {
+export function PageActions({ actions, form = false, scope = 'page' }: { actions: PageAction[]; form?: boolean; /** Kept for old callers: every page now mirrors only on phones. */ mobileMirrorWhenHidden?: boolean; scope?: 'page' | 'record' }) {
   const viewer = useDashboardReadOnly();
   const header = useRef<HTMLDivElement>(null);
   const [mirror, setMirror] = useState(false);
   useEffect(() => {
-    if (scope === 'record' || !mobileMirrorWhenHidden || !header.current) return;
+    // One action place (DIRECTION P4): the bar mirrors the header action only on phones, once it scrolled away.
+    if (scope === 'record' || !header.current) return;
     const phone = window.matchMedia('(max-width: 639px)');
     let headerVisible = true;
     const update = () => setMirror(phone.matches && !headerVisible);
     const observer = new IntersectionObserver(([entry]) => { headerVisible = entry.isIntersecting; update(); });
     observer.observe(header.current); phone.addEventListener('change', update);
     return () => { observer.disconnect(); phone.removeEventListener('change', update); };
-  }, [mobileMirrorWhenHidden, scope]);
+  }, [scope]);
   const visible = actions.filter((action) => action.allowed !== false && (!viewer || action.readOnly || action.viewerAllowed));
   if (!visible.length) return null;
   const buttons = (bottom: boolean) => visible.slice(0, 2).map((action, index) => <Button
@@ -42,8 +43,8 @@ export function PageActions({ actions, form = false, mobileMirrorWhenHidden = fa
     data-trace-id={action.traceId}>
     {action.icon}<DashboardText>{action.label}</DashboardText>
   </Button>);
-  return <div ref={header} data-slot="page-actions" data-action-scope={scope} data-mirror={scope === 'record' ? "none" : mobileMirrorWhenHidden ? "mobile-when-hidden" : "always"} className="print-hide flex flex-wrap items-center gap-2">
+  return <div ref={header} data-slot="page-actions" data-action-scope={scope} data-mirror={scope === 'record' ? "none" : "mobile-when-hidden"} className="print-hide flex flex-wrap items-center gap-2">
     {buttons(false)}
-    {scope !== 'record' && !form && (!mobileMirrorWhenHidden || mirror) && <FormActionBar dirty={false} saving={false}>{buttons(true)}</FormActionBar>}
+    {scope !== 'record' && !form && mirror && <FormActionBar dirty={false} saving={false}>{buttons(true)}</FormActionBar>}
   </div>;
 }

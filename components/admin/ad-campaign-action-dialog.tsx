@@ -21,12 +21,12 @@ export type CampaignAction = 'pause' | 'resume' | 'end';
 const COPY: Record<CampaignAction, { title: string; description: string; confirm: string }> = {
   pause: {
     title: 'Pause campaign?',
-    description: 'The campaign will stop serving immediately. Its booked dates and history will stay intact.',
+    description: 'The campaign will stop serving immediately. Its dates and results stay as they are.',
     confirm: 'Pause campaign',
   },
   resume: {
     title: 'Resume campaign?',
-    description: 'The campaign will be eligible to serve again whenever its booked dates are live.',
+    description: 'The campaign will be eligible to serve again during its dates.',
     confirm: 'Resume campaign',
   },
   end: {

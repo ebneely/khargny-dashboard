@@ -30,6 +30,9 @@ export interface AdTotals {
   taps: number;
   ctr: number | null;
   reach: number;
+  /** Directions and saves counted for this ad. */
+  directions?: number;
+  saves?: number;
 }
 
 export interface AdCampaign {

@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation';
+import { TodayPage } from '@/components/admin/today-page';
 
-// Home is the Inbox: what is waiting on a person comes first (spec 002 US8).
-export default function DashboardHomePage() {
-  redirect('/dashboard/inbox');
+/** Today: the jobs-based home (owner rule). */
+export default function DashboardHome() {
+  return <TodayPage />;
 }

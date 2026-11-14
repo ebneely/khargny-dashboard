@@ -25,7 +25,7 @@ import { surfaceLabels, adsError } from '@/lib/ads-round7b';
 import { adminApi } from '@/lib/api/admin-client';
 import {
   formatCount,
-  formatCtr,
+
   formatMoney,
   type AdCampaign,
   type AdPlacement,
@@ -34,12 +34,28 @@ import {
 type ListTab = 'live' | 'scheduled' | 'paused' | 'ended' | 'all';
 
 const TABS: { value: ListTab; label: string }[] = [
-  { value: 'live', label: 'Live' },
+  { value: 'live', label: 'Running' },
   { value: 'scheduled', label: 'Scheduled' },
   { value: 'paused', label: 'Paused' },
-  { value: 'ended', label: 'Ended + expired' },
+  { value: 'ended', label: 'Ended' },
   { value: 'all', label: 'All' },
 ];
+
+/** Directions and saves after seeing the ad: what the advertiser actually got. */
+const actionsOf = (campaign: AdCampaign) => (campaign.totals?.directions ?? 0) + (campaign.totals?.saves ?? 0);
+
+/** One honest line about where the ad stands, from its own dates and numbers (no pacing data yet). */
+function health(campaign: AdCampaign): { text: string; days?: number } {
+  const today = new Date().toISOString().slice(0, 10);
+  const day = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
+  if (campaign.state === 'scheduled') return { text: 'Starts in days:', days: day(today, campaign.startDate) };
+  if (campaign.state === 'paused') return { text: 'Paused: nobody sees it until you resume it.' };
+  if (campaign.state === 'ended' || campaign.state === 'expired') return { text: 'Finished.' };
+  if (!campaign.endDate) return { text: 'Runs until you stop it.' };
+  if (!campaign.totals?.impressions && day(campaign.startDate, today) >= 2) return { text: 'No shows yet: check the place is live and has photos.' };
+  const left = day(today, campaign.endDate);
+  return left <= 7 ? { text: 'Ends in days:', days: Math.max(0, left) } : { text: 'Days used:', days: day(campaign.startDate, today) + 1 };
+}
 
 export interface CampaignListInitialFilters {
   placement?: AdPlacement;
@@ -67,7 +83,6 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
     setLoading(true);
     setError(null);
     const params = {
-      kind: 'campaign',
       placement: initialFilters.placement,
       cityId: initialFilters.cityId,
       placeId: initialFilters.placeId,
@@ -105,24 +120,15 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
     return () => window.clearTimeout(timer);
   }, [load]);
 
-  const hasInventoryFilter = Boolean(
-    initialFilters.campaignIds?.length || initialFilters.cityId || initialFilters.placement || initialFilters.placeId,
-  );
 
   return (
     <div>
       <AdsPageHeader
-        title="Ad campaigns"
-        description="Manage booked promotions, serving state, advertiser records and performance."
-        actions={[{ label: 'New campaign', href: '/dashboard/money/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]}
+        title="Ads"
+        description="Sell an ad and watch the ones running: who saw it, who tapped, who acted, and what each cost."
+        actions={[{ label: 'Sell an ad', href: '/dashboard/money/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]}
       />
 
-      {hasInventoryFilter && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-info-bg px-4 py-3 text-sm text-info">
-          <span><DashboardText>Showing campaigns for the selected surface.</DashboardText></span>
-          <Link href="/dashboard/money/ads/campaigns" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
-        </div>
-      )}
 
       <Card>
         <CardContent className="space-y-4">
@@ -140,20 +146,21 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
           ) : campaigns.length === 0 ? (
             <div className="py-12 text-center">
               <p className="font-medium"><DashboardText>No campaigns in this view</DashboardText></p>
-              <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state or create a campaign to book space.</DashboardText></p>
+              <p className="mt-1 text-sm text-muted-foreground"><DashboardText>Try another state, or sell an ad.</DashboardText></p>
             </div>
           ) : (
-            <RecordList scope="campaigns" records={campaigns} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.advertiserPhone ?? ''}`} filters={[{ key: 'placement', label: 'All surfaces', options: Object.entries(surfaceLabels).map(([value, label]) => ({ value, label })), value: (campaign) => campaign.placement }]} render={(visible) => <Table layout="campaigns">
+            <RecordList scope="campaigns" records={campaigns} searchText={(campaign) => `${campaign.place.name} ${campaign.place.nameEn ?? ''} ${campaign.advertiserName} ${campaign.advertiserPhone ?? ''}`} filters={[{ key: 'placement', label: 'Everywhere', options: Object.entries(surfaceLabels).map(([value, label]) => ({ value, label })), value: (campaign) => campaign.placement }]} render={(visible) => <Table layout="campaigns">
               <TableHeader>
                 <TableRow>
                   <TableHead><DashboardText>Place</DashboardText></TableHead>
                   <TableHead><DashboardText>Advertiser</DashboardText></TableHead>
-                  <TableHead><DashboardText>Where it appears</DashboardText></TableHead>
+                  <TableHead><DashboardText>Where it shows</DashboardText></TableHead>
                   <TableHead><DashboardText>Dates</DashboardText></TableHead>
                   <TableHead className="text-end"><DashboardText>Amount</DashboardText></TableHead>
-                  <TableHead className="text-end"><DashboardText>Impr.</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Shows</DashboardText></TableHead>
                   <TableHead className="text-end"><DashboardText>Taps</DashboardText></TableHead>
-                  <TableHead className="text-end"><DashboardText>CTR</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Actions taken</DashboardText></TableHead>
+                  <TableHead className="text-end"><DashboardText>Cost per action</DashboardText></TableHead>
                   <TableHead column="status"><DashboardText>State</DashboardText></TableHead>
                   <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
                 </TableRow>
@@ -171,11 +178,12 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                       {campaign.advertiserPhone && <p className="truncate text-xs text-muted-foreground" dir="ltr" title={campaign.advertiserPhone}>{campaign.advertiserPhone}</p>}
                     </TableCell>
                     <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${controlCopy(surfaceLabels[campaign.placement])} ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} ${campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}`}>{controlCopy(surfaceLabels[campaign.placement])} {campaign.city ? <span className="inline-flex items-center gap-1.5 align-middle"><GovIcon city={campaign.city} />{pick(campaign.city.name, campaign.city.nameEn)}</span> : controlCopy('All Egypt')} {campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</p></TableCell>
-                    <TableCell className="text-muted-foreground"><DateRange start={campaign.startDate} end={campaign.endDate} /></TableCell>
+                    <TableCell className="text-muted-foreground"><DateRange start={campaign.startDate} end={campaign.endDate} /><p className="mt-0.5 text-xs">{controlCopy(health(campaign).text)}{health(campaign).days !== undefined ? ' ' + health(campaign).days : ''}</p></TableCell>
                     <TableCell className="text-end tabular-nums">{formatMoney(campaign.amountPaid, campaign.currency)}</TableCell>
                     <TableCell className="text-end tabular-nums">{formatCount(campaign.totals?.impressions)}</TableCell>
                     <TableCell className="text-end tabular-nums">{formatCount(campaign.totals?.taps)}</TableCell>
-                    <TableCell className="text-end tabular-nums">{formatCtr(campaign.totals?.ctr)}</TableCell>
+                    <TableCell className="text-end tabular-nums">{formatCount(actionsOf(campaign))}</TableCell>
+                    <TableCell className="text-end tabular-nums">{actionsOf(campaign) ? formatMoney(Math.round(campaign.amountPaid / actionsOf(campaign) * 100) / 100, campaign.currency) : '—'}</TableCell>
                     <TableCell column="status"><AdStateBadge state={campaign.state} /></TableCell>
                     <TableCell column="actions" className="text-end">
                       <RowActions recordName={campaign.advertiserName} actions={[

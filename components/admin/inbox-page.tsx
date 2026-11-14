@@ -6,8 +6,9 @@ import { Check, Clock, Inbox, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
+import { QUEUES, useShellInboxCounts } from './dashboard-shell';
 import { RecordRow } from './record-list';
 import { RecordCell, RecordThumbnail } from './record-cell';
 import { useDashboardCopy } from './dashboard-text';
@@ -24,29 +25,82 @@ import { PendingPhotos } from './subscriber-photos';
 import { RenewalsPage } from './renewals-page';
 import { AR_LOCALE } from '@/lib/locale';
 
-const TABS = ['corrections', 'reports', 'renewals', 'no-hours', 'owner-requests', 'photos', 'lister-documents', 'trip-reports'] as const;
-const TAB_LABELS: Record<(typeof TABS)[number], string> = {
-  corrections: 'Corrections', reports: 'Reports', renewals: 'Renewal receipts', 'no-hours': 'Places without hours', 'owner-requests': 'Owner requests',
-  photos: 'Photo submissions', 'lister-documents': 'Lister documents', 'trip-reports': 'Trip reports',
-};
 const PROMISE_HOURS = 48;
 
 export function InboxPage({ canWrite }: { canWrite: boolean }) {
+  return <React.Suspense fallback={<LoadingState />}><InboxContent canWrite={canWrite} /></React.Suspense>;
+}
+
+/**
+ * Queues with their counts on the side, the chosen queue beside them (DIRECTION section 1).
+ * J/K move between items, A applies or approves, R rejects; ?run=1 walks every queue in turn.
+ */
+function InboxContent({ canWrite }: { canWrite: boolean }) {
   const copy = useDashboardCopy();
-  return <div className="min-w-0 space-y-6">
-    <header><h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><Inbox className="size-5 text-primary" aria-hidden="true" />{copy('Inbox')}</h1><p className="mt-1 text-sm text-muted-foreground">{copy('Everything waiting on a person, oldest first. We answer within 48 hours.')}</p></header>
-    <UrlTabs values={TABS}>
-      <TabsList aria-label={copy('Inbox lists')}>{TABS.map((tab) => <TabsTrigger key={tab} value={tab}>{copy(TAB_LABELS[tab])}</TabsTrigger>)}</TabsList>
-      <UrlTabsContent value="corrections" lazy><Corrections canWrite={canWrite} /></UrlTabsContent>
-      <UrlTabsContent value="reports" lazy><Reports canWrite={canWrite} /></UrlTabsContent>
-      <UrlTabsContent value="renewals" lazy><RenewalsPage canWrite={canWrite} /></UrlTabsContent>
-      <UrlTabsContent value="no-hours" lazy><PlacesWithoutHours /></UrlTabsContent>
-      <UrlTabsContent value="owner-requests" lazy><OwnerRequests canWrite={canWrite} /></UrlTabsContent>
-      <UrlTabsContent value="photos" lazy><Card><CardHeader><CardTitle>{copy('Photo submissions')}</CardTitle></CardHeader><CardContent><PendingPhotos canWrite={canWrite} /></CardContent></Card></UrlTabsContent>
-      <UrlTabsContent value="lister-documents" lazy><GoTo title="Lister documents" text="ID and license papers sent by trip listers wait in the Marketplace." href="/dashboard/marketplace?tab=listers&listers-kyc=pending" action="Review documents" /></UrlTabsContent>
-      <UrlTabsContent value="trip-reports" lazy><GoTo title="Trip reports" text="Customer reports about trips are closed in the Marketplace." href="/dashboard/marketplace?tab=reports" action="Open trip reports" /></UrlTabsContent>
-    </UrlTabs>
+  const params = useSearchParams();
+  const router = useRouter();
+  const counts = useShellInboxCounts();
+  const waiting = QUEUES.filter((entry) => entry.id !== 'no-hours' && (counts?.[entry.count] ?? 0) > 0);
+  const asked = params.get('queue') ?? params.get('tab');
+  const run = params.get('run') === '1';
+  const queue = QUEUES.find((entry) => entry.id === asked)?.id ?? waiting[0]?.id ?? 'corrections';
+  const open = (id: string, keepRun = run) => router.replace(`/dashboard/inbox?queue=${id}${keepRun ? '&run=1' : ''}`);
+  const order = (id: string) => QUEUES.findIndex((entry) => entry.id === id);
+  const nextQueue = waiting.find((entry) => order(entry.id) > order(queue)) ?? waiting.find((entry) => entry.id !== queue);
+  const content = React.useRef<HTMLDivElement>(null);
+  useInboxKeys(content);
+  const item = (entry: (typeof QUEUES)[number]) => <button key={entry.id} type="button" data-ro-allow="true" aria-current={entry.id === queue ? 'page' : undefined} onClick={() => open(entry.id)}
+    className={`flex h-8 shrink-0 items-center gap-2 rounded-lg px-2.5 text-start text-sm lg:w-full ${entry.id === queue ? 'bg-brand-50 font-medium text-primary' : 'text-foreground hover:bg-muted'}`}>
+    <span className="min-w-0 flex-1 truncate">{copy(entry.label)}</span><span className="tabular-nums text-xs font-semibold">{counts?.[entry.count] || ''}</span></button>;
+  const empty = counts !== null && (counts[QUEUES.find((entry) => entry.id === queue)!.count] ?? 0) === 0;
+  return <div className="min-w-0 space-y-5">
+    <header><h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><Inbox className="size-5 text-primary" aria-hidden="true" />{copy('Inbox')}</h1><p className="mt-1 text-sm text-muted-foreground">{copy('Everything waiting on a person, oldest first. We answer within 48 hours.')} <span className="hidden lg:inline">{copy('Keys: J and K move, A applies, R rejects.')}</span></p></header>
+    {run && <div className="flex flex-wrap items-center gap-3 rounded-xl bg-brand-50 px-4 py-2.5 text-sm" role="status"><span className="font-medium text-primary">{copy('Working through everything that waits, queue by queue.')}</span><span className="flex-1" />{nextQueue && <Button size="sm" variant="outline" data-ro-allow="true" onClick={() => open(nextQueue.id)}>{copy('Next queue')}: {copy(nextQueue.label)}</Button>}<Button size="sm" variant="ghost" data-ro-allow="true" onClick={() => open(queue, false)}>{copy('Stop')}</Button></div>}
+    <div className="grid gap-5 lg:grid-cols-[232px_minmax(0,1fr)]">
+      <nav aria-label={copy('Inbox lists')} className="flex gap-1 overflow-x-auto [scrollbar-width:none] lg:block lg:space-y-0.5 lg:self-start lg:rounded-2xl lg:bg-card lg:p-2 lg:shadow-sm">
+        <p className="hidden px-2.5 pt-1 pb-1.5 text-xs text-muted-foreground lg:block">{copy('Waiting on you, 48 hours each')}</p>
+        {QUEUES.filter((entry) => entry.id !== 'no-hours').map(item)}
+        <p className="hidden px-2.5 pt-3 pb-1.5 text-xs text-muted-foreground lg:block">{copy('When you have time')}</p>
+        {QUEUES.filter((entry) => entry.id === 'no-hours').map(item)}
+      </nav>
+      <div ref={content} className="min-w-0 space-y-4">
+        {queue === 'corrections' && <Corrections canWrite={canWrite} />}
+        {queue === 'reports' && <Reports canWrite={canWrite} />}
+        {queue === 'renewals' && <RenewalsPage canWrite={canWrite} />}
+        {queue === 'no-hours' && <PlacesWithoutHours />}
+        {queue === 'owner-requests' && <OwnerRequests canWrite={canWrite} />}
+        {queue === 'photos' && <Card><CardHeader><CardTitle>{copy('Owner photos')}</CardTitle></CardHeader><CardContent><PendingPhotos canWrite={canWrite} /></CardContent></Card>}
+        {queue === 'lister-documents' && <GoTo title="Host papers" text="ID and license papers sent by hosts wait in the Marketplace." href="/dashboard/marketplace?tab=listers&listers-kyc=pending" action="Review the papers" />}
+        {queue === 'trip-reports' && <GoTo title="Trip reports" text="Customer reports about trips are closed in the Marketplace." href="/dashboard/marketplace?tab=reports" action="Open trip reports" />}
+        {empty && nextQueue && <Button variant="outline" size="sm" data-ro-allow="true" onClick={() => open(nextQueue.id)}>{copy('Next')}: {copy(nextQueue.label)} ({counts?.[nextQueue.count]})</Button>}
+      </div>
+    </div>
   </div>;
+}
+
+/** J/K select the next or previous item in the open queue; A and R press its apply and reject buttons. */
+function useInboxKeys(content: React.RefObject<HTMLDivElement | null>) {
+  React.useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (event.metaKey || event.ctrlKey || event.altKey || target?.closest('input, textarea, select, [contenteditable=true]') || document.querySelector('[role="dialog"]')) return;
+      const rows = Array.from(content.current?.querySelectorAll<HTMLElement>('[data-inbox-row]') ?? []);
+      if (!rows.length) return;
+      const current = rows.findIndex((row) => row.dataset.selected === 'true');
+      const key = event.key.toLowerCase();
+      if (key === 'j' || key === 'k') {
+        event.preventDefault();
+        const at = Math.max(0, Math.min(rows.length - 1, current < 0 ? 0 : current + (key === 'j' ? 1 : -1)));
+        rows.forEach((row, index) => { row.dataset.selected = String(index === at); });
+        rows[at].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else if ((key === 'a' || key === 'r') && current >= 0) {
+        const button = rows[current].querySelector<HTMLButtonElement>(`[data-key="${key}"]`);
+        if (button) { event.preventDefault(); button.click(); }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [content]);
 }
 
 /** A list card: loading, a missing route (backend not deployed yet), an error with Retry, empty, or rows; the count is the server's. */
@@ -108,9 +162,9 @@ function Corrections({ canWrite }: { canWrite: boolean }) {
       const place = pick(row.placeName ?? '', row.placeNameEn ?? null) || copy('Place');
       // Rows arrive grouped per place, the place with the most open corrections first.
       const firstOfPlace = index === 0 || rows[index - 1].placeId !== row.placeId;
-      return <div key={row.id}>{firstOfPlace && <p className="flex items-center gap-2 pt-4 pb-1 text-sm font-semibold"><Link className="underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link>{(row.placeOpen ?? 1) > 1 && <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-primary tabular-nums">{row.placeOpen} {copy('open corrections')}</span>}</p>}<div className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <div className="flex gap-2">
-        <Button size="sm" variant="outline" onClick={() => setAction({ title: copy('Apply this correction?'), description: copy('A clear phone, name, pin or full week of hours replaces the place’s value at once. Anything else is marked applied, and you make the change on the place page.'), submit: () => decide(() => applyCorrection(row.id), (result) => (result as { written?: boolean } | null)?.written ? 'Applied. Live on the website now.' : 'Marked as applied. Nothing was written to the place: make the change on the place page.') })}><Check aria-hidden="true" />{copy('Apply')}</Button>
-        <Button size="sm" variant="ghost" onClick={() => setAction({ title: copy('Reject this correction?'), description: copy('Your reply is kept with the correction. The sender cannot read replies yet.'), fields: [{ name: 'reply', label: copy('Reply (one line)'), required: true }], submit: (values) => decide(() => rejectCorrection(row.id, String(values.reply).trim()), () => 'Rejected. Your reply is kept with it.') })}><X aria-hidden="true" />{copy('Reject')}</Button>
+      return <div key={row.id}>{firstOfPlace && <p className="flex items-center gap-2 pt-4 pb-1 text-sm font-semibold"><Link className="underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link>{(row.placeOpen ?? 1) > 1 && <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-primary tabular-nums">{row.placeOpen} {copy('open corrections')}</span>}</p>}<div data-inbox-row className="-mx-2 rounded-lg border-b px-2 py-3 last:border-b-0 data-[selected=true]:bg-brand-50"><RecordRow actions={canWrite && <div className="flex gap-2">
+        <Button size="sm" variant="outline" data-key="a" onClick={() => setAction({ title: copy('Apply this correction?'), description: copy('A clear phone, name, pin or full week of hours replaces the place’s value at once. Anything else is marked applied, and you make the change on the place page.'), submit: () => decide(() => applyCorrection(row.id), (result) => (result as { written?: boolean } | null)?.written ? 'Applied. Live on the website now.' : 'Marked as applied. Nothing was written to the place: make the change on the place page.') })}><Check aria-hidden="true" />{copy('Apply')}</Button>
+        <Button size="sm" variant="ghost" data-key="r" onClick={() => setAction({ title: copy('Reject this correction?'), description: copy('Your reply is kept with the correction. The sender cannot read replies yet.'), fields: [{ name: 'reply', label: copy('Reply (one line)'), required: true }], submit: (values) => decide(() => rejectCorrection(row.id, String(values.reply).trim()), () => 'Rejected. Your reply is kept with it.') })}><X aria-hidden="true" />{copy('Reject')}</Button>
       </div>}>
         <div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1.5">
           <p className="text-sm"><Link className="font-medium underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link> <span className="text-muted-foreground">{copy(KIND_LABELS[row.kind] ?? 'Something else')}</span></p>
@@ -144,7 +198,7 @@ function Reports({ canWrite }: { canWrite: boolean }) {
     },
   });
   return <>
-    <InboxList title="Reports" empty="No reports are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <Button size="sm" variant="outline" onClick={() => close(row)}><Check aria-hidden="true" />{copy('Close')}</Button>}><div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1">
+    <InboxList title="Reports" empty="No reports are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <Button size="sm" variant="outline" data-key="a" onClick={() => close(row)}><Check aria-hidden="true" />{copy('Close')}</Button>}><div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1">
       <p className="text-sm font-medium">{copy(REPORT_LABELS[row.kind] ?? 'Something else')}</p>
       <p dir="auto" className="whitespace-pre-line break-words text-sm">{row.text}</p>
       <SubmissionMedia media={row.media ?? []} photoUrl={row.photoUrl} />
@@ -179,7 +233,7 @@ function OwnerRequests({ canWrite }: { canWrite: boolean }) {
     submit: async (values) => { await replyOwnerRequest(row.id, state, String(values.reply).trim()); toast.success(copy('Reply sent to the owner.')); await resource.refetch(); },
   });
   return <>
-    <InboxList title="Owner requests" empty="No owner requests are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => reply(row, 'done')}><Check aria-hidden="true" />{copy('Done')}</Button><Button size="sm" variant="ghost" onClick={() => reply(row, 'declined')}><X aria-hidden="true" />{copy('Decline')}</Button></div>}>
+    <InboxList title="Owner requests" empty="No owner requests are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <div className="flex gap-2"><Button size="sm" variant="outline" data-key="a" onClick={() => reply(row, 'done')}><Check aria-hidden="true" />{copy('Done')}</Button><Button size="sm" variant="ghost" data-key="r" onClick={() => reply(row, 'declined')}><X aria-hidden="true" />{copy('Decline')}</Button></div>}>
       <div className="min-w-0 space-y-1"><p className="text-sm"><Link className="font-medium underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{pick(row.placeName ?? '', row.placeNameEn) || copy('Open the place')}</Link> <span className="text-muted-foreground">{copy(REQUEST_LABELS[row.kind as keyof typeof REQUEST_LABELS] ?? 'Something else')}</span></p><p dir="auto" className="whitespace-pre-line break-words text-sm">{row.detail.message}</p><p className="text-sm"><Age createdAt={row.createdAt} /></p></div>
     </RecordRow></div>)} />
     <ActionDialog action={action} onClose={() => setAction(null)} />
