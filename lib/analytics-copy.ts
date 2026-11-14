@@ -170,4 +170,12 @@ export const analyticsCopy: Record<string, string> = {
   'links removed': 'روابط محذوفة',
   'Plan digest': 'بصمة المعاينة',
   'Apply reviewed assignment': 'تطبيق التعيين الذي راجعته',
+  'Search suggestions': 'اقتراحات البحث',
+  'Suggestions use the city the person chose, otherwise the nearest city from their location, otherwise the default city below.': 'الاقتراحات تستخدم المدينة التي اختارها الشخص، وإلا أقرب مدينة من موقعه، وإلا المدينة الافتراضية أدناه.',
+  'Default city': 'المدينة الافتراضية',
+  'Save': 'حفظ',
+  'Place matches': 'نتائج الأماكن',
+  'Search settings saved.': 'تم حفظ إعدادات البحث.',
+  'Could not load the search settings.': 'تعذر تحميل إعدادات البحث.',
+  'Could not save the search settings (super admin only).': 'تعذر حفظ إعدادات البحث (للمشرف الأعلى فقط).',
 };
