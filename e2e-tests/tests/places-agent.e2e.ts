@@ -8,7 +8,7 @@ describe('admin category operator', { session: 'admin', agent: 'admin' }, () => 
   categoryTest('creates a category through the agent', {
     skip: process.env.E2E_MODEL === undefined ? 'Set E2E_MODEL=<provider>:<model id> to run the admin agent.' : false,
   }, async ({ app, screen, agent, categoryName }) => {
-    await app.open('/dashboard/categories');
+    await app.open('/dashboard/places/library/categories');
     await agent.act('Create a top-level category using Add Category. Set Name (Arabic) *, Name (English) * and Slug * to {name}. Leave Icon, Parent category, Sort order and Status at their defaults and save with Save changes. Do not change any existing record.', {
       params: { name: unique(categoryName) },
     });

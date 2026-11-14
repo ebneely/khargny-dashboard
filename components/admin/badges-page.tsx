@@ -19,7 +19,7 @@ import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useUrlTab } from '@/lib/use-url-tab';
 import { achievementRuleText, cairoDateTime, ruleControls, ruleFromControls, statusBadgeRules, type RuleControls } from '@/lib/badge-rules';
 import { GovIcon } from '@/components/gov-icon';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { BadgeCatalogueCard } from './badge-catalogue';
 import { BadgePriceMatchDialog } from './badge-price-match-dialog';
 import { useDashboardCopy } from './dashboard-text';
@@ -187,7 +187,7 @@ function BadgeCard({ badge, cityId, cities, revision, canWrite, switching, field
       {canWrite && badge.family === 'status' && <p className="text-sm text-muted-foreground">{copy('Changes are live at once')}</p>}
       {badge.key === 'pricing' && <p className="text-sm text-muted-foreground">{copy('The price list gives and removes it. Edit the price list from the place.')}</p>}
       {badge.key === 'price_match' && <><p className="text-sm text-muted-foreground">{copy('It is removed when the prices change.')}</p>{canWrite && <PageActions scope="record" actions={[{ label: 'Confirm price match for a place', disabled: switching, onClick: onAwardPriceMatch }]} />}</>}
-      {badge.key === 'visited' && <p className="text-sm text-muted-foreground">{copy('A team visit is a real visit, so it is recorded on the subscriber Visits tab. Deleting every visit of the place there removes this badge.')} <Link className="underline" href="/dashboard/subscribers">{copy('Open subscribers')}</Link></p>}
+      {badge.key === 'visited' && <p className="text-sm text-muted-foreground">{copy('A team visit is a real visit, so it is recorded on the subscriber Visits tab. Deleting every visit of the place there removes this badge.')} <Link className="underline" href="/dashboard/money/owners">{copy('Open subscribers')}</Link></p>}
     </CardContent>
   </Card>;
 }

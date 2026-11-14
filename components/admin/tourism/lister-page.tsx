@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { ArrowLeft, ArrowRight, Banknote, Check, Map as MapIcon, UserCheck, UserX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,7 @@ export function ListerPage({ listerId, canWrite, canSeeDocuments }: { listerId: 
   const post = (verb: string, body?: object) => () => adminApi.post(`${TOURISM_API}/agencies/${listerId}/${verb}`, body);
   return <div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
     <header className="space-y-3">
-      <Link href="/dashboard/tourism?tab=listers" className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:underline"><Back className="size-4" aria-hidden="true" />{text('Back to listers', 'رجوع للمنظّمين')}</Link>
+      <Link href="/dashboard/marketplace?tab=listers" className="inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:underline"><Back className="size-4" aria-hidden="true" />{text('Back to listers', 'رجوع للمنظّمين')}</Link>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><MapIcon className="size-5 text-primary" aria-hidden="true" />{lister?.name ?? text('Lister', 'المنظّم')}{lister?.verified && <VerifiedSeal size={22} />}</h1>
@@ -65,7 +65,7 @@ export function ListerPage({ listerId, canWrite, canSeeDocuments }: { listerId: 
       <Card><CardHeader><CardTitle>{text('Trips', 'الرحلات')} <span className="text-muted-foreground tabular-nums">({num(lister.trips.length)})</span></CardTitle></CardHeader><CardContent>
         {!lister.trips.length ? <CalmLine>{text('No trips yet.', 'لسه مفيش رحلات.')}</CalmLine>
           : <ul className="divide-y">{lister.trips.filter((trip) => showCancelled || trip.status !== 'cancelled').map((trip) => <li key={trip.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 py-2">
-            <Link href={`/dashboard/tourism?tab=trips&trip=${trip.id}`} className="underline-offset-4 hover:underline"><RecordCell nameAr={trip.title} nameEn={trip.titleEn} thumbnail={tripCover(trip)} context={<DateRange start={trip.startsAt} end={trip.endsAt} />} /></Link>
+            <Link href={`/dashboard/marketplace?tab=trips&trip=${trip.id}`} className="underline-offset-4 hover:underline"><RecordCell nameAr={trip.title} nameEn={trip.titleEn} thumbnail={tripCover(trip)} context={<DateRange start={trip.startsAt} end={trip.endsAt} />} /></Link>
             <span className="flex flex-wrap items-center gap-3"><span className="text-sm tabular-nums">{egp(trip.priceEgp)}</span><StatusBadge status={trip.status} /></span>
           </li>)}</ul>}
         {!showCancelled && lister.trips.some((trip) => trip.status === 'cancelled') && <p className="flex flex-wrap items-center gap-2 pt-2 text-sm text-muted-foreground">{text(`${num(lister.trips.filter((trip) => trip.status === 'cancelled').length)} trips cancelled by the lister are not shown.`, `${num(lister.trips.filter((trip) => trip.status === 'cancelled').length)} رحلة ألغاها المنظّم مش ظاهرة.`)}<Button size="sm" variant="ghost" data-ro-allow="true" onClick={() => setShowCancelled(true)}>{text('Show them', 'اعرضها')}</Button></p>}

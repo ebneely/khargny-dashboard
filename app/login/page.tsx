@@ -2,18 +2,18 @@
 
 import { DashboardText } from '@/components/admin/dashboard-text';
 import { Suspense, useState, useEffect, FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DashboardLangProvider } from '@/lib/dashboard-lang';
 import { DashboardLangToggle } from '@/components/admin/dashboard-lang-toggle';
 import { ContentSkeleton } from '@/components/admin/content-skeleton';
 
 export default function LoginPage() {
   return (
-    <DashboardLangProvider><Suspense
+    <Suspense
       fallback={
         <div className="flex min-h-full flex-1 items-center justify-center bg-background">
           <ContentSkeleton />
@@ -21,7 +21,7 @@ export default function LoginPage() {
       }
     >
       <LoginPageInner />
-    </Suspense></DashboardLangProvider>
+    </Suspense>
   );
 }
 

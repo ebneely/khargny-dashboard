@@ -12,7 +12,7 @@ describe('subscriber photos', { session: 'admin', tags: ['e2e', 'api'] }, () => 
   test('the permission switches show the defaults and save each change', async ({ app, screen }) => {
     const owner = await createOwner();
     try {
-      await app.open(`/dashboard/subscribers/${owner.subscriberId}?tab=account`);
+      await app.open(`/dashboard/money/owners/${owner.subscriberId}?tab=account`);
       const upload = screen.getByRole('switch', 'Can upload and edit photos');
       const remove = screen.getByRole('switch', 'Can delete photos');
       await expect(upload).toBeChecked();
@@ -35,7 +35,7 @@ describe('subscriber photos', { session: 'admin', tags: ['e2e', 'api'] }, () => 
     try {
       expect((await owner.upload()).status).toBe(201);
       expect((await owner.upload()).status).toBe(201);
-      await app.open(`/dashboard/subscribers/${owner.subscriberId}?tab=account`);
+      await app.open(`/dashboard/money/owners/${owner.subscriberId}?tab=account`);
       const queue = screen.getByRole('region', /Photos waiting for review/);
       await expect(queue.getByRole('img', /Photo for/).first()).toBeVisible();
       await expect(queue.getByRole('listitem')).toHaveCount(2);
@@ -59,7 +59,7 @@ describe('subscriber photos', { session: 'admin', tags: ['e2e', 'api'] }, () => 
   test('in Arabic the photo controls read in Arabic', async ({ app, screen }) => {
     const owner = await createOwner();
     try {
-      await app.open(`/dashboard/subscribers/${owner.subscriberId}?tab=account`);
+      await app.open(`/dashboard/money/owners/${owner.subscriberId}?tab=account`);
       await screen.getByRole('radio', 'ع').tap();
       try {
         await expect(screen.getByRole('switch', 'يمكنه رفع الصور وتعديلها')).toBeChecked();

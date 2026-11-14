@@ -13,7 +13,7 @@ import { RecordCell } from '../record-cell';
 import { useDashboardCopy } from '../dashboard-text';
 import { LoadingState, RequestError, SavedRefreshError } from '../subscriber-ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 
 export async function loadKeywordPlaces(id: string) {
   const result: KeywordPlace[] = [];

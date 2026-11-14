@@ -12,8 +12,9 @@ import { useUrlTab } from '@/lib/use-url-tab';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
+import Link from '@/components/lang-link';
 import { X, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -430,7 +431,7 @@ function EditPlaceContent() {
               className="rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground"
             >
               <p className="mb-2"><DashboardText>No amenities exist in the catalog yet.</DashboardText></p>
-              <Link href="/dashboard/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
+              <Link href="/dashboard/places/library/features/amenities/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
                 <DashboardText>Create amenities in catalog →</DashboardText>
               </Link>
             </div>
@@ -547,7 +548,7 @@ function EditPlaceContent() {
               className="rounded-(--radius-ds-md) border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground"
             >
               <p className="mb-2"><DashboardText>No tags exist in the catalog yet.</DashboardText></p>
-              <Link href="/dashboard/tags/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
+              <Link href="/dashboard/places/library/features/keywords/new" className="text-[var(--brand-600)] underline-offset-4 hover:underline">
                 <DashboardText>Create tags in catalog →</DashboardText>
               </Link>
             </div>

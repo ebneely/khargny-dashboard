@@ -77,7 +77,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
       <AdsPageHeader
         title={lang === 'ar' ? `تقرير حملة ${placeName}` : `${placeName} campaign report`}
         description={lang === 'ar' ? `أُعد لصالح ${campaign.advertiserName}. تاريخ الإنشاء ${generatedAt} (${report.timezone}).` : `Prepared for ${campaign.advertiserName}. Generated ${generatedAt} (${report.timezone}).`}
-        actions={[{ label: 'Print / Save PDF', onClick: () => window.print(), readOnly: true, icon: <Printer className="size-4" aria-hidden="true" /> }, { label: 'Campaign', href: `/dashboard/ads/${campaignId}`, readOnly: true, icon: <ArrowLeft className="size-4" aria-hidden="true" /> }]}
+        actions={[{ label: 'Print / Save PDF', onClick: () => window.print(), readOnly: true, icon: <Printer className="size-4" aria-hidden="true" /> }, { label: 'Campaign', href: `/dashboard/money/ads/${campaignId}`, readOnly: true, icon: <ArrowLeft className="size-4" aria-hidden="true" /> }]}
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y bg-card px-4 py-3 text-sm">

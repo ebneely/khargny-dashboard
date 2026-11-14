@@ -3,7 +3,7 @@
 import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Button } from '@/components/ui/button';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { cn } from '@/lib/utils';

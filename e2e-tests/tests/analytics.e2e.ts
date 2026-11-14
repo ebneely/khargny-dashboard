@@ -74,7 +74,7 @@ describe('analytics overview', { session: 'admin', tags: ['e2e', 'api'] }, () =>
     await searchAs('app', 'pyramids');
     await searchAs('web', 'museum');
     for (const [period, label] of [['7', 'Last 7 days'], ['30', 'Last 30 days'], ['90', 'Last 90 days'], ['custom', 'Custom range']]) {
-      await app.open(`/dashboard/analytics?period=${period}`);
+      await app.open(`/dashboard/numbers?period=${period}`);
       await expect(screen.getByRole('radio', label)).toBeChecked();
       const insights = screen.getByRole('region', 'Insights');
       await expect(insights.getByText('What visitors are doing across the catalogue.')).toBeVisible();
@@ -91,18 +91,18 @@ describe('analytics overview', { session: 'admin', tags: ['e2e', 'api'] }, () =>
   test('the platform filter offers only App and Web, and each shows only its own rows', async ({ app, screen }) => {
     await searchAs('app', 'pyramids');
     await searchAs('web', 'museum');
-    await app.open('/dashboard/analytics');
+    await app.open('/dashboard/numbers');
     await screen.getByRole('combobox', 'All platforms').tap();
     await expect(screen.getByRole('option', 'App')).toBeVisible();
     await expect(screen.getByRole('option', 'Web')).toBeVisible();
     await expect(screen.getByRole('option', 'Unknown platform')).toHaveCount(0);
     for (const [platform, shown, hidden] of [['app', 'App', 'Web'], ['web', 'Web', 'App']]) {
-      await app.open(`/dashboard/analytics?platform=${platform}`);
+      await app.open(`/dashboard/numbers?platform=${platform}`);
       await expect(screen.getByRole('img', shown).first()).toBeVisible();
       await expect(screen.getByRole('img', hidden)).toHaveCount(0);
     }
     // An old link with the removed bucket falls back to all platforms.
-    await app.open('/dashboard/analytics?platform=unknown');
+    await app.open('/dashboard/numbers?platform=unknown');
     await expect(screen.getByRole('img', 'App').first()).toBeVisible();
     await expect(screen.getByRole('img', 'Web').first()).toBeVisible();
   });
@@ -112,7 +112,7 @@ describe('analytics overview', { session: 'admin', tags: ['e2e', 'api'] }, () =>
     const cairo = (cities.data as { id: string; slug: string }[]).find((city) => city.slug === 'cairo')!;
     await searchAs('app', 'pyramids', cairo.id, 'e2e-analytics-city-device-01');
     await searchAs('web', 'museum');
-    await app.open(`/dashboard/analytics?cityId=${cairo.id}`);
+    await app.open(`/dashboard/numbers?cityId=${cairo.id}`);
     for (const tile of tiles) await expect(screen.getByRole('region', 'Insights').getByText(tile, { exact: true })).toBeVisible();
     await expect(screen.getByRole('img', 'App').first()).toBeVisible();
     await expect(screen.getByRole('img', 'Web')).toHaveCount(0);
@@ -121,7 +121,7 @@ describe('analytics overview', { session: 'admin', tags: ['e2e', 'api'] }, () =>
   test('in Arabic the summary, the tiles and the platform icons read in Arabic', async ({ app, screen }) => {
     await searchAs('app', 'pyramids');
     await searchAs('web', 'museum');
-    await app.open('/dashboard/analytics');
+    await app.open('/dashboard/numbers');
     await screen.getByRole('radio', 'ع').tap();
     try {
       const insights = screen.getByRole('region', 'الإحصاءات');
@@ -145,7 +145,7 @@ describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
       calls.push(new URL(route.request.url).pathname);
       await route.continue();
     });
-    await app.open('/dashboard/analytics/live?window=5m');
+    await app.open('/dashboard/numbers/live?window=5m');
     await expect(screen.getByText('Top places')).toBeVisible();
     // Two refreshes after the first load (short windows refresh every 5 seconds).
     await browser.waitForResponse('**/analytics/live/bundle**');
@@ -162,7 +162,7 @@ describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
     for (const window of windows) expect((await livePlace(token, place.id, window))?.cover ?? '').toContain('data:image/svg+xml');
     // The page renders every window the same way; open the shortest and the longest.
     for (const window of ['1m', '24h']) {
-      await app.open(`/dashboard/analytics/live?window=${window}`);
+      await app.open(`/dashboard/numbers/live?window=${window}`);
       await expect(screen.getByText('Bibliotheca Alexandrina').first()).toBeVisible();
     }
   });
@@ -180,7 +180,7 @@ describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
     const row = await livePlace(token, place.id);
     expect(row?.cover ?? null).toBe(null);
     expect(row?.deleted).toBe(false);
-    await app.open('/dashboard/analytics/live?window=24h');
+    await app.open('/dashboard/numbers/live?window=24h');
     await expect(screen.getByText('Egyptian Museum').first()).toBeVisible();
     await expect(screen.getByText(place.id)).toHaveCount(0);
   });
@@ -193,7 +193,7 @@ describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
       await viewPlace(place.id);
       await adminCall(token, `/places/${place.id}`, 'DELETE');
       expect((await livePlace(token, place.id))?.deleted).toBe(true);
-      await app.open('/dashboard/analytics/live?window=24h');
+      await app.open('/dashboard/numbers/live?window=24h');
       await expect(screen.getByText('e2e-inactive-place')).toBeVisible();
       await expect(screen.getByText('Deleted place')).toBeVisible();
       await expect(screen.getByText(place.id)).toHaveCount(0);
@@ -215,7 +215,7 @@ describe('live top places', { session: 'admin', tags: ['e2e', 'api'] }, () => {
     expect(row?.nameEn).toBe('Abou Tarek');
     expect(row?.deleted).toBe(false);
     expect(row?.cover ?? '').toContain('data:image/svg+xml');
-    await app.open('/dashboard/analytics/live?window=24h');
+    await app.open('/dashboard/numbers/live?window=24h');
     await expect(screen.getByText('Abou Tarek').first()).toBeVisible();
     await expect(screen.getByText('Hidden Draft')).toHaveCount(0);
     await expect(screen.getByText(source.id)).toHaveCount(0);

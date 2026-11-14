@@ -2,7 +2,7 @@
 
 import { DashboardText } from '@/components/admin/dashboard-text';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { CheckCircle2, MapPin, Trophy } from 'lucide-react';
 import { ContentSkeleton } from '@/components/admin/content-skeleton';
 import { AdsPageHeader } from '@/components/admin/ads-page-header';
@@ -137,7 +137,7 @@ export function AdsTop10Page({ initialCity = "all" }: { initialCity?: string }) 
             </CardHeader>
             <CardContent className="space-y-2">
               {preview.sponsoredQueue.length > 0 ? <RecordList scope="top10-queue" records={preview.sponsoredQueue} searchText={item => `${item.placeName} ${item.advertiserName}`} render={visible => <div className="space-y-2">{visible.map((item) => (
-                <Link key={item.campaignId} href={`/dashboard/ads/${item.campaignId}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted">
+                <Link key={item.campaignId} href={`/dashboard/money/ads/${item.campaignId}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted">
                   <span className={item.shownNow ? 'mt-0.5 text-success' : 'mt-0.5 text-muted-foreground'}>
                     {item.shownNow ? <CheckCircle2 className="size-4" /> : <span className="block size-4 rounded-full border" />}
                   </span>

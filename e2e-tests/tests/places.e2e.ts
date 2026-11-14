@@ -33,7 +33,7 @@ describe('category create-and-remove round trip', { session: 'admin' }, () => {
     await screen.getByLabel('Name (English) *').fill(categoryName);
     await screen.getByLabel('Slug *').fill(categoryName);
     await screen.getByRole('button', 'Save changes').tap();
-    await expect(browser).toHaveURL('/dashboard/categories', { timeout: 60_000 });
+    await expect(browser).toHaveURL('/dashboard/places/library/categories', { timeout: 60_000 });
     const row = screen.getByRole('row').filter({ has: screen.getByRole('cell', categoryName) });
     await expect(row).toBeVisible();
     await expect(row.getByRole('cell', 'Active')).toBeVisible();

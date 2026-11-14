@@ -63,4 +63,4 @@ export function adsError(error: unknown, context?: string) {
   if (problem.status === 403) return 'Only an admin can make this change.';
   return 'Could not complete this action. Check the fields and try again.';
 }
-export function campaignHref(surface: AdSurface) { return `/dashboard/ads/new?surface=${encodeURIComponent(surface.key)}`; }
+export function campaignHref(surface: AdSurface) { return `/dashboard/money/ads/new?surface=${encodeURIComponent(surface.key)}`; }

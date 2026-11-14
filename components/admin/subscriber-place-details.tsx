@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Button } from '@/components/ui/button';
 import { PlacePublicStatus } from './place-public-status';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

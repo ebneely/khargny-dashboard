@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -21,7 +21,7 @@ export function BadgeCatalogueCard({ catalogue, badges }: { catalogue: BadgeCata
     ? <>{copy(statusBadgeRules[badge.key as keyof typeof statusBadgeRules])}{badge.key === 'price_match' && <> {copy('It is removed when the prices change.')}</>}</>
     : badge.rule ? achievementRuleText(badge.rule, lang) : '—';
   const cadence = (badge: ManagedBadge) => badge.family === 'status' ? <p>{copy('Live: it changes at once')}</p> : <div className="space-y-1"><p>{copy('Once a day when out of date, or Run now')}</p><p className="text-muted-foreground">{copy('Last run')}: {run ? cairoDateTime(run.finishedAt ?? run.startedAt, lang) : copy('No run recorded yet')}</p><p className="text-muted-foreground">{copy('Next check day')}: <DateCell value={catalogue.nextDue.day} /></p></div>;
-  const holders = (badge: ManagedBadge) => <Link className="underline tabular-nums" href={`/dashboard/badges?tab=${badge.family === 'status' ? 'status' : 'achievements'}`}>{badge.holderCount.toLocaleString(localeFor(lang))}</Link>;
+  const holders = (badge: ManagedBadge) => <Link className="underline tabular-nums" href={`/dashboard/places/library/badges?tab=${badge.family === 'status' ? 'status' : 'achievements'}`}>{badge.holderCount.toLocaleString(localeFor(lang))}</Link>;
   const shown = (badge: ManagedBadge) => <StatusBadge status={badge.enabled ? 'active' : 'inactive'}>{copy(badge.enabled ? 'Shown on 5argny' : 'Hidden')}</StatusBadge>;
   return <Card><CardHeader><CardTitle>{copy('All badges')}</CardTitle><CardDescription>{copy('Every badge a place can earn on 5argny, how it gets it and how many places hold it now.')}</CardDescription></CardHeader><CardContent className="min-w-0">
     <div data-list-table="badges" className="min-w-0"><Table layout="list"><TableHeader><TableRow>{['Badge', 'How a place gets it', 'Given by', 'Recalculated', 'Shown on 5argny', 'Holders'].map((label) => <TableHead key={label} className={label === 'Holders' ? 'text-end' : undefined}>{copy(label)}</TableHead>)}</TableRow></TableHeader><TableBody>{badges.map((badge) => <TableRow key={badge.key} data-badge-catalogue={badge.key}>

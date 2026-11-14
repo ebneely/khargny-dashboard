@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { Pager } from '@/components/admin/pager';

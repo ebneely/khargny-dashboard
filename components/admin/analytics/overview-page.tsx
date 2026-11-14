@@ -10,7 +10,7 @@ import { LoadingState, RequestError } from '../subscriber-ui';
 import { Card, CardContent } from '@/components/ui/card';
 import { useInsightFilters } from './analytics-shell';
 import { AnalyticsLikes } from './likes-report';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { ArrowUpRight } from 'lucide-react';
 import { WINDOW_WORDS } from './window-switch';
 import { SessionTrend } from './session-trend';
@@ -44,7 +44,7 @@ export function AnalyticsOverviewPage() {
   const share = (value: number) => value.toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 });
   return <div className="space-y-5">
     {span ? <NumbersSmart window={span} /> : <p className="text-sm text-muted-foreground">{copy('Answers, insights and hype count back from now; choose Live, 24 h, 7 days or 30 days to see them.')}</p>}
-    {span === 'live' && <Link href="/dashboard/analytics/live" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">{copy('Who is here now, minute by minute')}<ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" /></Link>}
+    {span === 'live' && <Link href="/dashboard/numbers/live" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">{copy('Who is here now, minute by minute')}<ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" /></Link>}
     <AnalyticsInsights range={{ from, to, window: span }} /><h2 className="text-xl font-semibold">{copy('Overview')}</h2>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[
       { title: 'Sessions', value: number(movement.funnel.totals.sessions), unit },

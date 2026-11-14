@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 
 export type DashLang = 'ar' | 'en';
 
 interface DashLangValue {
-  /** Which language the dashboard's NAMES and dropdown labels are shown in. */
+  /** The dashboard's language, from the URL only: `/ar/...` is Arabic, a plain URL is English. */
   lang: DashLang;
+  /** Opens the same page in the other language (the other URL). */
   setLang: (l: DashLang) => void;
   /**
    * Pick the label to display for a bilingual record, in the viewed language, falling back
@@ -17,32 +19,27 @@ interface DashLangValue {
   pick: (ar: string | null | undefined, en: string | null | undefined) => string;
 }
 
-const KEY = 'khargny.dashboard.lang';
+/** Paths that have an Arabic twin under `/ar` (the proxy rewrites `/ar/...` onto them). */
+const LOCALIZED = /^\/(dashboard|login)(?=$|[/?#])/;
+
+/** The path without its language prefix (what the app's routes are named). */
+export const stripLang = (path: string) => (path === '/ar' ? '/' : path.startsWith('/ar/') ? path.slice(3) : path);
+
+/** An internal href in a language: Arabic gets the `/ar` prefix, English never has one. */
+export function langHref(href: string, lang: DashLang) {
+  const plain = stripLang(href);
+  return lang === 'ar' && LOCALIZED.test(plain) ? `/ar${plain}` : plain;
+}
+
 const DashLangContext = React.createContext<DashLangValue | null>(null);
 
-export function DashboardLangProvider({ children }: { children: React.ReactNode }) {
-  // Arabic is the product's primary language, so it's the default view.
-  const [lang, setLangState] = React.useState<DashLang>('ar');
-
-  // Restore the saved choice on mount. Kept in localStorage (a view preference, not a
-  // secret) so it survives navigation and refresh.
-  React.useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(KEY);
-      if (stored === 'ar' || stored === 'en') setLangState(stored);
-    } catch {
-      /* storage unavailable — the in-memory default applies */
-    }
-  }, []);
-
-  const setLang = React.useCallback((l: DashLang) => {
-    setLangState(l);
-    try {
-      window.localStorage.setItem(KEY, l);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+/** `lang` comes from the server (the proxy reads it off the URL), so the first paint is already right. */
+export function DashboardLangProvider({ lang, children }: { lang: DashLang; children: React.ReactNode }) {
+  // Switching language is a new URL, loaded fresh, so the whole page (layouts included) renders in it.
+  const setLang = React.useCallback((next: DashLang) => {
+    if (next === lang) return;
+    window.location.assign(langHref(window.location.pathname, next) + window.location.search + window.location.hash);
+  }, [lang]);
 
   const value = React.useMemo<DashLangValue>(
     () => ({
@@ -68,4 +65,9 @@ export function useDashboardLang(): DashLangValue {
 
 export function useOptionalDashboardLang(): DashLangValue | null {
   return React.useContext(DashLangContext);
+}
+
+/** The current route without the language prefix, for "which page am I on" checks. */
+export function useDashPath() {
+  return stripLang(usePathname() ?? '/');
 }

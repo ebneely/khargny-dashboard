@@ -7,11 +7,11 @@ import { SegmentedNavigation } from './segmented-control';
 import { DashboardText } from '@/components/admin/dashboard-text';
 
 const ADS_NAV = [
-  { href: '/dashboard/ads', label: 'Today', icon: Home },
-  { href: '/dashboard/ads/placements', label: 'Where ads appear', icon: CalendarDays },
-  { href: '/dashboard/ads/campaigns', label: 'Campaigns', icon: ListChecks },
-  { href: '/dashboard/ads/always-on', label: 'Always on', icon: Pin },
-  { href: '/dashboard/ads/results', label: 'Results', icon: Trophy },
+  { href: '/dashboard/money/ads', label: 'Today', icon: Home },
+  { href: '/dashboard/money/ads/placements', label: 'Where ads appear', icon: CalendarDays },
+  { href: '/dashboard/money/ads/campaigns', label: 'Campaigns', icon: ListChecks },
+  { href: '/dashboard/money/ads/always-on', label: 'Always on', icon: Pin },
+  { href: '/dashboard/money/ads/results', label: 'Results', icon: Trophy },
 ] as const;
 
 export function AdsPageHeader({
@@ -40,7 +40,7 @@ export function AdsPageHeader({
         {actions && <PageActions actions={actions} form={form} />}
       </div>
 
-      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/ads/placements') || pathname.startsWith('/dashboard/ads/top-10') ? '/dashboard/ads/placements' : pathname.startsWith('/dashboard/ads/always-on') ? '/dashboard/ads/always-on' : pathname.startsWith('/dashboard/ads/results') || pathname.startsWith('/dashboard/ads/shuffle') ? '/dashboard/ads/results' : pathname === '/dashboard/ads' ? '/dashboard/ads' : '/dashboard/ads/campaigns'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
+      <SegmentedNavigation label="Ads dashboard" value={pathname.startsWith('/dashboard/money/ads/placements') || pathname.startsWith('/dashboard/money/ads/top-10') ? '/dashboard/money/ads/placements' : pathname.startsWith('/dashboard/money/ads/always-on') ? '/dashboard/money/ads/always-on' : pathname.startsWith('/dashboard/money/ads/results') || pathname.startsWith('/dashboard/money/ads/shuffle') ? '/dashboard/money/ads/results' : pathname === '/dashboard/money/ads' ? '/dashboard/money/ads' : '/dashboard/money/ads/campaigns'} options={ADS_NAV.map(({ href, label, icon: Icon }) => ({ value: href, href, label, icon: <Icon aria-hidden="true" /> }))} />
     </div>
   );
 }

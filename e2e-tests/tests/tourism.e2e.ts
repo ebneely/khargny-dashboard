@@ -17,14 +17,14 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
   test('documents waiting: verify one lister, reject another with a reason', async ({ app, screen }) => {
     const good = await newLister(`Verify Me ${Date.now() % 1e6}`);
     const bad = await newLister(`Reject Me ${Date.now() % 1e6}`);
-    await app.open(`/dashboard/tourism/listers/${good.agencyId}`);
+    await app.open(`/dashboard/marketplace/hosts/${good.agencyId}`);
     await expect(screen.getByText('Documents waiting')).toBeVisible();
     for (const photo of ['National ID, front', 'National ID, back', 'Selfie', 'License or commercial registry']) await expect(screen.getByRole('img', photo)).toBeVisible();
     await screen.getByRole('button', 'Verify lister').tap();
     await expect(screen.getByRole('img', 'Verified by 5argny').first()).toBeVisible();
     await expect.poll(async () => (await adminGet(`/agencies/${good.agencyId}`)).kycStatus).toBe('verified');
 
-    await app.open(`/dashboard/tourism/listers/${bad.agencyId}`);
+    await app.open(`/dashboard/marketplace/hosts/${bad.agencyId}`);
     await screen.getByRole('button', 'Reject documents').tap();
     await screen.getByRole('textbox', 'Reason').fill('The selfie does not match the ID');
     await screen.getByRole('dialog').getByRole('button', 'Confirm').tap();
@@ -40,13 +40,13 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
     try {
       const sahel = ((await adminGet('/trips?status=pending')) as { id: string; titleEn: string }[]).find((trip) => trip.titleEn === 'Sahel beach night');
       if (sahel) {
-        await app.open(`/dashboard/tourism?tab=trips&trip=${sahel.id}`);
+        await app.open(`/dashboard/marketplace?tab=trips&trip=${sahel.id}`);
         await expect(screen.getByRole('heading', /Sahel beach night/)).toBeVisible();
         await screen.getByRole('dialog').getByRole('button', 'Approve trip').tap();
         await expect.poll(async () => ((await adminGet('/trips?status=live')) as { id: string }[]).some((trip) => trip.id === sahel.id)).toBe(true);
       }
 
-      await app.open(`/dashboard/tourism?tab=trips&trips-status=pending&trip=${rejectId}`);
+      await app.open(`/dashboard/marketplace?tab=trips&trips-status=pending&trip=${rejectId}`);
       await screen.getByRole('dialog').getByRole('button', 'Reject trip').tap();
       await screen.getByRole('textbox', 'Reason').fill('Add the hotel name to the description');
       await screen.getByRole('button', 'Confirm').tap();
@@ -57,11 +57,11 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
       await screen.getByRole('button', 'Approve 2 trips').tap();
       await expect.poll(async () => ((await adminGet('/trips?status=live')) as { id: string }[]).filter((trip) => [bulkA, bulkB].includes(trip.id)).length).toBe(2);
 
-      await app.open(`/dashboard/tourism?tab=trips&trip=${bulkA}`);
+      await app.open(`/dashboard/marketplace?tab=trips&trip=${bulkA}`);
       await screen.getByRole('dialog').getByRole('button', 'Hide trip').tap();
       await screen.getByRole('button', 'Confirm').tap();
       await expect.poll(async () => ((await adminGet('/trips?status=hidden')) as { id: string }[]).some((trip) => trip.id === bulkA)).toBe(true);
-      await app.open(`/dashboard/tourism?tab=trips&trip=${bulkA}`);
+      await app.open(`/dashboard/marketplace?tab=trips&trip=${bulkA}`);
       await screen.getByRole('dialog').getByRole('button', 'Unhide trip').tap();
       await expect.poll(async () => ((await adminGet('/trips?status=live')) as { id: string }[]).some((trip) => trip.id === bulkA)).toBe(true);
     } finally {
@@ -87,7 +87,7 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
       const confirmed = await handCash(second.token, secondTrip, happy, true);
       undo.unshift(() => cancelBooking(happy, confirmed.bookingId));
       await pause(15_000);
-      await app.open('/dashboard/tourism?tab=cash');
+      await app.open('/dashboard/marketplace?tab=cash');
       const row = screen.getByRole('listitem', `Dispute Customer ${tag}`);
       await row.getByRole('button', 'Count as given').tap();
       await screen.getByRole('textbox', /Note for the record/).fill('Lister sent a photo of the receipt');
@@ -110,7 +110,7 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
   test('reward rules: turn off and change the budget, then restore the seed values', async ({ app, screen }) => {
     await pause(30_000);
     try {
-      await app.open('/dashboard/tourism?tab=cash');
+      await app.open('/dashboard/marketplace?tab=cash');
       await expect(screen.getByText(/250 EGP per reward budget 25,000 EGP/)).toBeVisible();
       await screen.getByRole('button', 'Change reward rules').tap();
       await screen.getByRole('switch', 'Cash rewards on').tap();
@@ -137,7 +137,7 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
     const customer = await newCustomer(`Reporter ${tag}`);
     try {
       expect((await call('POST', `/v1/tourism/customer/trips/${trip}/report`, { token: customer, body: { reason: `Organizer asked for payment outside 5argny ${tag}` } })).status).toBe(201);
-      await app.open('/dashboard/tourism?tab=reports');
+      await app.open('/dashboard/marketplace?tab=reports');
       const row = screen.getByRole('listitem', `رحلة Reported trip ${tag}`);
       await expect(row.getByText(`“Organizer asked for payment outside 5argny ${tag}”`)).toBeVisible();
       await expect(row.getByText('Free Lister ' + tag)).toBeVisible();
@@ -151,7 +151,7 @@ describe('trips marketplace', { session: 'admin', tags: ['e2e', 'tourism'] }, ()
 
   test('Today inbox and the tabs read in English and Arabic', async ({ app, screen }) => {
     await pause(15_000);
-    await app.open('/dashboard/tourism');
+    await app.open('/dashboard/marketplace');
     await expect(screen.getByRole('heading', 'Trips marketplace')).toBeVisible();
     await expect(screen.getByText('Needs you today')).toBeVisible();
     await expect(screen.getByText('Cash reward budget')).toBeVisible();

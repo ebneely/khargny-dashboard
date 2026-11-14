@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Trash2 } from 'lucide-react';
 
 import { PageActions } from './page-actions';

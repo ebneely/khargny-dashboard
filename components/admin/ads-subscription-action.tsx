@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 import { Eye } from 'lucide-react';
 import { RowActions } from './row-actions';
 import { useDashboardCopy } from './dashboard-text';
@@ -13,7 +13,7 @@ export function AdsSubscriptionAction({ placeId, subscriptionId, name }: { place
     if (writing.current) return; writing.current = true; setBusy(true); setError('');
     try { const response = await adminApi.get<PlaceDetailResponse>(`/v1/admin/places/${encodeURIComponent(placeId)}`); const place = 'place' in response ? response.place : response;
       if (!place.subscriber?.id) { setError(copy('The owner changed. Open this place to review its current subscriber.')); return; }
-      router.push(`/dashboard/subscribers/${encodeURIComponent(place.subscriber.id)}?tab=subscriptions#subscription-${encodeURIComponent(subscriptionId)}`);
+      router.push(`/dashboard/money/owners/${encodeURIComponent(place.subscriber.id)}?tab=subscriptions#subscription-${encodeURIComponent(subscriptionId)}`);
     } catch { setError(copy('Could not open this subscription. Try again.')); } finally { writing.current = false; setBusy(false); }
   };
   return <div><RowActions recordName={name} actions={[{ label: 'View subscription', icon: <Eye />, disabled: busy, onClick: () => { void open(); } }]} />{error && <p role="alert" className="text-sm text-destructive">{error}</p>}</div>;

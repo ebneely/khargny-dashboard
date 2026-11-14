@@ -30,9 +30,9 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
   const resource = useSubscriberResource(load);
   const subscriber = resource.data;
   const canWrite = mayWrite && (!subscriberId || (!resource.loading && !resource.error));
-  return <ActionBarNavigation fallback={!canWrite} links={[{ label: 'Back to subscribers', href: '/dashboard/subscribers' }]}><div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+  return <ActionBarNavigation fallback={!canWrite} links={[{ label: 'Back to subscribers', href: '/dashboard/money/owners' }]}><div className="space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
     <header>
-      <PageActions form actions={[{ label: 'Back to subscribers', href: "/dashboard/subscribers", readOnly: true }]} />
+      <PageActions form actions={[{ label: 'Back to subscribers', href: "/dashboard/money/owners", readOnly: true }]} />
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold"><ContactRound className="size-5 text-primary" aria-hidden="true" />{subscriber?.name ?? text(subscriberId ? 'Subscriber' : 'New subscriber', subscriberId ? 'المشترك' : 'مشترك جديد')}</h1>

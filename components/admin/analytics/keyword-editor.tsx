@@ -11,7 +11,8 @@ import { FormActionBar } from '../form-action-bar';
 import { Field, SubscriberSelect } from '../subscriber-ui';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 
 export const GROUP_LABELS: Record<KeywordGroup, string> = { cuisine: 'Cuisine', vibe: 'Vibe', occasion: 'Occasion', activity: 'Activity', audience: 'Audience', feature: 'Feature', price: 'Price', other: 'Other' };
 
@@ -46,7 +47,7 @@ export function KeywordEditor({ keyword, disabled, onSaved }: { keyword?: Keywor
       const result = keyword ? await adminApi.patch<KeywordConcept>(`/v1/admin/tags/${keyword.id}`, payload) : await adminApi.post<KeywordConcept>('/v1/admin/tags', payload);
       changes.markSaved();
       if (keyword && onSaved) { if (!await onSaved()) setRefreshFailed(true); else toast.success(copy('Keyword saved')); }
-      else { toast.success(copy('Keyword saved')); router.push(`/dashboard/tags/${result.id}?${params}`); }
+      else { toast.success(copy('Keyword saved')); router.push(`/dashboard/places/library/features/keywords/${result.id}?${params}`); }
     } catch (caught) { setError(copy(caught instanceof AdminApiError && caught.status === 409 ? 'A name or spelling belongs to another keyword. Review the names and spellings.' : 'Could not save keyword. Your edits are kept.')); }
     finally { submitting.current = false; setBusy(false); }
   };
@@ -57,6 +58,6 @@ export function KeywordEditor({ keyword, disabled, onSaved }: { keyword?: Keywor
     <div className="space-y-2 sm:col-span-2"><label htmlFor={`${formId}-spelling`} className="text-sm font-medium">{copy('Spellings')}</label><div className="flex flex-wrap gap-2"><Input id={`${formId}-spelling`} value={spelling} maxLength={40} className="min-w-0 flex-1" onChange={(event) => setSpelling(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addSpelling(); } }} /><Button type="button" variant="outline" onClick={addSpelling}>{copy('Add spelling')}</Button></div><div className="flex flex-wrap gap-2">{draft.aliases.map((alias) => <Button type="button" key={alias} variant="outline" className="max-w-full whitespace-normal break-words rounded-full" aria-label={`${copy('Remove spelling')}: ${alias}`} onClick={() => setDraft({ ...draft, aliases: draft.aliases.filter((value) => value !== alias) })}>{alias} ×</Button>)}</div><p className="text-sm text-muted-foreground">{copy('Spellings are hidden search words, not public labels.')}</p></div>
     <div className="sm:col-span-2"><Field label={copy('Internal notes — optional')}><textarea className="min-h-24 w-full rounded-lg border bg-background p-3 text-sm focus-visible:outline-ring" value={draft.notes} maxLength={2000} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} /></Field></div>
   </fieldset>{refreshFailed && <p role="alert" className="text-sm text-destructive">{copy('Saved, but could not refresh. Reload before changing anything else.')}</p>}
-    <FormActionBar creating={!keyword && !changes.saved} form={formId} dirty={changes.dirty} saving={busy} error={error} disabled={disabled || refreshFailed} disabledReason={refreshFailed ? copy('Saved, but could not refresh. Reload before changing anything else.') : undefined} cancelHref={`/dashboard/tags?${params}`} primaryLabel={copy(keyword ? 'Save keyword' : 'Create keyword')} />
+    <FormActionBar creating={!keyword && !changes.saved} form={formId} dirty={changes.dirty} saving={busy} error={error} disabled={disabled || refreshFailed} disabledReason={refreshFailed ? copy('Saved, but could not refresh. Reload before changing anything else.') : undefined} cancelHref={`/dashboard/places/library/features?kind=keywords&${params}`} primaryLabel={copy(keyword ? 'Save keyword' : 'Create keyword')} />
   </form>;
 }

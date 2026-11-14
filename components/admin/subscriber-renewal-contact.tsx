@@ -110,7 +110,7 @@ function RenewalContactForm({ settings, canWrite, active, onEdit }: { settings: 
       </Field>)}
     </fieldset>
     <div className="flex flex-wrap items-center gap-3">
-      <FormActionBar active={active} dirty={formChanges.dirty} saving={busy} error={error || (refreshFailed ? text('Saved, but could not refresh. Retry before saving again.', 'تم الحفظ لكن تعذر التحديث. أعد المحاولة قبل الحفظ مجدداً.') : '')} disabled={refreshFailed} cancelHref="/dashboard/subscribers" primaryLabel={text('Save renewal contact', 'حفظ جهة اتصال التجديد')} />
+      <FormActionBar active={active} dirty={formChanges.dirty} saving={busy} error={error || (refreshFailed ? text('Saved, but could not refresh. Retry before saving again.', 'تم الحفظ لكن تعذر التحديث. أعد المحاولة قبل الحفظ مجدداً.') : '')} disabled={refreshFailed} cancelHref="/dashboard/money/owners" primaryLabel={text('Save renewal contact', 'حفظ جهة اتصال التجديد')} />
       {saved && <p role="status" className="text-sm text-green-700 dark:text-green-400">{text('Renewal contact saved', 'تم حفظ جهة اتصال التجديد')}</p>}
     </div>
     {error && <RequestError message={error} />}

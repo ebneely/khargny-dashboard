@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { MoreHorizontal } from 'lucide-react';
 import { DirectionProvider } from '@base-ui/react/direction-provider';
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 import { DashboardText } from './dashboard-text';
 import { FooterSettingsCard } from './footer-settings-card';
 import { storefrontSectionsRedirect } from '@/lib/storefront-redirect';

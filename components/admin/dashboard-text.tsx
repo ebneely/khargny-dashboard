@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, type ReactNode } from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { translateDashboardCopy } from '@/lib/dashboard-copy';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 

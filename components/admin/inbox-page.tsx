@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Check, Clock, Inbox, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -43,8 +43,8 @@ export function InboxPage({ canWrite }: { canWrite: boolean }) {
       <UrlTabsContent value="no-hours" lazy><PlacesWithoutHours /></UrlTabsContent>
       <UrlTabsContent value="owner-requests" lazy><OwnerRequests canWrite={canWrite} /></UrlTabsContent>
       <UrlTabsContent value="photos" lazy><Card><CardHeader><CardTitle>{copy('Photo submissions')}</CardTitle></CardHeader><CardContent><PendingPhotos canWrite={canWrite} /></CardContent></Card></UrlTabsContent>
-      <UrlTabsContent value="lister-documents" lazy><GoTo title="Lister documents" text="ID and license papers sent by trip listers wait in the Marketplace." href="/dashboard/tourism?tab=listers&listers-kyc=pending" action="Review documents" /></UrlTabsContent>
-      <UrlTabsContent value="trip-reports" lazy><GoTo title="Trip reports" text="Customer reports about trips are closed in the Marketplace." href="/dashboard/tourism?tab=reports" action="Open trip reports" /></UrlTabsContent>
+      <UrlTabsContent value="lister-documents" lazy><GoTo title="Lister documents" text="ID and license papers sent by trip listers wait in the Marketplace." href="/dashboard/marketplace?tab=listers&listers-kyc=pending" action="Review documents" /></UrlTabsContent>
+      <UrlTabsContent value="trip-reports" lazy><GoTo title="Trip reports" text="Customer reports about trips are closed in the Marketplace." href="/dashboard/marketplace?tab=reports" action="Open trip reports" /></UrlTabsContent>
     </UrlTabs>
   </div>;
 }

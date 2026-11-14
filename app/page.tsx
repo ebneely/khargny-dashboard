@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { dashRedirect } from '@/lib/dash-lang-server';
 
-export default function Home() {
-  redirect("/dashboard");
+export default async function Home() {
+  await dashRedirect("/dashboard");
 }

@@ -8,7 +8,7 @@ import { RecordList } from './record-list';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { KeyRound, Plus, RefreshCw, ShieldOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';

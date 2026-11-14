@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Card, CardContent } from '@/components/ui/card';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useListAddress } from '@/components/admin/record-list';
@@ -16,7 +16,7 @@ interface AuditEntry { id: string; action: string; entityType: string; entityId:
 interface AuditPage { data: AuditEntry[]; meta: { total: number } }
 
 // Records that have their own dashboard page; every other type shows its id only.
-const RECORD_PAGES: Record<string, string> = { places: '/dashboard/places/', tags: '/dashboard/tags/', cities: '/dashboard/cities/', subscriber: '/dashboard/subscribers/' };
+const RECORD_PAGES: Record<string, string> = { places: '/dashboard/places/', tags: '/dashboard/places/library/features/keywords/', cities: '/dashboard/places/library/cities/', subscriber: '/dashboard/money/owners/' };
 const words = (value: string) => value.replace(/[_.:-]+/g, ' ');
 
 export default function AuditLogPage() {

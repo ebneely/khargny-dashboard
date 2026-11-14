@@ -16,7 +16,7 @@ import { RowActions } from '@/components/admin/row-actions';
 import { FilterBar, FilterSearch, FilterSelect } from '@/components/admin/filter-bar';
 import { PlaceOwnerFilter } from '@/components/admin/place-owner-filter';
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { useSearchParams } from 'next/navigation';
 import { Plus, Trash2, RotateCcw, Pencil, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -190,7 +190,7 @@ export default function PlacesPage() {
                         </p>
                       </TableCell>
                       <TableCell data-place-field="city" className="text-muted-foreground"><p className="flex items-center gap-1.5 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{place.city && <GovIcon city={place.city} />}<span className="line-clamp-1 min-w-0">{pickName(place.city?.name, place.city?.nameEn, lang)}</span></p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
-                      <TableCell data-place-field="owner" className="text-muted-foreground">{place.subscriber ? <Link className="block truncate leading-4 hover:underline" title={place.subscriber.name} href={`/dashboard/subscribers/${place.subscriber.id}`}>{place.subscriber.name}</Link>: '—'}</TableCell>
+                      <TableCell data-place-field="owner" className="text-muted-foreground">{place.subscriber ? <Link className="block truncate leading-4 hover:underline" title={place.subscriber.name} href={`/dashboard/money/owners/${place.subscriber.id}`}>{place.subscriber.name}</Link>: '—'}</TableCell>
                       <TableCell data-place-field="price" className="text-muted-foreground">{place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</TableCell>
                       <TableCell data-place-field="status" column="status">
                         <PlacePublicStatus place={place} />

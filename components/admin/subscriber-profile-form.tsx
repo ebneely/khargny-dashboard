@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDashboardCopy } from './dashboard-text';
 import { subscriberBrandFields } from '@/lib/subscriber-brand';
@@ -47,7 +47,7 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
   const [returnRetry, setReturnRetry] = React.useState(0);
   const [returnFailed, setReturnFailed] = React.useState(false);
   const draftKey = `subscriber-draft:${subscriber?.id ?? 'new'}`;
-  const returnTo = `/dashboard/subscribers/${subscriber?.id ?? 'new'}`;
+  const returnTo = `/dashboard/money/owners/${subscriber?.id ?? 'new'}`;
   React.useEffect(() => {
     let active = true;
     const timer = window.setTimeout(async () => {
@@ -140,7 +140,7 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
           placeIds: places.map((place) => place.id),
         }, { headers: { 'Idempotency-Key': idempotencyKey } });
         try { window.sessionStorage.removeItem(draftKey); } catch {}
-        router.push(`/dashboard/subscribers/${created.id}`);
+        router.push(`/dashboard/money/owners/${created.id}`);
       }
     } catch (caught) {
       const validation = subscriberValidation(caught, ['name', 'phone', 'whatsapp', 'email', 'notes', 'status', 'isBrand'], lang);
@@ -182,6 +182,6 @@ export function SubscriberProfileForm({ subscriber, canWrite, onSaved, placesCon
       </Field>
       {name === 'whatsapp' && canWrite && <Button type="button" variant="outline" size="sm" disabled={!values.phone || Boolean(contactErrors.phone) || busy || returnLoading} onClick={() => changeContact('whatsapp', values.phone)}>{copy('Same as phone')}</Button>}
     </div>;
-  })}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><SubscriberSelect value={values.status} disabled={!canWrite || busy || returnLoading} options={[{ value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} onValueChange={(value) => { setValues({ ...values, status: value as 'active' | 'inactive' }); setSaved(false); }} /></Field>}<div className="sm:col-span-2 space-y-1"><label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={values.isBrand} onCheckedChange={(checked) => { setValues({ ...values, isBrand: checked }); setSaved(false); }} />{copy("Brand (a known business or chain)")}</label><p className="text-sm text-muted-foreground">{copy("Internal mark only; plans and prices do not change.")}</p>{fieldErrors.isBrand && <p role="alert" className="text-sm text-destructive">{fieldErrors.isBrand}</p>}</div><div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}</form></CardContent>{canWrite && <FormActionBar form={formId} creating={!subscriber && !profileChanges.saved} dirty={profileChanges.dirty || (!subscriber && places.length > 0)} saving={busy} error={error} disabled={busy || returnLoading || Boolean(disabledReason)} disabledReason={disabledReason} cancelHref="/dashboard/subscribers" primaryLabel={text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')} />}</Card>;
-  return <>{subscriber ? <><TabsContent value="details" keepMounted>{details}</TabsContent><TabsContent value="places" keepMounted className="space-y-6"><Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>{placesContent}{canWrite && <FormActionBar dirty={!sameSubscriberPlaces(places, persistedPlaces)} saving={busy} error={placeError} disabled={busy || returnLoading} onSave={requestSavePlaces} cancelHref="/dashboard/subscribers" primaryLabel={text('Save linked places', 'حفظ الأماكن المرتبطة')} />}</TabsContent></> : details}<ActionDialog action={action} onClose={() => setAction(null)} /></>;
+  })}{subscriber && <Field label={text('Status', 'الحالة')} error={fieldErrors.status}><SubscriberSelect value={values.status} disabled={!canWrite || busy || returnLoading} options={[{ value: 'active', label: text('Active', 'نشط') }, { value: 'inactive', label: text('Inactive', 'غير نشط') }]} onValueChange={(value) => { setValues({ ...values, status: value as 'active' | 'inactive' }); setSaved(false); }} /></Field>}<div className="sm:col-span-2 space-y-1"><label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={values.isBrand} onCheckedChange={(checked) => { setValues({ ...values, isBrand: checked }); setSaved(false); }} />{copy("Brand (a known business or chain)")}</label><p className="text-sm text-muted-foreground">{copy("Internal mark only; plans and prices do not change.")}</p>{fieldErrors.isBrand && <p role="alert" className="text-sm text-destructive">{fieldErrors.isBrand}</p>}</div><div className="sm:col-span-2"><Field label={text('Internal notes', 'ملاحظات داخلية')} error={fieldErrors.notes}><textarea className={textareaClass} value={values.notes} onChange={(event) => { setValues({ ...values, notes: event.target.value }); setSaved(false); }} /></Field></div></fieldset>{!subscriber && linkedPlaces}{error && <RequestError message={error} />}{saved && <p role="status" className="text-sm text-success">{text('Subscriber saved.', 'تم حفظ المشترك.')}</p>}</form></CardContent>{canWrite && <FormActionBar form={formId} creating={!subscriber && !profileChanges.saved} dirty={profileChanges.dirty || (!subscriber && places.length > 0)} saving={busy} error={error} disabled={busy || returnLoading || Boolean(disabledReason)} disabledReason={disabledReason} cancelHref="/dashboard/money/owners" primaryLabel={text(subscriber ? 'Save details' : 'Create subscriber', subscriber ? 'حفظ البيانات' : 'إنشاء المشترك')} />}</Card>;
+  return <>{subscriber ? <><TabsContent value="details" keepMounted>{details}</TabsContent><TabsContent value="places" keepMounted className="space-y-6"><Card><CardHeader><CardTitle>{text('Linked places', 'الأماكن المرتبطة')}</CardTitle></CardHeader><CardContent>{linkedPlaces}</CardContent></Card>{placesContent}{canWrite && <FormActionBar dirty={!sameSubscriberPlaces(places, persistedPlaces)} saving={busy} error={placeError} disabled={busy || returnLoading} onSave={requestSavePlaces} cancelHref="/dashboard/money/owners" primaryLabel={text('Save linked places', 'حفظ الأماكن المرتبطة')} />}</TabsContent></> : details}<ActionDialog action={action} onClose={() => setAction(null)} /></>;
 }

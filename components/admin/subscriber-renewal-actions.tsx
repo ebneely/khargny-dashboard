@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { renewalsApi, type ReminderKind, type ReminderResult } from '@/lib/api/renewals';
@@ -69,7 +69,7 @@ export function SubscriberRenewalActions({ subscriber, canWrite, refresh }: { su
     </div>
     {canWrite && <div className="space-y-2"><p className="text-sm text-muted-foreground">{sentToday || blockedToday ? text('This kind was already sent today in Cairo; one per day.', 'أُرسل هذا النوع اليوم بتوقيت القاهرة؛ مرة واحدة يومياً.') : text('Stores a portal notice and prepares WhatsApp text; it does not send WhatsApp or SMS.', 'يسجل تنبيهاً في البوابة ويجهز رسالة واتساب؛ لا يرسل واتساب أو رسالة نصية.')}</p><p className="text-sm text-muted-foreground">{notice ? <>{text('Last sent in this review', 'آخر إرسال في هذه المراجعة')}: <DateCell value={notice.notice.createdAt} /></> : text('The API does not provide reminder history. The server still enforces the daily limit.', 'لا توفر الواجهة سجل التذكيرات. يطبق الخادم الحد اليومي رغم ذلك.')}</p>{notice && <><p dir="auto" className="break-words rounded-lg bg-muted p-3 text-sm">{notice.message}</p><a className="underline" href={notice.whatsappUrl} target="_blank" rel="noopener noreferrer">{text('Open prepared WhatsApp message', 'فتح رسالة واتساب المجهزة')}</a></>}</div>}
     {requests.error && <RequestError message={renewalError(requests.error, lang)} retry={() => { void requests.refetch(); }} />}
-    <RecordList scope="subscriber-renewals" records={(requests.data ?? []).filter(row => ['submitted', 'needs_proof'].includes(row.status))} busy={requests.loading} empty="No open renewal request." searchText={row => `${row.place.name} ${row.place.nameEn ?? ''} ${row.note ?? ''}`} filters={[{ key: 'state', label: 'All renewal states', options: [{ value: 'submitted', label: 'Waiting for review' }, { value: 'needs_proof', label: 'Needs a clearer proof' }], value: row => row.status }]} render={visible => <ul>{visible.map(row => <li key={row.id} className="min-h-14 border-b py-3"><Link href={`/dashboard/subscribers?tab=renewals&renewals-request=${row.id}`}><RecordCell icon="receipt" name={text('Open renewal request', 'طلب تجديد مفتوح')} context={row.place.name} /></Link></li>)}</ul>} />
+    <RecordList scope="subscriber-renewals" records={(requests.data ?? []).filter(row => ['submitted', 'needs_proof'].includes(row.status))} busy={requests.loading} empty="No open renewal request." searchText={row => `${row.place.name} ${row.place.nameEn ?? ''} ${row.note ?? ''}`} filters={[{ key: 'state', label: 'All renewal states', options: [{ value: 'submitted', label: 'Waiting for review' }, { value: 'needs_proof', label: 'Needs a clearer proof' }], value: row => row.status }]} render={visible => <ul>{visible.map(row => <li key={row.id} className="min-h-14 border-b py-3"><Link href={`/dashboard/inbox?queue=renewals&renewals-request=${row.id}`}><RecordCell icon="receipt" name={text('Open renewal request', 'طلب تجديد مفتوح')} context={row.place.name} /></Link></li>)}</ul>} />
 
     {error && <RequestError message={error} />}
     <ActionDialog action={action} onClose={() => setAction(null)} />

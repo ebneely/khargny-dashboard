@@ -59,8 +59,58 @@ const securityHeaders = [
     : []),
 ];
 
+// Every old dashboard address answers 308 with its new home (ui-unify/dashboard-variant/COVERAGE.md),
+// in English and in Arabic (/ar). Specific rules first: Next uses the first match.
+type Move = [from: string, to: string, query?: { key: string; value?: string }];
+const MOVES: Move[] = [
+  ["/dashboard/subscribers", "/dashboard/inbox?queue=renewals", { key: "tab", value: "renewals" }],
+  ["/dashboard/subscribers", "/dashboard/money/plans", { key: "tab", value: "settings" }],
+  ["/dashboard/subscribers/:path*", "/dashboard/money/owners/:path*"],
+  ["/dashboard/subscribers", "/dashboard/money/owners"],
+  ["/dashboard/places/:id/menu", "/dashboard/places/:id?tab=menu"],
+  ["/dashboard/submissions", "/dashboard/places/submissions"],
+  ["/dashboard/cities/:path*", "/dashboard/places/library/cities/:path*"],
+  ["/dashboard/categories/:path*", "/dashboard/places/library/categories/:path*"],
+  ["/dashboard/amenities", "/dashboard/places/library/features"],
+  ["/dashboard/amenities/:path+", "/dashboard/places/library/features/amenities/:path+"],
+  ["/dashboard/places/library/features/amenities", "/dashboard/places/library/features"],
+  ["/dashboard/tags", "/dashboard/places/library/features?kind=keywords"],
+  ["/dashboard/tags/:path+", "/dashboard/places/library/features/keywords/:path+"],
+  ["/dashboard/places/library/features/keywords", "/dashboard/places/library/features?kind=keywords"],
+  ["/dashboard/badges", "/dashboard/places/library/badges"],
+  ["/dashboard/collections", "/dashboard/places/library/collections"],
+  ["/dashboard/storefront/sections/new", "/dashboard/places/library/collections?add=section"],
+  ["/dashboard/storefront/sections", "/dashboard/places/library/collections"],
+  ["/dashboard/storefront", "/dashboard/settings/website"],
+  ["/dashboard/places/library", "/dashboard/places/library/cities"],
+  ["/dashboard/money", "/dashboard/money/owners"],
+  // The seat products are gone (DIRECTION D2): their pages open the one Ads page.
+  ...["campaigns", "results", "always-on", "placements", "inventory", "top-10", "shuffle/new"].map((seat): Move => [`/dashboard/ads/${seat}`, "/dashboard/money/ads"]),
+  ["/dashboard/ads", "/dashboard/money/ads"],
+  ["/dashboard/ads/:path*", "/dashboard/money/ads/:path*"],
+  ["/dashboard/tourism/listers/:id", "/dashboard/marketplace/hosts/:id"],
+  ["/dashboard/tourism", "/dashboard/marketplace"],
+  ["/dashboard/analytics/search-terms/:path*", "/dashboard/numbers/searches/:path*"],
+  ["/dashboard/analytics/keywords/new", "/dashboard/places/library/features/keywords/new"],
+  ["/dashboard/analytics/keywords/:id", "/dashboard/places/library/features/keywords/:id"],
+  ["/dashboard/analytics/:path*", "/dashboard/numbers/:path*"],
+  ["/dashboard/insights", "/dashboard/numbers/people"],
+  ["/dashboard/settings/change-password", "/dashboard/settings/password"],
+  ["/dashboard/admins/:path*", "/dashboard/settings/team/:path*"],
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    const moves = MOVES.flatMap(([from, to, query]) => ["", "/ar"].map((lang) => ({
+      source: lang + from,
+      destination: lang + to,
+      permanent: true,
+      ...(query ? { has: [{ type: "query" as const, ...query }] } : {}),
+    })));
+    // There is no /en prefix: English is the plain URL.
+    return [...moves, { source: "/en/:path*", destination: "/:path*", permanent: true }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

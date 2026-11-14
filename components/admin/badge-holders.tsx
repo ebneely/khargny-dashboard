@@ -2,7 +2,7 @@
 
 import { localeFor } from '@/lib/locale';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { ExternalLink, Ban, PinOff, BadgeX, Footprints } from 'lucide-react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -41,7 +41,7 @@ export function BadgeHolders({ badge, cityId, cities, revision, previewRule, can
     : !holder.earnedAt ? '—'
     : badge.key === 'price_match' ? <><p>{cairoDateTime(holder.earnedAt, lang)}</p><p className="text-xs text-muted-foreground">{copy('Prices confirmed')}</p></>
     : <><p><DateCell value={holder.earnedAt} /></p><p className="text-xs text-muted-foreground">{copy('First team visit')}</p>{holder.lastVisitAt && holder.lastVisitAt !== holder.earnedAt && <p className="text-xs text-muted-foreground">{copy('Latest visit')}: <DateCell value={holder.lastVisitAt} /></p>}</>;
-  const visitsHref = (holder: BadgeHolder, href: string) => holder.visitSubscriberId ? `/dashboard/subscribers/${holder.visitSubscriberId}?tab=visits` : href;
+  const visitsHref = (holder: BadgeHolder, href: string) => holder.visitSubscriberId ? `/dashboard/money/owners/${holder.visitSubscriberId}?tab=visits` : href;
   return <div className="min-w-0 space-y-3">
     {achievement && <div data-slot="badge-rule-note" className="space-y-2 rounded-lg bg-muted p-3"><p className="text-sm text-muted-foreground">{copy('Activity from paid placements is not counted.')}</p>{preview.loading ? <p role="status" className="text-sm text-muted-foreground">{copy('Loading…')}</p> : preview.error ? <RequestError message={copy('Could not load badge preview. Change a rule field to retry.')} /> : preview.data && <p aria-live="polite" className="text-sm text-muted-foreground">{copy('With this rule')}: {preview.data.awards.length.toLocaleString(localeFor(lang))} {copy('places would hold it')} ({copy('now')} {resource.data?.holders.length.toLocaleString(localeFor(lang)) ?? '—'})</p>}</div>}
     <h3 className="font-medium">{copy('Holders now')}</h3>

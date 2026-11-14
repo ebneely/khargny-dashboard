@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/dash-router';
 import { AlertCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { FormActionBar } from '@/components/admin/form-action-bar';

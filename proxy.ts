@@ -22,10 +22,15 @@ function isPublicLogin(pathname: string): boolean {
 }
 
 export function proxy(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  // Language comes from the URL only (owner 2026-11-14): /ar/... is Arabic, a plain URL is English.
+  // /ar/... is served by the plain route; the x-dash-lang header tells the layouts which language.
+  const arabic = request.nextUrl.pathname === '/ar' || request.nextUrl.pathname.startsWith('/ar/');
+  const pathname = arabic ? request.nextUrl.pathname.slice(3) || '/' : request.nextUrl.pathname;
+  const { search } = request.nextUrl;
+  const prefix = arabic ? '/ar' : '';
 
   if (isExcluded(pathname)) {
-    return NextResponse.next();
+    return arabic ? NextResponse.rewrite(new URL(pathname + search, request.url)) : NextResponse.next();
   }
 
   // Dev mode auto-login (process.env.NODE_ENV !== 'production'): the session
@@ -38,21 +43,26 @@ export function proxy(request: NextRequest) {
 
   // Authenticated user hitting /login → bounce to /dashboard.
   if (isAuthed && isPublicLogin(pathname)) {
-    const dest = request.nextUrl.searchParams.get('redirect') || '/dashboard';
-    const safe = dest.startsWith('/') && !dest.startsWith('//') ? dest : '/dashboard';
+    const dest = request.nextUrl.searchParams.get('redirect') || prefix + '/dashboard';
+    const safe = dest.startsWith('/') && !dest.startsWith('//') ? dest : prefix + '/dashboard';
     return NextResponse.redirect(new URL(safe, request.url));
   }
 
   // Unauthenticated user hitting /dashboard/* → bounce to /login with redirect param.
   if (!isAuthed && isProtected(pathname)) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL(prefix + '/login', request.url);
     if (pathname !== '/dashboard') {
-      loginUrl.searchParams.set('redirect', pathname + (search || ''));
+      loginUrl.searchParams.set('redirect', prefix + pathname + (search || ''));
     }
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  // Always set here (never trust a header the browser sent): a plain URL is English.
+  const headers = new Headers(request.headers);
+  headers.set('x-dash-lang', arabic ? 'ar' : 'en');
+  return arabic
+    ? NextResponse.rewrite(new URL(pathname + search, request.url), { request: { headers } })
+    : NextResponse.next({ request: { headers } });
 }
 
 export const config = {

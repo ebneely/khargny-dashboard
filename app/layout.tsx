@@ -3,6 +3,7 @@ import { Cairo, IBM_Plex_Sans_Arabic, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { serverLang } from "@/lib/dash-lang-server";
 
 // FLAGGED SUBSTITUTION: no brand font files were supplied by design — Cairo
 // (display/UI) + IBM Plex Sans Arabic (body) are the nearest Google Fonts
@@ -29,14 +30,16 @@ export const metadata: Metadata = {
   description: "Khargny (خرجني) admin dashboard",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await serverLang();
   return (
     <html
-      lang="en"
+      lang={lang}
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className={`${cairo.variable} ${ibmPlexSansArabic.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

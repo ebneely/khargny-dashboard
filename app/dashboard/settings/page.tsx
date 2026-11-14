@@ -1,5 +1,5 @@
 import { DashboardText } from '@/components/admin/dashboard-text';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { ChevronRight, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DangerZone } from '@/components/admin/danger-zone';
@@ -13,7 +13,7 @@ const SUB_SECTIONS = [
     icon: KeyRound,
   },
   {
-    href: '/dashboard/settings/change-password',
+    href: '/dashboard/settings/password',
     title: 'Change password',
     description: 'Rotate your password. Other signed-in sessions will be revoked on the next refresh.',
     icon: KeyRound,

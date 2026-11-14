@@ -10,7 +10,7 @@ import { DateRange } from './date-cell';
 import { RowActions, type RowAction } from './row-actions';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { useUrlTab } from '@/lib/use-url-tab';
 import { CircleStop, FileText, Pause, Pencil, Play, Plus } from 'lucide-react';
 import { AdCampaignActionDialog, type CampaignAction } from '@/components/admin/ad-campaign-action-dialog';
@@ -114,13 +114,13 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
       <AdsPageHeader
         title="Ad campaigns"
         description="Manage booked promotions, serving state, advertiser records and performance."
-        actions={[{ label: 'New campaign', href: '/dashboard/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]}
+        actions={[{ label: 'New campaign', href: '/dashboard/money/ads/new', allowed: canWrite, icon: <Plus className="size-4" aria-hidden="true" /> }]}
       />
 
       {hasInventoryFilter && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-info-bg px-4 py-3 text-sm text-info">
           <span><DashboardText>Showing campaigns for the selected surface.</DashboardText></span>
-          <Link href="/dashboard/ads/campaigns" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
+          <Link href="/dashboard/money/ads/campaigns" className="font-medium underline underline-offset-4"><DashboardText>Clear filter</DashboardText></Link>
         </div>
       )}
 
@@ -162,7 +162,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                 {visible.map((campaign) => (
                   <TableRow key={campaign.id}>
                     <TableCell>
-                      <Link href={canWrite ? `/dashboard/ads/${campaign.id}` : `/dashboard/ads/${campaign.id}/report`} className="font-medium hover:text-primary">
+                      <Link href={canWrite ? `/dashboard/money/ads/${campaign.id}` : `/dashboard/money/ads/${campaign.id}/report`} className="font-medium hover:text-primary">
                         <RecordCell nameAr={campaign.place.name} nameEn={campaign.place.nameEn} thumbnail={placeCover(campaign.place)} />
                       </Link>
                     </TableCell>
@@ -179,8 +179,8 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                     <TableCell column="status"><AdStateBadge state={campaign.state} /></TableCell>
                     <TableCell column="actions" className="text-end">
                       <RowActions recordName={campaign.advertiserName} actions={[
-                        { label: 'Report', icon: <FileText aria-hidden="true" />, href: `/dashboard/ads/${campaign.id}/report` },
-                        ...(canWrite ? [{ label: 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/ads/${campaign.id}` }, ...campaignLifecycleActions(campaign, (action) => setPending({ campaign, action }))] : []),
+                        { label: 'Report', icon: <FileText aria-hidden="true" />, href: `/dashboard/money/ads/${campaign.id}/report` },
+                        ...(canWrite ? [{ label: 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/money/ads/${campaign.id}` }, ...campaignLifecycleActions(campaign, (action) => setPending({ campaign, action }))] : []),
                       ]} />
                     </TableCell>
                   </TableRow>

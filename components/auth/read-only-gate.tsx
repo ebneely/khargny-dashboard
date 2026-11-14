@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Eye } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { useDashPath } from '@/lib/dashboard-lang';
 
 const ReadOnlyContext = React.createContext(false);
 
@@ -37,7 +37,7 @@ export function ReadOnlyGate({
   readOnly: boolean;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = useDashPath();
   const contentRef = React.useRef<HTMLDivElement>(null);
 
   React.useLayoutEffect(() => {

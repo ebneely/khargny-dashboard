@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +70,7 @@ export function RenewalCashDialog({ subscriberId: initialId, onClose, refresh, c
     {[subscribers.error, detail.error, catalogue.error].filter(Boolean).map((caught, index) => <RequestError key={index} message={renewalError(caught, lang)} />)}
     {period && !submitted && <form onSubmit={save} className="space-y-4"><p>{detail.data?.name} <DateRange start={period.startDate} end={period.endDate} /></p><fieldset className="space-y-3" disabled={busy || !canWrite}><PlanChoices value={plan} onValueChange={setPlan} catalogue={catalogue.data ?? []} disabled={busy || !canWrite || catalogue.loading} /><Field label={text('Length', 'المدة')}><SubscriberSelect value={months} onValueChange={setMonths} options={['1', '2', '3', '6'].map(value => ({ value, label: `${value} ${text('months', 'أشهر')}` }))} /></Field><Field label={text('Claimed amount (EGP)', 'المبلغ المذكور (جنيه)')}><Input value={amount} inputMode="decimal" dir="ltr" required onChange={event => setAmount(event.target.value)} /></Field><Field label={text('Note', 'ملاحظة')}><textarea className={textareaClass} value={note} maxLength={5000} onChange={event => setNote(event.target.value)} /></Field><FileUpload label={text('Receipt picture (optional)', 'صورة الإيصال (اختيارية)')} description={text('Private storage is currently unavailable on production. Cash without a picture can be submitted. JPEG, PNG or WebP, up to 5 MB.', 'التخزين الخاص غير متاح حالياً على الإنتاج. يمكن إرسال النقد دون صورة. JPEG أو PNG أو WebP حتى 5 ميجابايت.')} accept="image/jpeg,image/png,image/webp" disabled={busy || !canWrite} onChange={event => setFile(event.target.files?.[0] ?? null)} /></fieldset><FormActionBar dirty saving={busy} primaryLabel={text('Submit cash request', 'إرسال الطلب النقدي')} onCancel={onClose} disabled={!canWrite || catalogue.loading || !!catalogue.error} /></form>}
     {submitted && <p role="status">{text('Cash request submitted. It is waiting for explicit confirmation in Renewals.', 'أُرسل الطلب النقدي. ينتظر التأكيد الصريح في التجديدات.')}</p>}
-    {(existingId || submitted) && <Link className="block break-words underline" href={`/dashboard/subscribers?tab=renewals&renewals-request=${existingId ?? submitted?.id}`}>{text('Open request in queue', 'فتح الطلب في القائمة')}</Link>}
+    {(existingId || submitted) && <Link className="block break-words underline" href={`/dashboard/inbox?queue=renewals&renewals-request=${existingId ?? submitted?.id}`}>{text('Open request in queue', 'فتح الطلب في القائمة')}</Link>}
     {error && <RequestError message={error} />}
     {(submitted || !period) && <Button type="button" variant="outline" disabled={busy} onClick={onClose}>{submitted ? text('Done', 'تم') : text('Cancel', 'إلغاء')}</Button>}
   </DialogContent></Dialog></ActionBarNavigation>;

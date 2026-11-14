@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { adminApi } from '@/lib/api/admin-client';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useDashboardLang } from '@/lib/dashboard-lang';

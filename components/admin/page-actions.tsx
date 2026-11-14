@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { Button } from '@/components/ui/button';
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { DashboardText } from './dashboard-text';

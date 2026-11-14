@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from '@/lib/dash-router';
+import Link from '@/components/lang-link';
 import { ChevronDown, LogOut, KeyRound, User as UserIcon } from 'lucide-react';
 import {
   DropdownMenu,
@@ -122,7 +122,7 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
       <DropdownMenuItem
         render={
           <Link
-            href="/dashboard/settings/change-password"
+            href="/dashboard/settings/password"
             data-trace-id="auth-profile-change-password"
           />
         }

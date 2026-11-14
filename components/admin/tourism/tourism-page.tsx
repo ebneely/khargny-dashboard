@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Map as MapIcon, Check, X, EyeOff, UserX, Flag, Banknote, Eye } from 'lucide-react';
@@ -137,7 +137,7 @@ function ListersTab() {
         render={(visible) => <div className="overflow-x-auto"><Table layout="list"><TableHeader><TableRow>
           <TableHead>{text('Lister', 'المنظّم')}</TableHead><TableHead>{text('Documents', 'المستندات')}</TableHead><TableHead className="text-end">{text('Trips', 'الرحلات')}</TableHead><TableHead>{text('Likes views rating', 'إعجاب مشاهدة تقييم')}</TableHead>
         </TableRow></TableHeader><TableBody>{visible.map((row) => <TableRow key={row.id}>
-          <TableCell><Link href={`/dashboard/tourism/listers/${row.id}`} className="underline-offset-4 hover:underline focus-visible:underline"><RecordCell name={row.name} icon="location" chips={<>{row.kycStatus === 'verified' && <VerifiedSeal />}{row.status === 'suspended' && <StatusBadge status="suspended" />}</>} context={`${kind(row.kind)} ${row.city}`} /></Link></TableCell>
+          <TableCell><Link href={`/dashboard/marketplace/hosts/${row.id}`} className="underline-offset-4 hover:underline focus-visible:underline"><RecordCell name={row.name} icon="location" chips={<>{row.kycStatus === 'verified' && <VerifiedSeal />}{row.status === 'suspended' && <StatusBadge status="suspended" />}</>} context={`${kind(row.kind)} ${row.city}`} /></Link></TableCell>
           <TableCell><KycChip status={row.kycStatus} /></TableCell>
           <TableCell className="text-end tabular-nums">{num(row.trips)}</TableCell>
           <TableCell><Metrics likes={row.likeCount} views={row.viewCount} rating={averageRating(row.ratingSum, row.ratingCount)} ratingCount={row.ratingCount} /></TableCell>
@@ -184,7 +184,7 @@ function TripsTab({ canWrite }: { canWrite: boolean }) {
         </TableRow></TableHeader><TableBody>{visible.map((row) => <TableRow key={row.id}>
           <TableCell><div className="flex items-center gap-2">{canWrite && row.status === 'pending' && <Checkbox aria-label={text(`Select ${tripTitle(row, lang)}`, `اختار ${tripTitle(row, lang)}`)} checked={selected.includes(row.id)} onCheckedChange={(checked) => setSelected((list) => checked ? [...list, row.id] : list.filter((id) => id !== row.id))} />}
             <button type="button" className="text-start underline-offset-4 hover:underline focus-visible:underline" onClick={() => open(row.id)}><RecordCell nameAr={row.title} nameEn={row.titleEn} thumbnail={tripCover(row)} chips={(row.reports ?? 0) > 0 ? <span className="inline-flex items-center gap-0.5 text-xs text-warning"><Flag className="size-3" aria-hidden="true" />{text(row.reports === 1 ? '1 report' : `${num(row.reports ?? 0)} reports`, `${num(row.reports ?? 0)} بلاغ`)}</span> : undefined} context={<>{row.destination} <LevelChip verified={row.monitored} /></>} /></button></div></TableCell>
-          <TableCell><ListerName name={row.agency.name} verified={row.agency.verified} href={`/dashboard/tourism/listers/${row.agency.id}`} /><p className="text-xs text-muted-foreground">{text(`${num(row.seatsBooked)} of ${num(row.seatsTotal)} seats booked`, `${num(row.seatsBooked)} من ${num(row.seatsTotal)} كرسي محجوز`)}</p></TableCell>
+          <TableCell><ListerName name={row.agency.name} verified={row.agency.verified} href={`/dashboard/marketplace/hosts/${row.agency.id}`} /><p className="text-xs text-muted-foreground">{text(`${num(row.seatsBooked)} of ${num(row.seatsTotal)} seats booked`, `${num(row.seatsBooked)} من ${num(row.seatsTotal)} كرسي محجوز`)}</p></TableCell>
           <TableCell><DateRange start={row.startsAt} end={row.endsAt} /></TableCell>
           <TableCell className="text-end tabular-nums">{egp(row.priceEgp)}</TableCell>
           <TableCell column="status"><StatusBadge status={row.status} /></TableCell>
@@ -228,7 +228,7 @@ function CashTab({ canWrite }: { canWrite: boolean }) {
         {canWrite && chosen.length > 1 && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted p-3"><span className="text-sm">{text(`${num(chosen.length)} listers selected ${egp(chosen.reduce((s, r) => s + r.owedEgp, 0))}`, `${num(chosen.length)} منظّم متحددين ${egp(chosen.reduce((s, r) => s + r.owedEgp, 0))}`)}</span><Button size="sm" disabled={busy} onClick={() => pay(chosen)}><Banknote aria-hidden="true" />{text(`Mark ${num(chosen.length)} listers as paid`, `سجّل ${num(chosen.length)} منظّم مدفوع لهم`)}</Button></div>}
         <ul className="divide-y">{owedByLister.map((row) => <li key={row.agencyId} aria-label={row.agencyName} className="flex min-h-14 flex-wrap items-center justify-between gap-3 py-2">
           <span className="flex items-center gap-3">{canWrite && <Checkbox aria-label={text(`Select ${row.agencyName}`, `اختار ${row.agencyName}`)} checked={selected.includes(row.agencyId)} onCheckedChange={(checked) => setSelected((list) => checked ? [...list, row.agencyId] : list.filter((id) => id !== row.agencyId))} />}
-            <span><Link href={`/dashboard/tourism/listers/${row.agencyId}`} className="font-medium underline-offset-4 hover:underline">{row.agencyName}</Link><span className="block text-sm text-muted-foreground">{text(`${egp(row.owedEgp)} for ${num(row.count)} ${plural(row.count, 'cash reward', 'cash rewards')} InstaPay `, `${egp(row.owedEgp)} عن ${num(row.count)} مكافأة كاش إنستاباي `)}<span dir="ltr" className="text-foreground">{row.instapay ?? text('not set', 'مش متسجّل')}</span></span></span></span>
+            <span><Link href={`/dashboard/marketplace/hosts/${row.agencyId}`} className="font-medium underline-offset-4 hover:underline">{row.agencyName}</Link><span className="block text-sm text-muted-foreground">{text(`${egp(row.owedEgp)} for ${num(row.count)} ${plural(row.count, 'cash reward', 'cash rewards')} InstaPay `, `${egp(row.owedEgp)} عن ${num(row.count)} مكافأة كاش إنستاباي `)}<span dir="ltr" className="text-foreground">{row.instapay ?? text('not set', 'مش متسجّل')}</span></span></span></span>
           {canWrite && <Button size="sm" variant="outline" disabled={busy} onClick={() => pay([row])}><Banknote aria-hidden="true" />{text('Mark as paid', 'سجّلها مدفوعة')}</Button>}
         </li>)}</ul>
         {canWrite && chosen.length === 1 && payList(chosen)}
@@ -319,7 +319,7 @@ function ReportsTab({ canWrite }: { canWrite: boolean }) {
       : <ul className="divide-y">{rows.map((report) => <li key={report.id} aria-label={report.tripTitle} className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-3 py-3">
         <div className="min-w-0 space-y-1 text-sm">
           <p className="font-medium">“{report.reason}”</p>
-          <p className="text-muted-foreground">{text('Trip', 'الرحلة')}: <Link className="text-foreground underline-offset-4 hover:underline" href={`/dashboard/tourism?tab=trips&trip=${report.tripId}`}>{report.tripTitle}</Link> <StatusBadge status={report.tripStatus} /> {text('Lister', 'المنظّم')}: <ListerName name={report.agencyName} verified={report.monitored} href={`/dashboard/tourism/listers/${report.agencyId}`} /></p>
+          <p className="text-muted-foreground">{text('Trip', 'الرحلة')}: <Link className="text-foreground underline-offset-4 hover:underline" href={`/dashboard/marketplace?tab=trips&trip=${report.tripId}`}>{report.tripTitle}</Link> <StatusBadge status={report.tripStatus} /> {text('Lister', 'المنظّم')}: <ListerName name={report.agencyName} verified={report.monitored} href={`/dashboard/marketplace/hosts/${report.agencyId}`} /></p>
           <p className="text-muted-foreground">{text('Reported by', 'بلّغ عنها')} {report.customerName} <DateCell value={report.createdAt} /></p>
         </div>
         {canWrite && report.status === 'open' && <RowActions recordName={report.tripTitle} actions={[

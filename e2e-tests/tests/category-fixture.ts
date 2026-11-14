@@ -9,7 +9,7 @@ export const categoryTest = test.extend<{ categoryName: string }>({
 });
 
 export async function removeCategory({ app, screen, categoryName }: Pick<TestFixtures, 'app' | 'screen'> & { categoryName: string }) {
-  await app.open(`/dashboard/categories?categories-q=${encodeURIComponent(categoryName)}`);
+  await app.open(`/dashboard/places/library/categories?categories-q=${encodeURIComponent(categoryName)}`);
   await expect(screen.getByRole('heading', 'Categories')).toBeVisible();
   const row = screen.getByRole('row').filter({ has: screen.getByRole('cell', categoryName) });
   const empty = screen.getByText('No categories match your search.');
@@ -24,7 +24,7 @@ export async function removeCategory({ app, screen, categoryName }: Pick<TestFix
   await expect(dialog).not.toBeVisible();
   await expect(row).toHaveCount(0);
   await expect(empty).toBeVisible();
-  await app.open(`/dashboard/categories?categories-q=${encodeURIComponent(categoryName)}`);
+  await app.open(`/dashboard/places/library/categories?categories-q=${encodeURIComponent(categoryName)}`);
   await expect(empty).toBeVisible();
   await expect(row).toHaveCount(0);
 }

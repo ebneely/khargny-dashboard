@@ -6,7 +6,7 @@ import { WindowSwitch, customRange, numbersRange, readNumbersWindow } from './wi
 import { Button } from '@/components/ui/button';
 import { FilterBar, FilterSelect } from '../filter-bar';
 import { useDashboardCopy } from '../dashboard-text';
-import { useDashboardLang } from '@/lib/dashboard-lang';
+import { stripLang, useDashboardLang } from '@/lib/dashboard-lang';
 import type { AdminCity } from '@/lib/api/types';
 import { loadInsightOptions, type InsightQuery } from '@/lib/api/search-insights';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
@@ -45,7 +45,7 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
     for (const key of Array.from(next.keys())) if (key.endsWith('-skip')) next.delete(key);
     window.history.replaceState(null, '', `${pathname}?${next}`);
   };
-  const live = pathname.startsWith('/dashboard/analytics/live'); // the minute-by-minute visitors page
+  const live = stripLang(pathname).startsWith('/dashboard/numbers/live'); // the minute-by-minute visitors page
   return <FiltersContext.Provider value={{ query, valid, period, cities: cities.data ?? [] }}><div className="min-w-0 space-y-6">
     <header><h1 className="font-display text-2xl font-semibold">{copy('Numbers')}</h1></header>
     {!live && <WindowSwitch />}

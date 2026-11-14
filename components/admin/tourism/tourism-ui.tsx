@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/lang-link';
 import { toast } from 'sonner';
 import { Check, EyeOff, Eye, X, Heart, Star, Flag, CircleCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -127,7 +127,7 @@ export function TripDialog({ trip, canWrite, onClose, onChanged }: { trip: Touri
   const cover = tripCover(trip);
   const actions = canWrite ? tripActions(trip, text, run, setAsk) : [];
   const facts: [string, React.ReactNode][] = [
-    [text('Lister', 'المنظّم'), <ListerName key="l" name={trip.agency.name} verified={trip.agency.verified} href={`/dashboard/tourism/listers/${trip.agency.id}`} />],
+    [text('Lister', 'المنظّم'), <ListerName key="l" name={trip.agency.name} verified={trip.agency.verified} href={`/dashboard/marketplace/hosts/${trip.agency.id}`} />],
     [text('Level', 'المستوى'), <LevelChip key="v" verified={trip.monitored} />],
     [text('Type', 'النوع'), trip.kind === 'event' ? text('Event', 'إيفنت') : text('Trip', 'رحلة')],
     [text('Destination', 'الوجهة'), `${trip.destination} ${text('from', 'من')} ${trip.departureCity}`],
