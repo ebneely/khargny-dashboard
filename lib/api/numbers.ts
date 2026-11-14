@@ -1,7 +1,7 @@
 import { adminApi } from './admin-client';
 
 /** Team-only Numbers (spec 002 T044-T046): hype score, insight cards, built-in answers. */
-export type NumbersWindow = 'live' | '24h' | '7d' | '30d';
+export type NumbersWindow = 'live' | '24h' | '7d' | '30d' | 'all';
 export type HypeKind = 'place' | 'area' | 'category' | 'collection';
 
 export interface HypeItem { id: string; name: string; nameEn: string | null; score: number; points: number; views: number; likes: number; saves: number; shares: number; goes: number }

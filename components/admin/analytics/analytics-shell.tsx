@@ -31,7 +31,7 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const chosen = readNumbersWindow(params);
   // `period` stays the day count the ads opportunities report reads (7 or 30 only).
-  const period = { live: '1', '24h': '1', '7d': '7', '30d': '30', custom: 'custom' }[chosen];
+  const period = { live: '1', '24h': '1', '7d': '7', '30d': '30', all: '30', custom: 'custom' }[chosen];
   const platform = params.get('platform');
   // A window goes as `window` (back from now); only a custom range sends whole days.
   const query: InsightQuery = { ...numbersRange(chosen, params), platform: platform === 'app' || platform === 'web' ? platform : undefined, cityId: params.get('cityId') || undefined };

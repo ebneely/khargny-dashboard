@@ -6,6 +6,7 @@ import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { PlaceEngagement } from '@/components/admin/place-engagement';
+import { PlaceQualityTab } from '@/components/admin/place-quality-tab';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { Suspense, useState, useEffect } from 'react';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -52,8 +53,8 @@ export default function EditPlacePage() {
 }
 
 // Tabs grouped by job (DIRECTION section 1). Older ?tab= links land on the tab that now holds them.
-const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'submissions'];
-const RENAMED_PLACE_TABS: Record<string, string> = { amenities: 'features', tags: 'features', ads: 'visibility', badges: 'visibility' };
+const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'quality', 'submissions'];
+const RENAMED_PLACE_TABS: Record<string, string> = { amenities: 'features', tags: 'features', ads: 'visibility', badges: 'visibility', media: 'photos', verification: 'quality', merge: 'quality' };
 
 function EditPlaceContent() {
   const activeTab = useUrlTab(PLACE_TABS, PLACE_TABS[0], 'tab', RENAMED_PLACE_TABS).value;
@@ -244,6 +245,7 @@ function EditPlaceContent() {
           <TabsTrigger value="menu">{controlCopy("Menu & prices")}</TabsTrigger>
           <TabsTrigger value="features">{controlCopy("Features")}</TabsTrigger>
           <TabsTrigger value="visibility">{controlCopy("Visibility")}</TabsTrigger>
+          <TabsTrigger value="quality">{controlCopy("Quality")}</TabsTrigger>
           <TabsTrigger value="submissions">{controlCopy("Submissions")}</TabsTrigger>
         </TabsList>
 
@@ -933,6 +935,7 @@ function EditPlaceContent() {
         </TabsContent>
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="visibility" lazy className="space-y-6"><PlacePromotionReport placeId={id} canWrite={!readOnly && !isSoftDeleted} /><PlaceBadgesTab placeId={id} /></UrlTabsContent>
+        <UrlTabsContent value="quality" lazy><PlaceQualityTab placeId={id} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="submissions" lazy><PlaceSubmissions placeId={id} canWrite /></UrlTabsContent>
       </UrlTabs>
 

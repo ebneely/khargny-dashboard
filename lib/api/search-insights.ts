@@ -7,7 +7,7 @@ export interface Keyword extends KeywordConcept { placeCount: number; }
 export interface PageMeta { total: number; skip: number; limit: number; }
 export interface ReportPage<T> { data: T[]; meta: PageMeta; }
 /** A window (back from now) or, for a custom range only, whole Cairo days from/to. */
-export interface InsightQuery { from?: string; to?: string; window?: 'live' | '24h' | '7d' | '30d'; platform?: 'app' | 'web'; cityId?: string; }
+export interface InsightQuery { from?: string; to?: string; window?: 'live' | '24h' | '7d' | '30d' | 'all'; platform?: 'app' | 'web'; cityId?: string; }
 export interface ReportScope { from: string; to: string; platform: 'all' | 'app' | 'web' | 'unknown'; cityId?: string | null; }
 export interface TermRow {
   term: string; searches: number; zeroResults: number; clicks: number; previousSearches: number; zeroResultShare: number; clickShare: number;

@@ -112,7 +112,7 @@ async function request<T>(method: string, path: string, opts?: RequestOptions): 
 
   // shortcut: analytics routes reject the unknown `window` param (forbidNonWhitelisted) until
   // spec 002 T015 lands; retry with the from/to sent beside it. Drop this once T015 is live.
-  if (res.status === 400 && url.searchParams.has('window') && ['24h', '7d', '30d'].includes(url.searchParams.get('window')!)) {
+  if (res.status === 400 && url.searchParams.has('window') && ['24h', '7d', '30d', 'all'].includes(url.searchParams.get('window')!)) {
     url.searchParams.delete('window');
     res = await doFetch(method, url.toString(), opts);
   }
@@ -314,6 +314,6 @@ export const adminApi = {
     request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>('PATCH', path, { body }),
-  delete: <T>(path: string) =>
-    request<T>('DELETE', path),
+  delete: <T>(path: string, body?: unknown) =>
+    request<T>('DELETE', path, body === undefined ? undefined : { body }),
 };

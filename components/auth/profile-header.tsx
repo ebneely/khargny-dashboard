@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from '@/lib/dash-router';
 import Link from '@/components/lang-link';
-import { ChevronDown, LogOut, KeyRound, User as UserIcon } from 'lucide-react';
+import { ChevronDown, Languages, LogOut, KeyRound, Settings, User as UserIcon } from 'lucide-react';
+import { useOptionalDashboardLang } from '@/lib/dashboard-lang';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ function roleBadgeVariant(role: string): 'default' | 'secondary' | 'outline' {
 
 export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
   const copy = useDashboardCopy();
+  const language = useOptionalDashboardLang();
   const router = useRouter();
   const { data, isLoading, isError } = useCurrentSession();
   const [signingOut, setSigningOut] = useState(false);
@@ -119,6 +121,14 @@ export function ProfileHeader({ compact }: { compact?: boolean } = {}) {
         <span className="truncate text-xs" title={data.user.email}>{data.user.email}</span>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
+      <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
+        <Settings className="h-3.5 w-3.5" />
+        {copy('Settings')}
+      </DropdownMenuItem>
+      {language && <DropdownMenuItem onClick={() => language.setLang(language.lang === 'ar' ? 'en' : 'ar')}>
+        <Languages className="h-3.5 w-3.5" />
+        {language.lang === 'ar' ? 'English' : 'عربي'}
+      </DropdownMenuItem>}
       <DropdownMenuItem
         render={
           <Link

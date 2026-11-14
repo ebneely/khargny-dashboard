@@ -37,7 +37,7 @@ import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
 import { WindowSwitch } from '@/components/admin/analytics/window-switch';
 import { GovIcon } from '@/components/gov-icon';
 
-const HYPE_WINDOWS = ['live', '24h', '7d', '30d'] as const;
+const HYPE_WINDOWS = ['live', '24h', '7d', '30d', 'all'] as const;
 
 
 /** Name in the chosen language, falling back to the other so a cell is never blank. */

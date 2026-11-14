@@ -79,7 +79,7 @@ export interface AdminPlaceFilters {
   /** likes, or hype (by the hype score in `window`). */
   sortBy?: string;
   /** Team only: rows carry `hype` (uncapped 30-day sum). */
-  window?: 'live' | '24h' | '7d' | '30d';
+  window?: 'live' | '24h' | '7d' | '30d' | 'all';
   skip?: number;
   limit?: number;
 }

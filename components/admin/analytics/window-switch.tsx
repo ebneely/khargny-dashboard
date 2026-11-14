@@ -9,17 +9,17 @@ import { useDashboardCopy } from '../dashboard-text';
 import { cairoDate } from '@/lib/api/subscribers';
 import { shiftCalendarDays } from '@/lib/subscription-calendar';
 
-/** Every number is a window that ends now (DIRECTION "Rolling windows"); one switch on every Numbers page. */
-const CHOICES = [{ value: 'live', label: 'Live now' }, { value: '24h', label: '24 h' }, { value: '7d', label: '7 days' }, { value: '30d', label: '30 days' }];
+/** Every number is a window that ends now (DIRECTION "Rolling windows"), plus All time (owner 2026-11-14); one switch on every Numbers page. */
+const CHOICES = [{ value: 'live', label: 'Live now' }, { value: '24h', label: '24 h' }, { value: '7d', label: '7 days' }, { value: '30d', label: '30 days' }, { value: 'all', label: 'All time' }];
 export type { NumbersWindow };
 
 /** What each window counts, said on screen. */
-export const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'the last 5 minutes', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days' };
+export const WINDOW_WORDS: Record<NumbersWindow, string> = { live: 'the last 5 minutes', '24h': 'the last 24 hours', '7d': 'the last 7 days', '30d': 'the last 30 days', all: 'all time' };
 
 /** The chosen window from the address; old `?period=7|30|custom` links still open their window. */
 export function readNumbersWindow(params: URLSearchParams): NumbersWindow | 'custom' {
   const chosen = params.get('window') ?? ({ '7': '7d', '30': '30d', custom: 'custom' } as Record<string, string>)[params.get('period') ?? ''];
-  return chosen === 'live' || chosen === '24h' || chosen === '7d' || chosen === 'custom' ? chosen : '30d';
+  return chosen === 'live' || chosen === '24h' || chosen === '7d' || chosen === 'all' || chosen === 'custom' ? chosen : '30d';
 }
 
 /** A custom range's whole Cairo days (the only from/to the dashboard still sends). */
@@ -60,6 +60,6 @@ export function WindowSwitch({ here = false }: { here?: boolean }) {
     {!here && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
   </div>
     {value === 'custom' ? <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>
-      : <p className="text-sm text-muted-foreground">{copy('Every number here counts back from now:')} {copy(WINDOW_WORDS[value])}.</p>}
+      : <p className="text-sm text-muted-foreground">{value === 'all' ? copy('Every number here is the total since we started counting. The hype score stays the last 30 days.') : <>{copy('Every number here counts back from now:')} {copy(WINDOW_WORDS[value])}.</>}</p>}
   </div>;
 }
