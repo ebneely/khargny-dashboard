@@ -12,6 +12,7 @@ import { activeNavHref } from '@/lib/dashboard-navigation';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { animate, stagger } from 'animejs';
 import { adminApi } from '@/lib/api/admin-client';
+import type { InboxCounts } from '@/lib/api/inbox';
 import {
   Menu,
   X,
@@ -236,15 +237,19 @@ function NavLink({
   );
 }
 
-/** Corrections and reports waiting on a person, from the inbox counts; refreshed on each page change. */
+/**
+ * Everything waiting on a person, from the inbox counts (corrections, reports, renewal receipts,
+ * owner requests, owner photos, lister documents, trip reports); refreshed on each page change.
+ * Places without hours is a backlog, not someone waiting, so it is not in the badge.
+ */
 function useInboxWaiting(enabled: boolean) {
   const pathname = usePathname();
   const [waiting, setWaiting] = React.useState(0);
   React.useEffect(() => {
     if (!enabled) return;
     let live = true;
-    adminApi.get<{ counts?: { corrections?: number; reports?: number } }>('/v1/admin/inbox', { type: 'corrections', limit: 1 })
-      .then((res) => { if (live) setWaiting((res.counts?.corrections ?? 0) + (res.counts?.reports ?? 0)); })
+    adminApi.get<{ counts?: InboxCounts }>('/v1/admin/inbox', { type: 'corrections', limit: 1 })
+      .then((res) => { if (live) setWaiting(Object.entries(res.counts ?? {}).reduce((sum, [queue, count]) => queue === 'no_hours' ? sum : sum + (Number(count) || 0), 0)); })
       .catch(() => undefined);
     return () => { live = false; };
   }, [enabled, pathname]);

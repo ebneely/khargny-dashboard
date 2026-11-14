@@ -1,5 +1,9 @@
 import { adminApi, toList } from '@/lib/api/admin-client';
+
+/** Every Inbox queue's waiting count, from GET /v1/admin/inbox (the nav badge sums them). */
+export type InboxCounts = Partial<Record<'corrections' | 'reports' | 'no_hours' | 'owner_requests' | 'photos' | 'renewals' | 'lister_documents' | 'trip_reports', number>>;
 import type { PlaceListMedia } from '@/lib/place-list';
+import type { SubmissionMediaRow } from '@/lib/api/submissions';
 
 // Spec 002 contracts/api.md: GET /v1/admin/inbox?type=…, POST /v1/admin/corrections/:id/apply|reject.
 export type InboxType = 'corrections' | 'reports' | 'no_hours';
@@ -15,6 +19,8 @@ export interface CorrectionRow {
   answer: unknown;
   source: 'visit' | 'staff' | 'online';
   photoUrl?: string | null;
+  /** Screenshots and short videos the sender attached (team-only, expiring links). */
+  media?: SubmissionMediaRow[];
   createdAt: string;
   /** Open corrections on the same place (rows arrive grouped, busiest place first). */
   placeOpen?: number;
@@ -27,6 +33,9 @@ export interface AppReportRow {
   kind: 'bug' | 'wrong' | 'slow' | 'account' | 'idea' | 'other';
   text: string;
   photoUrl?: string | null;
+  media?: SubmissionMediaRow[];
+  /** What the app sent about itself: app version, platform, OS version, model. */
+  device?: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -64,5 +73,4 @@ export interface OwnerRequestRow {
   createdAt: string;
 }
 
-export const loadOwnerRequests = async (): Promise<InboxPage<OwnerRequestRow>> => { const list = toList<OwnerRequestRow>(await adminApi.get('/v1/admin/verification/requests', { state: 'open', limit: 100 })); return { rows: list.items, total: list.total }; };
 export const replyOwnerRequest = (id: string, state: 'done' | 'declined', reply: string) => adminApi.put(`/v1/admin/verification/requests/${id}`, { state, reply });

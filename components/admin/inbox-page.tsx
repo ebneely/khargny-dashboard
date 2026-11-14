@@ -15,12 +15,18 @@ import { ActionDialog, LoadingState, RequestError, useSubscriberText, type Actio
 import { AdminApiError } from '@/lib/api/admin-client';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { placeCover } from '@/lib/place-list';
-import { applyCorrection, closeReport, loadInbox, loadOwnerRequests, rejectCorrection, replyOwnerRequest, type AppReportRow, type CorrectionRow, type InboxPage, type NoHoursRow, type OwnerRequestRow } from '@/lib/api/inbox';
+import { applyCorrection, closeReport, loadInbox, rejectCorrection, replyOwnerRequest, type AppReportRow, type CorrectionRow, type InboxPage, type NoHoursRow } from '@/lib/api/inbox';
+import { loadSubmissions, type SubmissionRow } from '@/lib/api/submissions';
+import { SubmissionValue } from './submission-value';
+import { SubmissionMedia } from './submission-media';
+import { deviceText } from './submissions-page';
+import { PendingPhotos } from './subscriber-photos';
+import { RenewalsPage } from './renewals-page';
 import { AR_LOCALE } from '@/lib/locale';
 
-const TABS = ['corrections', 'reports', 'no-hours', 'owner-requests', 'photos', 'lister-documents', 'trip-reports'] as const;
+const TABS = ['corrections', 'reports', 'renewals', 'no-hours', 'owner-requests', 'photos', 'lister-documents', 'trip-reports'] as const;
 const TAB_LABELS: Record<(typeof TABS)[number], string> = {
-  corrections: 'Corrections', reports: 'Reports', 'no-hours': 'Places without hours', 'owner-requests': 'Owner requests',
+  corrections: 'Corrections', reports: 'Reports', renewals: 'Renewal receipts', 'no-hours': 'Places without hours', 'owner-requests': 'Owner requests',
   photos: 'Photo submissions', 'lister-documents': 'Lister documents', 'trip-reports': 'Trip reports',
 };
 const PROMISE_HOURS = 48;
@@ -33,9 +39,10 @@ export function InboxPage({ canWrite }: { canWrite: boolean }) {
       <TabsList aria-label={copy('Inbox lists')}>{TABS.map((tab) => <TabsTrigger key={tab} value={tab}>{copy(TAB_LABELS[tab])}</TabsTrigger>)}</TabsList>
       <UrlTabsContent value="corrections" lazy><Corrections canWrite={canWrite} /></UrlTabsContent>
       <UrlTabsContent value="reports" lazy><Reports canWrite={canWrite} /></UrlTabsContent>
+      <UrlTabsContent value="renewals" lazy><RenewalsPage canWrite={canWrite} /></UrlTabsContent>
       <UrlTabsContent value="no-hours" lazy><PlacesWithoutHours /></UrlTabsContent>
       <UrlTabsContent value="owner-requests" lazy><OwnerRequests canWrite={canWrite} /></UrlTabsContent>
-      <UrlTabsContent value="photos" lazy><GoTo title="Photo submissions" text="Owners' photos are reviewed on each subscriber's Account tab, beside the owner's photo permissions." href="/dashboard/subscribers" action="Open subscribers" /></UrlTabsContent>
+      <UrlTabsContent value="photos" lazy><Card><CardHeader><CardTitle>{copy('Photo submissions')}</CardTitle></CardHeader><CardContent><PendingPhotos canWrite={canWrite} /></CardContent></Card></UrlTabsContent>
       <UrlTabsContent value="lister-documents" lazy><GoTo title="Lister documents" text="ID and license papers sent by trip listers wait in the Marketplace." href="/dashboard/tourism?tab=listers&listers-kyc=pending" action="Review documents" /></UrlTabsContent>
       <UrlTabsContent value="trip-reports" lazy><GoTo title="Trip reports" text="Customer reports about trips are closed in the Marketplace." href="/dashboard/tourism?tab=reports" action="Open trip reports" /></UrlTabsContent>
     </UrlTabs>
@@ -71,13 +78,6 @@ function Age({ createdAt }: { createdAt: string }) {
   return <span title={full} className={`inline-flex items-center gap-1 ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}><Clock className="size-3.5" aria-hidden="true" />{age}{late && <span>{text('Past the 48 h promise', 'تعدّى وعد الـ 48 ساعة')}</span>}</span>;
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-/** '22:00:00' -> '10 pm' (12-hour time, Western digits). */
-const t12 = (v: unknown) => { const [H, M] = String(v).slice(0, 5).split(':').map(Number); return `${((H + 11) % 12) + 1}${M ? `:${String(M).padStart(2, '0')}` : ''} ${H < 12 ? 'am' : 'pm'}`; };
-type HoursDay = { dayOfWeek: number; openTime: string | null; closeTime: string | null; isClosed: boolean | null };
-const isWeek = (value: unknown): value is HoursDay[] => Array.isArray(value) && value.length > 0 && value.every((h) => typeof h === 'object' && h !== null && 'dayOfWeek' in h);
-const shown = (value: unknown) => isWeek(value) ? value.map((h) => `${WEEKDAYS[h.dayOfWeek]} ${h.isClosed || !h.openTime ? 'closed' : `${t12(h.openTime)} to ${t12(h.closeTime)}`}`).join(', ') : value === null || value === undefined || value === '' ? '—' : typeof value === 'string' || typeof value === 'number' ? String(value) : JSON.stringify(value);
-
 function Photo({ url }: { url?: string | null }) {
   const copy = useDashboardCopy();
   return url ? <a href={url} target="_blank" rel="noreferrer" aria-label={copy('Open the photo')} className="shrink-0"><RecordThumbnail src={url} size={48} /></a> : null;
@@ -112,9 +112,10 @@ function Corrections({ canWrite }: { canWrite: boolean }) {
         <Button size="sm" variant="outline" onClick={() => setAction({ title: copy('Apply this correction?'), description: copy('A clear phone, name, pin or full week of hours replaces the place’s value at once. Anything else is marked applied, and you make the change on the place page.'), submit: () => decide(() => applyCorrection(row.id), (result) => (result as { written?: boolean } | null)?.written ? 'Applied. Live on the website now.' : 'Marked as applied. Nothing was written to the place: make the change on the place page.') })}><Check aria-hidden="true" />{copy('Apply')}</Button>
         <Button size="sm" variant="ghost" onClick={() => setAction({ title: copy('Reject this correction?'), description: copy('Your reply is kept with the correction. The sender cannot read replies yet.'), fields: [{ name: 'reply', label: copy('Reply (one line)'), required: true }], submit: (values) => decide(() => rejectCorrection(row.id, String(values.reply).trim()), () => 'Rejected. Your reply is kept with it.') })}><X aria-hidden="true" />{copy('Reject')}</Button>
       </div>}>
-        <div className="flex min-w-0 gap-3"><Photo url={row.photoUrl} /><div className="min-w-0 space-y-1.5">
+        <div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1.5">
           <p className="text-sm"><Link className="font-medium underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link> <span className="text-muted-foreground">{copy(KIND_LABELS[row.kind] ?? 'Something else')}</span></p>
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-sm"><dt className="text-muted-foreground">{copy('Now')}</dt><dd dir="auto" className="break-words">{shown(row.current)}</dd><dt className="text-muted-foreground">{copy('Suggested')}</dt><dd dir="auto" className="break-words font-medium">{shown(row.answer)}</dd></dl>
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-sm"><dt className="text-muted-foreground">{copy('Now')}</dt><dd className="min-w-0 break-words"><SubmissionValue value={row.current} /></dd><dt className="text-muted-foreground">{copy('Suggested')}</dt><dd className="min-w-0 break-words font-medium"><SubmissionValue value={row.answer} /></dd></dl>
+          <SubmissionMedia media={row.media ?? []} photoUrl={row.photoUrl} />
           <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm"><span className="text-muted-foreground">{copy(SOURCE_LABELS[row.source] ?? 'Saw it online')}</span>{row.reporter && <span className="text-muted-foreground tabular-nums">{copy('Sender')}: {row.reporter.total} {copy('sent')}, {row.reporter.applied} {copy('applied')}, {row.reporter.rejected} {copy('rejected')}</span>}<Age createdAt={row.createdAt} /></p>
         </div></div>
       </RecordRow></div></div>;
@@ -143,10 +144,11 @@ function Reports({ canWrite }: { canWrite: boolean }) {
     },
   });
   return <>
-    <InboxList title="Reports" empty="No reports are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <Button size="sm" variant="outline" onClick={() => close(row)}><Check aria-hidden="true" />{copy('Close')}</Button>}><div className="flex min-w-0 gap-3"><Photo url={row.photoUrl} /><div className="min-w-0 space-y-1">
+    <InboxList title="Reports" empty="No reports are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <Button size="sm" variant="outline" onClick={() => close(row)}><Check aria-hidden="true" />{copy('Close')}</Button>}><div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1">
       <p className="text-sm font-medium">{copy(REPORT_LABELS[row.kind] ?? 'Something else')}</p>
       <p dir="auto" className="whitespace-pre-line break-words text-sm">{row.text}</p>
-      <p className="text-sm"><Age createdAt={row.createdAt} /></p>
+      <SubmissionMedia media={row.media ?? []} photoUrl={row.photoUrl} />
+      <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm"><Age createdAt={row.createdAt} />{deviceText(row.device) && <span className="text-muted-foreground">{copy('Sent from')} <span dir="ltr">{deviceText(row.device)}</span></span>}</p>
     </div></div></RecordRow></div>)} />
     <ActionDialog action={action} onClose={() => setAction(null)} />
   </>;
@@ -160,13 +162,16 @@ function PlacesWithoutHours() {
   return <InboxList title="Places without hours" empty="Every live place has its opening hours." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-2 last:border-b-0"><RecordRow align="center" actions={<Button size="sm" variant="outline" data-ro-allow="true" nativeButton={false} render={<Link href={`/dashboard/places/${row.id}?tab=hours`} />}>{copy('Add hours')}</Button>}><RecordCell nameAr={row.name} nameEn={row.nameEn ?? null} thumbnail={placeCover(row)} /></RecordRow></div>)} />;
 }
 
-const REQUEST_LABELS: Record<OwnerRequestRow['kind'], string> = { category: 'Change the category', location: 'Move the pin', city: 'Change the city', other: 'Something else' };
+const REQUEST_LABELS: Record<'category' | 'location' | 'city' | 'other', string> = { category: 'Change the category', location: 'Move the pin', city: 'Change the city', other: 'Something else' };
 
 function OwnerRequests({ canWrite }: { canWrite: boolean }) {
   const copy = useDashboardCopy();
-  const resource = useSubscriberResource(loadOwnerRequests);
+  const { pick } = useSubscriberText();
+  const [pages, setPages] = React.useState(1);
+  const load = React.useCallback(() => loadSubmissions({ type: 'owner_request', status: 'open', sort: 'oldest' }, pages, 100), [pages]);
+  const resource = useSubscriberResource(load);
   const [action, setAction] = React.useState<ActionSpec | null>(null);
-  const reply = (row: OwnerRequestRow, state: 'done' | 'declined') => setAction({
+  const reply = (row: SubmissionRow, state: 'done' | 'declined') => setAction({
     title: copy(state === 'done' ? 'Mark this request done?' : 'Decline this request?'),
     description: copy('The owner sees your reply in the portal.'),
     destructive: state === 'declined',
@@ -174,8 +179,8 @@ function OwnerRequests({ canWrite }: { canWrite: boolean }) {
     submit: async (values) => { await replyOwnerRequest(row.id, state, String(values.reply).trim()); toast.success(copy('Reply sent to the owner.')); await resource.refetch(); },
   });
   return <>
-    <InboxList title="Owner requests" empty="No owner requests are waiting." resource={resource} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => reply(row, 'done')}><Check aria-hidden="true" />{copy('Done')}</Button><Button size="sm" variant="ghost" onClick={() => reply(row, 'declined')}><X aria-hidden="true" />{copy('Decline')}</Button></div>}>
-      <div className="min-w-0 space-y-1"><p className="text-sm"><span className="font-medium">{copy(REQUEST_LABELS[row.kind] ?? 'Something else')}</span> <Link className="text-muted-foreground underline underline-offset-4" href={`/dashboard/places/${row.placeId}`}>{copy('Open the place')}</Link></p><p dir="auto" className="whitespace-pre-line break-words text-sm">{row.message}</p><p className="text-sm"><Age createdAt={row.createdAt} /></p></div>
+    <InboxList title="Owner requests" empty="No owner requests are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row) => <div key={row.id} className="border-b py-3 last:border-b-0"><RecordRow actions={canWrite && <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => reply(row, 'done')}><Check aria-hidden="true" />{copy('Done')}</Button><Button size="sm" variant="ghost" onClick={() => reply(row, 'declined')}><X aria-hidden="true" />{copy('Decline')}</Button></div>}>
+      <div className="min-w-0 space-y-1"><p className="text-sm"><Link className="font-medium underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{pick(row.placeName ?? '', row.placeNameEn) || copy('Open the place')}</Link> <span className="text-muted-foreground">{copy(REQUEST_LABELS[row.kind as keyof typeof REQUEST_LABELS] ?? 'Something else')}</span></p><p dir="auto" className="whitespace-pre-line break-words text-sm">{row.detail.message}</p><p className="text-sm"><Age createdAt={row.createdAt} /></p></div>
     </RecordRow></div>)} />
     <ActionDialog action={action} onClose={() => setAction(null)} />
   </>;

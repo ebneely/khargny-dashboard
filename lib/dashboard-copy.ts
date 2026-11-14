@@ -2,6 +2,9 @@ import { analyticsCopy } from '@/lib/analytics-copy';
 import { adsLiveCopy } from '@/lib/ads-live-copy';
 import { round8Copy } from '@/lib/round8-copy';
 import { inboxCopy } from '@/lib/inbox-copy';
+import { uifixCopy } from '@/lib/uifix-copy';
+import { badgesCopy } from '@/lib/badges-copy';
+import { submissionsCopy } from '@/lib/submissions-copy';
 
 const round7RenewalsCopy: Record<string, string> = {
   'Renewals': 'التجديدات',
@@ -744,6 +747,9 @@ export const dashboardCopy: Record<string, string> = {
 Object.assign(dashboardCopy, adsLiveCopy);
 Object.assign(dashboardCopy, round8Copy);
 Object.assign(dashboardCopy, inboxCopy);
+Object.assign(dashboardCopy, uifixCopy);
+Object.assign(dashboardCopy, badgesCopy);
+Object.assign(dashboardCopy, submissionsCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;

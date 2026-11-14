@@ -20,6 +20,7 @@ const NAV_SECTIONS = [
   { href: "/dashboard/inbox", label: "Inbox", iconName: "inbox", tabs: [{ href: "/dashboard/inbox", label: "Inbox" }] },
   { href: "/dashboard/places", label: "Places", iconName: "places", tabs: [
     { href: "/dashboard/places", label: "Places" },
+    { href: "/dashboard/submissions", label: "Submissions" },
     { href: "/dashboard/collections", label: "Collections" },
     { href: "/dashboard/cities", label: "Cities and areas" },
     { href: "/dashboard/categories", label: "Categories" },
@@ -46,6 +47,8 @@ const NAV_SECTIONS = [
     { href: "/dashboard/settings/change-password", label: "Password" },
     { href: "/dashboard/storefront", label: "Website footer" },
     { href: "/dashboard/admins", label: "Admins", superAdminOnly: true },
+    { href: "/dashboard/settings/audit-log", label: "Audit log", superAdminOnly: true },
+    { href: "/dashboard/settings/media-health", label: "Media health" },
   ] },
 ] as const;
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { dashboardDateTime } from '@/lib/dashboard-date';
 import * as React from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -12,7 +13,7 @@ import type { SubscriberDetail } from '@/lib/api/subscribers';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { ActionDialog, type ActionSpec, RequestError, useSubscriberText } from './subscriber-ui';
 import { LoadingState } from './subscriber-ui';
-import { AR_LOCALE } from '@/lib/locale';
+import { AR_LOCALE, localeFor } from '@/lib/locale';
 
 interface PhotoSubmission {
   id: string;
@@ -56,10 +57,11 @@ export function SubscriberPhotosPanel({ subscriber, canWrite, refresh }: { subsc
   </CardContent></Card>;
 }
 
-function PendingPhotos({ subscriberId, canWrite }: { subscriberId: string; canWrite: boolean }) {
+/** Photos waiting for review: one owner's, or every owner's when subscriberId is left out (Inbox). */
+export function PendingPhotos({ subscriberId, canWrite }: { subscriberId?: string; canWrite: boolean }) {
   const { text, lang } = useSubscriberText();
   const [action, setAction] = React.useState<ActionSpec | null>(null);
-  const load = React.useCallback(() => adminApi.get<PhotoSubmission[]>('/v1/admin/photo-submissions', { subscriberId }), [subscriberId]);
+  const load = React.useCallback(() => adminApi.get<PhotoSubmission[]>('/v1/admin/photo-submissions', subscriberId ? { subscriberId } : {}), [subscriberId]);
   const resource = useSubscriberResource(load);
   const review = async (id: string, verb: 'approve' | 'reject', body?: unknown) => {
     await adminApi.post(`/v1/admin/photo-submissions/${id}/${verb}`, body);
@@ -68,13 +70,13 @@ function PendingPhotos({ subscriberId, canWrite }: { subscriberId: string; canWr
   };
   const rows = resource.data ?? [];
   return <section aria-labelledby="pending-photos" className="space-y-3">
-    <h3 id="pending-photos" className="text-sm font-medium">{text('Photos waiting for review', 'صور تنتظر المراجعة')}{rows.length ? ` (${rows.length.toLocaleString(lang)})` : ''}</h3>
+    <h3 id="pending-photos" className="text-sm font-medium">{text('Photos waiting for review', 'صور تنتظر المراجعة')}{rows.length ? ` (${rows.length.toLocaleString(localeFor(lang))})` : ''}</h3>
     {resource.loading ? <LoadingState /> : resource.error ? <RequestError message={text('Could not load the photos waiting for review.', 'تعذر تحميل الصور المنتظرة.')} retry={() => { void resource.refetch(); }} />
       : !rows.length ? <p className="text-sm text-muted-foreground">{text('No photos are waiting.', 'لا توجد صور منتظرة.')}</p>
       : <ul className="grid gap-3 sm:grid-cols-2">{rows.map((row) => <li key={row.id} className="space-y-2 rounded-lg border p-3">
         <PrivatePhoto path={`/v1/admin/photo-submissions/${row.id}/image`} alt={text(`Photo for ${row.placeNameEn ?? row.placeName}`, `صورة لـ ${row.placeName}`)} />
         <p className="text-sm font-medium">{lang === 'ar' ? row.placeName : row.placeNameEn ?? row.placeName}</p>
-        <p className="text-xs text-muted-foreground">{row.width}×{row.height} {new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(row.createdAt))}</p>
+        <p className="text-xs text-muted-foreground">{row.width}×{row.height} {dashboardDateTime(row.createdAt, lang)}</p>
         {canWrite && <div className="flex gap-2">
           <Button size="sm" onClick={() => { void review(row.id, 'approve'); }}><Check aria-hidden="true" />{text('Approve', 'قبول')}</Button>
           <Button size="sm" variant="outline" onClick={() => setAction({ title: text('Reject this photo?', 'رفض هذه الصورة؟'), destructive: true, description: text('The owner sees your reason in the portal.', 'يرى صاحب المكان السبب في البوابة.'), fields: [{ name: 'reason', label: text('Reason', 'السبب'), type: 'textarea', required: true }], submit: async (values) => { await review(row.id, 'reject', { reason: String(values.reason) }); } })}><X aria-hidden="true" />{text('Reject', 'رفض')}</Button>
@@ -85,7 +87,7 @@ function PendingPhotos({ subscriberId, canWrite }: { subscriberId: string; canWr
 }
 
 /** Pending photos are private: fetched with the admin session, shown from a local blob URL. */
-function PrivatePhoto({ path, alt }: { path: string; alt: string }) {
+export function PrivatePhoto({ path, alt }: { path: string; alt: string }) {
   const [src, setSrc] = React.useState<string | null>(null);
   React.useEffect(() => {
     const controller = new AbortController();
