@@ -83,7 +83,7 @@ function Hype({ window }: { window: NumbersWindow }) {
   const shown = all ? rows : rows.slice(0, 10);
   return <Card data-slot="numbers-hype">
     <CardHeader className="flex flex-wrap items-start justify-between gap-3">
-      <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views 1, loves 3, saves 4, shares 5, 5argny taps 6 points. The top one scores 100. Team only.')}</p></div>
+      <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views + loves + saves + shares + 5argny taps over the last 30 days, one point each, no cap. Team only.')}</p></div>
       <SegmentedControl label="Hype of" value={kind} onValueChange={(v) => { setKind(v as HypeKind); setAll(false); }} options={[{ value: 'place', label: 'Places' }, { value: 'area', label: 'Areas' }, { value: 'category', label: 'Categories' }, { value: 'collection', label: 'Collections' }]} />
     </CardHeader>
     <CardContent>

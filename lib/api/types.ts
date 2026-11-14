@@ -9,7 +9,7 @@ export interface AdminPlace {
   name: string;
   nameEn: string | null;
   slug: string;
-  /** Hype score 0-100 in the requested window (admin list with `window`). */
+  /** Hype score: last-30-day views + likes + saves + shares + 5argny taps, uncapped (owner 2026-11-14). */
   hype?: number;
   /** The hype window's counts (admin list with `window`): what the Likes, Saves, Views and 5argny columns show. */
   counts?: { views: number; likes: number; saves: number; shares: number; goes: number };
@@ -78,7 +78,7 @@ export interface AdminPlaceFilters {
   hasMedia?: boolean;
   /** likes, or hype (by the hype score in `window`). */
   sortBy?: string;
-  /** Team only: rows carry `hype` (0-100) in this window. */
+  /** Team only: rows carry `hype` (uncapped 30-day sum). */
   window?: 'live' | '24h' | '7d' | '30d';
   skip?: number;
   limit?: number;

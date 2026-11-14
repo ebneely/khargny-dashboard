@@ -66,7 +66,7 @@ export const inboxCopy: Record<string, string> = {
   'Add the hours': 'أضف المواعيد', 'Resolve the term': 'عالج الكلمة', 'Open the ad report': 'تقرير الإعلان', 'Call the subscriber': 'اتصل بالمشترك',
   'this hour vs its hourly average today': 'هذه الساعة مقابل متوسط الساعة اليوم', 'today vs its daily average this week': 'اليوم مقابل المتوسط اليومي هذا الأسبوع',
   'this week vs its weekly average this month': 'هذا الأسبوع مقابل المتوسط الأسبوعي هذا الشهر',
-  'Hype': 'الرواج', 'Views 1, loves 3, saves 4, shares 5, 5argny taps 6 points. The top one scores 100. Team only.': 'مشاهدة 1، إعجاب 3، حفظ 4، مشاركة 5، ضغطة خرجني 6 نقاط. الأعلى يأخذ 100. للفريق فقط.',
+  'Hype': 'الرواج', 'Views + loves + saves + shares + 5argny taps over the last 30 days, one point each, no cap. Team only.': 'المشاهدات + الإعجابات + الحفظ + المشاركات + ضغطات خرجني في آخر 30 يوم، كل واحدة بنقطة، من غير حد أقصى. للفريق فقط.',
   'Hype of': 'رواج', 'Loves': 'الإعجابات', 'Shares': 'المشاركات',
   'Could not load the hype.': 'تعذر تحميل الرواج.', 'No views, loves, saves, shares or 5argny taps in': 'لا مشاهدات ولا إعجابات ولا حفظ ولا مشاركات ولا ضغطات خرجني في',
   'Show the top 10': 'أعلى 10 فقط', 'Show all': 'عرض الكل', 'Hype in': 'الرواج في', 'Hype first': 'الأكثر رواجاً أولاً',
