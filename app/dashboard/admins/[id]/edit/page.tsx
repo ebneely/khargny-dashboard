@@ -1,5 +1,7 @@
 'use client';
 
+import { dashboardDateTime } from '@/lib/dashboard-date';
+import { useDashboardLang } from '@/lib/dashboard-lang';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText } from '@/components/admin/dashboard-text';
@@ -22,6 +24,7 @@ import { adminApi } from '@/lib/api/admin-client';
 import { ADMIN_ROLES, ADMIN_STATUSES, type AdminRole, type AdminStatus } from '@/lib/api/types';
 
 export default function EditAdminPage() {
+  const { lang } = useDashboardLang();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -219,10 +222,10 @@ export default function EditAdminPage() {
 
             <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
               <p>
-                <strong><DashboardText>Created:</DashboardText></strong> {new Date(admin.createdAt).toLocaleString()}
+                <strong><DashboardText>Created:</DashboardText></strong> {dashboardDateTime(admin.createdAt, lang)}
               </p>
               <p className="mt-1">
-                <strong><DashboardText>Last login:</DashboardText></strong> {admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString() : '—'}
+                <strong><DashboardText>Last login:</DashboardText></strong> {dashboardDateTime(admin.lastLoginAt, lang)}
               </p>
             </div>
 

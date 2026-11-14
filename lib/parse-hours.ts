@@ -11,8 +11,8 @@
  * Handles the shapes that actually turn up:
  *   Monday      9 AM–10 PM          Friday   Closed
  *   Tuesday, 9:30 AM to 11:00 PM    Saturday Open 24 hours
- *   الاثنين     ٩ ص–١٠ م             الجمعة   مغلق
- * plus 24-hour times (09:00-22:00), en/em dashes, and Arabic-Indic digits.
+ *   Arabic day names, Arabic AM/PM marks (ص, م) and the word for closed
+ * plus 24-hour times (09:00-22:00), en/em dashes, and Arabic-Indic or Persian digits.
  */
 
 export interface ParsedDay {
@@ -38,9 +38,9 @@ const DAY_PATTERNS: { day: number; patterns: string[] }[] = [
   { day: 6, patterns: ['saturday', 'sat', 'السبت', 'سبت'] },
 ];
 
-/** ٠١٢٣٤٥٦٧٨٩ and ۰۱۲۳۴۵۶۷۸۹ → 0123456789 */
+/** Arabic-Indic (U+0660-0669) and Persian (U+06F0-06F9) digits to 0-9 */
 function normalizeDigits(text: string): string {
-  return text.replace(/[٠-٩۰-۹]/g, (d) => {
+  return text.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => {
     const code = d.charCodeAt(0);
     const base = code >= 0x06f0 ? 0x06f0 : 0x0660;
     return String(code - base);
@@ -67,7 +67,7 @@ function dayFromLine(line: string): number | null {
   return null;
 }
 
-/** "9 AM" | "9:30 PM" | "21:30" | "٩ ص" → "HH:mm" */
+/** "9 AM" | "9:30 PM" | "21:30" | "9 ص" → "HH:mm" */
 function parseTime(raw: string): string | null {
   const t = raw.trim().toLowerCase();
 

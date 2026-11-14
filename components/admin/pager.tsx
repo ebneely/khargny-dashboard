@@ -1,5 +1,6 @@
 'use client';
 
+import { localeFor } from '@/lib/locale';
 import { useId } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -29,7 +30,7 @@ export function Pager({ skip, pageSize, total, count, onPrevious, onNext, previo
   const sizeId = useId();
   const text = (value: string) => translateDashboardCopy(value, lang);
   const range = pageRange(skip, pageSize, total ?? skip + (count ?? pageSize), count);
-  const number = (value: number) => value.toLocaleString(lang);
+  const number = (value: number) => value.toLocaleString(localeFor(lang));
   const PreviousIcon = lang === 'ar' ? ChevronRight : ChevronLeft;
   const NextIcon = lang === 'ar' ? ChevronLeft : ChevronRight;
   if (total !== undefined && total <= Math.min(...(pageSizes?.length ? pageSizes : [10])) && !busy && !error) return <p data-slot="list-count" data-total={total} aria-live="polite" aria-atomic="true" className="py-3 text-sm tabular-nums text-muted-foreground">{text('Records')}: {number(total)}</p>;

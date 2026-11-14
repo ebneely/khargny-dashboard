@@ -1,3 +1,4 @@
+import { dashboardDateTime } from '@/lib/dashboard-date';
 import type { Subscription } from './api/subscribers';
 import { AR_LOCALE } from '@/lib/locale';
 
@@ -29,5 +30,5 @@ export function renewalWaitLabel(createdAt: string, lang: 'en' | 'ar', now = Dat
 
 export function renewalSentLabel(createdAt: string, lang: 'en' | 'ar') {
   const created = new Date(createdAt);
-  return Number.isNaN(created.getTime()) ? '—' : new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Africa/Cairo' }).format(created);
+  return dashboardDateTime(created, lang);
 }

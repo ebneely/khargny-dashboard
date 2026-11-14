@@ -1,5 +1,5 @@
 export const round8Copy: Record<string, string> = {
-  "Extend 7 days": "تمديد ٧ أيام",
+  "Extend 7 days": "تمديد 7 أيام",
   "Send reminder": "إرسال تذكير",
   "Incomplete": "غير مكتمل",
   "How this is counted": "كيف نحسب هذه الأرقام",
@@ -11,7 +11,7 @@ export const round8Copy: Record<string, string> = {
   "Something went wrong on this page": "حدث خطأ في هذه الصفحة",
   "The page hit an unexpected error. You can try again, or head back to the dashboard.": "حدث خطأ غير متوقع. يمكنك المحاولة مجددًا أو العودة إلى لوحة التحكم.",
   "Back to dashboard": "العودة إلى لوحة التحكم",
-  "Maximum 100 at once": "بحد أقصى ١٠٠ في المرة",
+  "Maximum 100 at once": "بحد أقصى 100 في المرة",
   "Changed": "تغيّرت",
   "Likes": "الإعجابات",
   "Save icon": "أيقونة الحفظ",

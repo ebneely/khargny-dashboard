@@ -36,7 +36,7 @@ export function subscriberError(error: unknown, lang: 'en' | 'ar'): string {
     INVALID_PHONE: ['Enter a valid international number with its country code (+…), or an Egyptian mobile number.', 'أدخل رقماً دولياً صحيحاً مع رمز البلد (+…) أو رقم محمول مصرياً.'],
     INVALID_AMOUNT: ['Enter a non-negative amount with at most two decimal places.', 'أدخل مبلغاً غير سالب بمنزلتين عشريتين كحد أقصى.'],
     INVALID_MENU_IMAGE_TYPE: ['Choose a JPEG, PNG or WebP image.', 'اختر صورة JPEG أو PNG أو WebP.'],
-    MENU_IMAGE_TOO_LARGE: ['The image must be at most 5 MB.', 'يجب ألا يتجاوز حجم الصورة ٥ ميجابايت.'],
+    MENU_IMAGE_TOO_LARGE: ['The image must be at most 5 MB.', 'يجب ألا يتجاوز حجم الصورة 5 ميجابايت.'],
   };
   const code = error instanceof AdminApiError ? error.code : error instanceof Error ? error.message : '';
   if (code === 'PLAN_PROMOTIONS_DISABLED') return translateDashboardCopy(PLUS_PROMOTION_NOTE, lang);
@@ -174,7 +174,7 @@ function ActiveActionDialog({ action, onClose }: { action: ActionSpec; onClose: 
             {field.type === 'select' ? <SubscriberSelect value={String(values[field.name] ?? '')} options={field.options ?? []} disabled={busy} required={field.required} onValueChange={(value) => setValues({ ...values, [field.name]: value })} />
               : field.type === 'textarea' ? <textarea className={textareaClass} required={field.required} value={String(values[field.name] ?? '')} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />
               : field.type === 'checkbox' ? <Checkbox checked={Boolean(values[field.name])} disabled={busy} onCheckedChange={(checked) => setValues({ ...values, [field.name]: checked })} />
-              : <Input placeholder={field.placeholder} type={field.type === 'money' ? 'text' : field.type ?? 'text'} inputMode={field.type === 'money' ? 'decimal' : undefined} pattern={field.type === 'money' ? '[0-9٠-٩]+([.٫][0-9٠-٩]{1,2})?' : undefined} min={field.min} minLength={field.minLength} autoComplete={field.type === 'password' ? 'new-password' : 'off'} dir={field.type === 'money' || field.type === 'tel' ? 'ltr' : undefined} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />}
+              : <Input placeholder={field.placeholder} type={field.type === 'money' ? 'text' : field.type ?? 'text'} inputMode={field.type === 'money' ? 'decimal' : undefined} pattern={field.type === 'money' ? '[0-9\u0660-\u0669]+([.\u066B][0-9\u0660-\u0669]{1,2})?' : undefined} min={field.min} minLength={field.minLength} autoComplete={field.type === 'password' ? 'new-password' : 'off'} dir={field.type === 'money' || field.type === 'tel' ? 'ltr' : undefined} value={String(values[field.name] ?? '')} required={field.required} onChange={(event) => setValues({ ...values, [field.name]: event.target.value })} />}
           </Field>)}
         </fieldset>
         {error && <RequestError message={error} />}

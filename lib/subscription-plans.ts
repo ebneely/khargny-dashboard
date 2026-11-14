@@ -8,8 +8,8 @@ export const featureLabels = {
 };
 export const planMonths: PlanMonths[] = ['1', '2', '3', '6'];
 export const priceFields = { '1': 'price1Month', '2': 'price2Months', '3': 'price3Months', '6': 'price6Months' } as const;
-export function planMoneyLabel(value: string, lang: 'en' | 'ar') {
-  return lang === 'ar' ? value.replace(/[0-9]/g, (digit) => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]).replace('.', '٫') : value;
+export function planMoneyLabel(value: string, _lang: 'en' | 'ar') {
+  return value; // Western digits in both languages
 }
 export function planPriceRequest(values: Record<PlanMonths, string>): PlanPatch {
   return Object.fromEntries(planMonths.map((months) => [priceFields[months], values[months].trim() ? decimalMoney(values[months]) : null]));

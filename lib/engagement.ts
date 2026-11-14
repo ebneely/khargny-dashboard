@@ -1,3 +1,4 @@
+import { localeFor } from '@/lib/locale';
 import { Bookmark, Heart, Navigation, Eye } from 'lucide-react';
 
 export const engagementMetrics = [
@@ -8,4 +9,4 @@ export const engagementMetrics = [
 ] as const;
 
 export type EngagementMetric = typeof engagementMetrics[number]['key'];
-export const engagementNumber = (value: number | null | undefined, lang: string) => typeof value === 'number' ? value.toLocaleString(lang) : '—';
+export const engagementNumber = (value: number | null | undefined, lang: string) => typeof value === 'number' ? value.toLocaleString(localeFor(lang)) : '—';

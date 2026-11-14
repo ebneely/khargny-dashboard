@@ -1,5 +1,6 @@
 'use client';
 
+import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -116,10 +117,10 @@ function SubscriptionForm({ subscriber, renewal, canWrite, refresh, onClose }: {
             <Field label={copy('Start date (Cairo)')} error={fieldErrors.startDate}><DateField value={draft.startDate} required disabled={busy} aria-describedby={rangeId} aria-invalid={Boolean(rangeMessage)} onChange={(value) => setField('startDate', value)} /></Field>
             <Field label={copy('End date (inclusive)')} error={fieldErrors.endDate}><DateField value={draft.endDate} min={isCalendarDate(draft.startDate) ? draft.startDate : undefined} required disabled={busy} aria-describedby={rangeId} aria-invalid={Boolean(rangeMessage)} onChange={(value) => setField('endDate', value)} /></Field>
           </div>
-          <div id={rangeId} className="space-y-2"><p aria-live="polite" className="text-sm text-muted-foreground">{validRange ? `${formatCalendarDate(draft.startDate, lang)} ${copy('to')} ${formatCalendarDate(draft.endDate, lang)} ${calendarDayCount(draft.startDate, draft.endDate).toLocaleString(lang)} ${copy('days')}` : copy('Enter a valid start and end date.')}</p>{rangeMessage && <p role="alert" className="text-sm text-destructive">{rangeMessage}</p>}</div>
+          <div id={rangeId} className="space-y-2"><p aria-live="polite" className="text-sm text-muted-foreground">{validRange ? `${formatCalendarDate(draft.startDate, lang)} ${copy('to')} ${formatCalendarDate(draft.endDate, lang)} ${calendarDayCount(draft.startDate, draft.endDate).toLocaleString(localeFor(lang))} ${copy('days')}` : copy('Enter a valid start and end date.')}</p>{rangeMessage && <p role="alert" className="text-sm text-destructive">{rangeMessage}</p>}</div>
           {!renewal && <Field label={copy('Subscription notes')} error={fieldErrors.notes}><textarea className={textareaClass} value={draft.notes} onChange={(event) => setField('notes', event.target.value)} /></Field>}
           {free ? <p role="status" className="text-sm text-muted-foreground">{copy('Free trial: no payment is recorded')}</p> : <>
-            <Field label={copy('First payment (EGP, optional)')} error={fieldErrors.amount}><Input ref={amountRef} type="text" inputMode="decimal" dir="ltr" pattern="[0-9٠-٩]+([.٫][0-9٠-٩]{1,2})?" value={draft.amount} onChange={(event) => setField('amount', event.target.value)} /></Field>
+            <Field label={copy('First payment (EGP, optional)')} error={fieldErrors.amount}><Input ref={amountRef} type="text" inputMode="decimal" dir="ltr" pattern={'[0-9\u0660-\u0669]+([.\u066B][0-9\u0660-\u0669]{1,2})?'} value={draft.amount} onChange={(event) => setField('amount', event.target.value)} /></Field>
             <p className="text-sm text-muted-foreground">{copy(cataloguePrice(catalogue.data?.plans ?? [], draft.plan, chosen) !== null ? 'Catalogue price proposed; you can edit it.' : 'No price set')}</p>
             <Field label={copy('Payment method')} error={fieldErrors.method}><SubscriberSelect value={draft.method} options={methods} required disabled={busy} onValueChange={(value) => setField('method', value)} /></Field>
             <Field label={copy('Payment date')} error={fieldErrors.paidAt}><DateField value={draft.paidAt} required disabled={busy} onChange={(value) => setField('paidAt', value)} /></Field>

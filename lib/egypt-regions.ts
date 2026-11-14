@@ -85,7 +85,7 @@ export const EGYPT_REGIONS: EgyptRegion[] = [
   { value: 'El Maasara', nameAr: 'المعصرة', town: 'Cairo', governorate: 'Cairo' },
   { value: 'Tora', nameAr: 'طرة', town: 'Cairo', governorate: 'Cairo' },
   { value: 'El Tebbin', nameAr: 'التبين', town: 'Cairo', governorate: 'Cairo' },
-  { value: '15th of May City', nameAr: 'مدينة ١٥ مايو', town: 'Cairo', governorate: 'Cairo' },
+  { value: '15th of May City', nameAr: 'مدينة 15 مايو', town: 'Cairo', governorate: 'Cairo' },
 
   // ══ GIZA ══════════════════════════════════════════════════════════════════════════════
   { value: 'Dokki', nameAr: 'الدقي', town: 'Giza', governorate: 'Giza' },
@@ -103,7 +103,7 @@ export const EGYPT_REGIONS: EgyptRegion[] = [
   { value: 'Kit Kat', nameAr: 'الكيت كات', town: 'Giza', governorate: 'Giza' },
   { value: 'Warraq', nameAr: 'الوراق', town: 'Giza', governorate: 'Giza' },
   { value: 'Talbia', nameAr: 'الطالبية', town: 'Giza', governorate: 'Giza' },
-  { value: '6th of October City', nameAr: 'مدينة ٦ أكتوبر', town: '6th of October', governorate: 'Giza', keywords: ['october', 'juhayna square'] },
+  { value: '6th of October City', nameAr: 'مدينة 6 أكتوبر', town: '6th of October', governorate: 'Giza', keywords: ['october', 'juhayna square'] },
   { value: 'Sheikh Zayed', nameAr: 'الشيخ زايد', town: '6th of October', governorate: 'Giza', keywords: ['zayed', 'arkan', 'beverly hills'] },
   { value: 'Hadayek October', nameAr: 'حدائق أكتوبر', town: '6th of October', governorate: 'Giza' },
   { value: 'Smart Village', nameAr: 'القرية الذكية', town: '6th of October', governorate: 'Giza' },
@@ -242,7 +242,7 @@ export const EGYPT_REGIONS: EgyptRegion[] = [
   { value: 'El Dawahy', nameAr: 'حي الضواحي', town: 'Port Said', governorate: 'Port Said' },
   { value: 'Ismailia City Centre', nameAr: 'وسط الإسماعيلية', town: 'Ismailia', governorate: 'Ismailia' },
   { value: 'El Sheikh Zayed', nameAr: 'الشيخ زايد', town: 'Ismailia', governorate: 'Ismailia', keywords: ['hay el sheikh zayed', 'third district'] },
-  { value: 'Numra Sitta', nameAr: 'نمرة ٦', town: 'Ismailia', governorate: 'Ismailia' },
+  { value: 'Numra Sitta', nameAr: 'نمرة 6', town: 'Ismailia', governorate: 'Ismailia' },
   { value: 'Temsah', nameAr: 'التمساح', town: 'Ismailia', governorate: 'Ismailia', keywords: ['lake timsah'] },
   { value: 'Fayed', nameAr: 'فايد', town: 'Fayed', governorate: 'Ismailia' },
   { value: 'Port Tewfik', nameAr: 'بورتوفيق', town: 'Suez', governorate: 'Suez' },

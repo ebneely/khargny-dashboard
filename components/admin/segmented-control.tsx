@@ -1,5 +1,6 @@
 'use client';
 
+import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import Link from 'next/link';
@@ -56,7 +57,7 @@ export function SegmentedControl({ label, value, options, onValueChange, size = 
   };
   return <div data-slot="segmented-control" data-size={size} role="radiogroup" aria-label={copy(label)} dir={lang === 'ar' ? 'rtl' : 'ltr'} className={cn(trackClass, size === 'compact' ? 'h-7 shrink-0' : 'min-h-9 flex-wrap', className)}>
     {options.map((option) => <Button variant="ghost" key={option.value} ref={(button) => { if (button) buttons.current.set(option.value, button); else buttons.current.delete(option.value); }} type="button" role="radio" aria-checked={option.value === value} tabIndex={option.value === current ? 0 : -1} disabled={option.disabled} data-active={option.value === value ? '' : undefined} data-ro-allow="true" className={cn(thumbClass, sizeClass(size))} onClick={() => onValueChange(option.value)} onKeyDown={(event) => onKeyDown(event, option)}>
-      {option.icon}{copy(option.label)}{option.count !== undefined && <span className="tabular-nums text-muted-foreground">{option.count.toLocaleString(lang)}</span>}
+      {option.icon}{copy(option.label)}{option.count !== undefined && <span className="tabular-nums text-muted-foreground">{option.count.toLocaleString(localeFor(lang))}</span>}
     </Button>)}
   </div>;
 }

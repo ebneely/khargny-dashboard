@@ -2,8 +2,8 @@ import { AdminApiError } from './api/admin-client';
 
 const messages: Record<string, [string, string]> = {
   INVALID_PAID_ON: ['Choose a payment date no later than today in Cairo.', 'اختر تاريخ دفع لا يتجاوز اليوم بتوقيت القاهرة.'],
-  INVALID_REASON: ['Enter a reason of at most 2000 characters.', 'أدخل سبباً لا يتجاوز ٢٠٠٠ حرف.'],
-  INVALID_PROOF_FILE: ['Use a JPEG, PNG or WebP image of at most 5 MB.', 'استخدم صورة JPEG أو PNG أو WebP لا تتجاوز ٥ ميجابايت.'],
+  INVALID_REASON: ['Enter a reason of at most 2000 characters.', 'أدخل سبباً لا يتجاوز 2000 حرف.'],
+  INVALID_PROOF_FILE: ['Use a JPEG, PNG or WebP image of at most 5 MB.', 'استخدم صورة JPEG أو PNG أو WebP لا تتجاوز 5 ميجابايت.'],
   PRIVATE_PROOF_STORAGE_UNAVAILABLE: ['Private proof storage is not available yet. No public image is used.', 'تخزين الإثباتات الخاص غير متاح بعد. لن تُستخدم صورة عامة.'],
   PROOF_NOT_FOUND: ['No proof picture is stored for this request.', 'لا توجد صورة إثبات محفوظة لهذا الطلب.'],
   PROOF_REQUIRED: ['Non-cash requests require a private proof. Record cash only here.', 'الطلبات غير النقدية تحتاج إثباتاً خاصاً. سجل الدفع النقدي فقط هنا.'],

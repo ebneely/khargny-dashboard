@@ -11,7 +11,7 @@ import { cairoDate } from '@/lib/api/subscribers';
 import { calendarStamp, daysInCalendarMonth, isCalendarDate, shiftCalendarDays, shiftCalendarMonth } from '@/lib/subscription-calendar';
 import { useDashboardCopy } from './dashboard-text';
 import { cn } from '@/lib/utils';
-import { AR_LOCALE } from '@/lib/locale';
+import { AR_LOCALE, localeFor } from '@/lib/locale';
 
 type DateFieldProps = Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange' | 'type' | 'min' | 'max'> & { value: string; onChange: (value: string) => void; min?: string; max?: string; readOnlyControl?: boolean };
 
@@ -51,7 +51,7 @@ export function DateField({ value, onChange, min = '1000-01-01', max = '9999-12-
     }
   };
   const changeText = (raw: string) => {
-    const normalized = raw.replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit))).replace(/\u200f|\u200e/g, '').trim();
+    const normalized = raw.replace(/[\u0660-\u0669]/g, (digit) => String(digit.charCodeAt(0) - 0x660)).replace(/\u200f|\u200e/g, '').trim();
     const parts = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     const date = parts ? `${parts[3]}-${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}` : normalized;
     onChange(isCalendarDate(date) && date >= min && date <= max ? date : '');
@@ -75,7 +75,7 @@ export function DateField({ value, onChange, min = '1000-01-01', max = '9999-12-
           const day = week * 7 + weekday - offset + 1;
           if (day < 1 || day > days) return <span role="gridcell" key={weekday} />;
           const date = `${month}-${String(day).padStart(2, '0')}`;
-          return <span role="gridcell" key={weekday} aria-selected={value === date}><Button data-ro-allow={readOnlyControl ? 'true' : undefined} variant="ghost" type="button" data-date={date} disabled={disabled || date < min || date > max} tabIndex={cursor === date ? 0 : -1} aria-label={fullDate(date)} aria-current={today === date ? 'date' : undefined} className={cn('flex h-9 w-full items-center justify-center rounded-full text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40', value === date && 'bg-primary text-primary-foreground hover:bg-primary', today === date && value !== date && 'font-medium ring-1 ring-border')} onKeyDown={(event) => onDayKey(event, date)} onClick={() => select(date)}>{day.toLocaleString(lang)}</Button></span>;
+          return <span role="gridcell" key={weekday} aria-selected={value === date}><Button data-ro-allow={readOnlyControl ? 'true' : undefined} variant="ghost" type="button" data-date={date} disabled={disabled || date < min || date > max} tabIndex={cursor === date ? 0 : -1} aria-label={fullDate(date)} aria-current={today === date ? 'date' : undefined} className={cn('flex h-9 w-full items-center justify-center rounded-full text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40', value === date && 'bg-primary text-primary-foreground hover:bg-primary', today === date && value !== date && 'font-medium ring-1 ring-border')} onKeyDown={(event) => onDayKey(event, date)} onClick={() => select(date)}>{day.toLocaleString(localeFor(lang))}</Button></span>;
         })}</div>)}
       </div>
       <Button data-ro-allow={readOnlyControl ? 'true' : undefined} type="button" variant="ghost" size="sm" className="mt-2 w-full" disabled={disabled || today < min || today > max} onClick={() => select(today)}>{copy('Today')}</Button>

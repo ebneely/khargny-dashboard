@@ -1,5 +1,6 @@
 'use client';
 
+import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -45,14 +46,14 @@ function ChangePlanForm({ subscription, canWrite, refresh, onClose }: { subscrip
   return <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}><DialogContent dir={lang === 'ar' ? 'rtl' : 'ltr'} showCloseButton={!busy}>
     <DialogHeader><DialogTitle>{copy(result ? 'Plan changed' : 'Change plan')}</DialogTitle><DialogDescription>{copy('This closes the current period now and links a new period ending on the same date. Recorded payments stay on the old period.')}</DialogDescription></DialogHeader>
     {result ? <div className="space-y-4"><p className="flex flex-wrap items-center gap-2"><PlanChip plan={result.previous.plan} /><span>→</span><PlanChip plan={result.current.plan} /></p>
-      <p role="status" className="text-sm">{copy('Server-computed difference')}: <MoneyText value={planMoneyLabel(result.difference.amount, lang)} /> {copy('for the remaining')} {result.difference.daysLeft.toLocaleString(lang)} {copy('days')}. {copy(result.difference.credit ? 'Credit; no automatic refund.' : 'No payment recorded.')}</p>
+      <p role="status" className="text-sm">{copy('Server-computed difference')}: <MoneyText value={planMoneyLabel(result.difference.amount, lang)} /> {copy('for the remaining')} {result.difference.daysLeft.toLocaleString(localeFor(lang))} {copy('days')}. {copy(result.difference.credit ? 'Credit; no automatic refund.' : 'No payment recorded.')}</p>
       {refreshFailed && <RequestError message={copy('Saved, but the page could not refresh')} retry={() => { void refresh().then((ok) => setRefreshFailed(!ok)); }} />}
       <Button type="button" onClick={onClose}>{copy('Done')}</Button></div> : <div className="space-y-4">
       <p className="flex flex-wrap items-center gap-2">{copy('Current subscription')}: <PlanChip plan={current} /></p>
       {catalogue.loading ? <LoadingState /> : catalogue.error ? <RequestError message={copy('Could not load plans. Try again.')} retry={() => { void catalogue.refetch(); }} /> : <PlanChoices value={target} onValueChange={value => { setTarget(value); setPreview(null); }} catalogue={catalogue.data?.plans ?? []} disabled={busy || !canWrite} />}
       <PromotionNote plan={target} enabled={catalogue.data?.promotionsEnabled ?? false} />
       <p className="text-sm text-muted-foreground">{copy('Preview the server-computed difference before confirming. No payment or refund is recorded by this action.')}</p>
-      {preview && <div role="status" className="rounded bg-muted p-3 text-sm"><p>{copy('Server-computed difference')}: <MoneyText value={planMoneyLabel(preview.difference.amount, lang)} /> {preview.difference.daysLeft.toLocaleString(lang)} {copy('days')}. {copy(preview.difference.credit ? 'Credit; no automatic refund.' : 'No payment recorded.')}</p><p>{copy('Expiry stays unchanged')}: {preview.current.endDate}</p><p>{copy('This preview made no changes. Confirm to apply it.')}</p></div>}
+      {preview && <div role="status" className="rounded bg-muted p-3 text-sm"><p>{copy('Server-computed difference')}: <MoneyText value={planMoneyLabel(preview.difference.amount, lang)} /> {preview.difference.daysLeft.toLocaleString(localeFor(lang))} {copy('days')}. {copy(preview.difference.credit ? 'Credit; no automatic refund.' : 'No payment recorded.')}</p><p>{copy('Expiry stays unchanged')}: {preview.current.endDate}</p><p>{copy('This preview made no changes. Confirm to apply it.')}</p></div>}
       {error && <RequestError message={error} />}<div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={onClose}>{copy('Back')}</Button><Button type="button" disabled={!canWrite || busy || target === current || !catalogue.data?.plans.some((row) => row.plan === target && row.active)} onClick={() => { void confirm(); }}>{copy(busy ? 'Saving…' : preview ? 'Confirm plan change' : 'Preview plan change')}</Button></div>
     </div>}
   </DialogContent></Dialog>;

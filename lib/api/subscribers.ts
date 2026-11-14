@@ -158,7 +158,7 @@ export function validateMenuImage(file: Pick<File, 'type' | 'size'>): void {
 }
 
 export function decimalMoney(value: string): string {
-  const trimmed = value.trim().replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit))).replace(/٫/g, '.');
+  const trimmed = value.trim().replace(/[\u0660-\u0669]/g, (digit) => String(digit.charCodeAt(0) - 0x660)).replace(/\u066B/g, '.');
   if (!/^\d+(?:\.\d{1,2})?$/.test(trimmed)) throw new Error('INVALID_AMOUNT');
   const [whole, fraction = ''] = trimmed.split('.');
   return `${whole.replace(/^0+(?=\d)/, '')}.${fraction.padEnd(2, '0')}`;

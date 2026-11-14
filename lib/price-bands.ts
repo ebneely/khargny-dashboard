@@ -1,10 +1,10 @@
 import type { DashLang } from './dashboard-lang';
 
 export const PRICE_BANDS = [
-  { level: 1, labelEn: '1 – 100 EGP', labelAr: '١ – ١٠٠ جنيه' },
-  { level: 2, labelEn: '100 – 500 EGP', labelAr: '١٠٠ – ٥٠٠ جنيه' },
-  { level: 3, labelEn: '500 – 1,000 EGP', labelAr: '٥٠٠ – ١٬٠٠٠ جنيه' },
-  { level: 4, labelEn: '1,000 – 5,000+ EGP', labelAr: '١٬٠٠٠ – ٥٬٠٠٠+ جنيه' },
+  { level: 1, labelEn: '1 – 100 EGP', labelAr: '1 – 100 جنيه' },
+  { level: 2, labelEn: '100 – 500 EGP', labelAr: '100 – 500 جنيه' },
+  { level: 3, labelEn: '500 – 1,000 EGP', labelAr: '500 – 1,000 جنيه' },
+  { level: 4, labelEn: '1,000 – 5,000+ EGP', labelAr: '1,000 – 5,000+ جنيه' },
 ] as const;
 
 export function priceBandLabel(level: number | null | undefined, lang: DashLang): string {
