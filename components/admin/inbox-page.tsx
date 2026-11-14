@@ -137,8 +137,26 @@ function Photo({ url }: { url?: string | null }) {
   return url ? <a href={url} target="_blank" rel="noreferrer" aria-label={copy('Open the photo')} className="shrink-0"><RecordThumbnail src={url} size={48} /></a> : null;
 }
 
-const KIND_LABELS: Record<CorrectionRow['kind'], string> = { hours: 'Hours', location: 'Location', phone: 'Phone', closed: 'Closed for good', photos: 'Photos', prices: 'Prices', name: 'Name', other: 'Something else' };
+export const KIND_LABELS: Record<CorrectionRow['kind'], string> = { hours: 'Hours', location: 'Location', phone: 'Phone', closed: 'Closed for good', photos: 'Photos', prices: 'Prices', name: 'Name', other: 'Something else' };
 const SOURCE_LABELS: Record<CorrectionRow['source'], string> = { visit: 'Was there', staff: 'Works there', online: 'Saw it online' };
+
+/** The Apply and Reject dialogs of one customer correction. The Inbox and a place's Quality tab open the same ones, on the same rows. */
+export function correctionDialogs(copy: (value: string) => string, id: string, refetch: () => Promise<unknown>): { apply: ActionSpec; reject: ActionSpec } {
+  const decide = async (run: () => Promise<unknown>, done: (result: unknown) => string) => {
+    let result: unknown;
+    try { result = await run(); }
+    catch (caught) {
+      if (caught instanceof AdminApiError && caught.status === 409) { void refetch(); throw new Error(copy('Someone already decided this correction.')); }
+      throw caught;
+    }
+    toast.success(copy(done(result)));
+    await refetch();
+  };
+  return {
+    apply: { title: copy('Apply this correction?'), description: copy('A clear phone, name, pin or full week of hours replaces the place’s value at once. Anything else is marked applied, and you make the change on the place page.'), submit: () => decide(() => applyCorrection(id), (result) => (result as { written?: boolean } | null)?.written ? 'Applied. Live on the website now.' : 'Marked as applied. Nothing was written to the place: make the change on the place page.') },
+    reject: { title: copy('Reject this correction?'), description: copy('Your reply is kept with the correction. The sender cannot read replies yet.'), fields: [{ name: 'reply', label: copy('Reply (one line)'), required: true }], submit: (values) => decide(() => rejectCorrection(id, String(values.reply).trim()), () => 'Rejected. Your reply is kept with it.') },
+  };
+}
 
 function Corrections({ canWrite }: { canWrite: boolean }) {
   const copy = useDashboardCopy();
@@ -147,24 +165,15 @@ function Corrections({ canWrite }: { canWrite: boolean }) {
   const load = React.useCallback(() => loadInbox<CorrectionRow>('corrections', pages), [pages]);
   const resource = useSubscriberResource(load);
   const [action, setAction] = React.useState<ActionSpec | null>(null);
-  const decide = async (run: () => Promise<unknown>, done: (result: unknown) => string) => {
-    let result: unknown;
-    try { result = await run(); }
-    catch (caught) {
-      if (caught instanceof AdminApiError && caught.status === 409) { void resource.refetch(); throw new Error(copy('Someone already decided this correction.')); }
-      throw caught;
-    }
-    toast.success(copy(done(result)));
-    await resource.refetch();
-  };
+  const dialogs = (id: string) => correctionDialogs(copy, id, resource.refetch);
   return <>
     <InboxList title="Corrections" empty="No corrections are waiting." resource={resource} more={() => setPages(pages + 1)} render={(rows) => rows.map((row, index) => {
       const place = pick(row.placeName ?? '', row.placeNameEn ?? null) || copy('Place');
       // Rows arrive grouped per place, the place with the most open corrections first.
       const firstOfPlace = index === 0 || rows[index - 1].placeId !== row.placeId;
       return <div key={row.id}>{firstOfPlace && <p className="flex items-center gap-2 pt-4 pb-1 text-sm font-semibold"><Link className="underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link>{(row.placeOpen ?? 1) > 1 && <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-primary tabular-nums">{row.placeOpen} {copy('open corrections')}</span>}</p>}<div data-inbox-row className="-mx-2 rounded-lg border-b px-2 py-3 last:border-b-0 data-[selected=true]:bg-brand-50"><RecordRow actions={canWrite && <div className="flex gap-2">
-        <Button size="sm" variant="outline" data-key="a" onClick={() => setAction({ title: copy('Apply this correction?'), description: copy('A clear phone, name, pin or full week of hours replaces the place’s value at once. Anything else is marked applied, and you make the change on the place page.'), submit: () => decide(() => applyCorrection(row.id), (result) => (result as { written?: boolean } | null)?.written ? 'Applied. Live on the website now.' : 'Marked as applied. Nothing was written to the place: make the change on the place page.') })}><Check aria-hidden="true" />{copy('Apply')}</Button>
-        <Button size="sm" variant="ghost" data-key="r" onClick={() => setAction({ title: copy('Reject this correction?'), description: copy('Your reply is kept with the correction. The sender cannot read replies yet.'), fields: [{ name: 'reply', label: copy('Reply (one line)'), required: true }], submit: (values) => decide(() => rejectCorrection(row.id, String(values.reply).trim()), () => 'Rejected. Your reply is kept with it.') })}><X aria-hidden="true" />{copy('Reject')}</Button>
+        <Button size="sm" variant="outline" data-key="a" onClick={() => setAction(dialogs(row.id).apply)}><Check aria-hidden="true" />{copy('Apply')}</Button>
+        <Button size="sm" variant="ghost" data-key="r" onClick={() => setAction(dialogs(row.id).reject)}><X aria-hidden="true" />{copy('Reject')}</Button>
       </div>}>
         <div className="flex min-w-0 gap-3"><div className="min-w-0 space-y-1.5">
           <p className="text-sm"><Link className="font-medium underline-offset-4 hover:underline" href={`/dashboard/places/${row.placeId}`}>{place}</Link> <span className="text-muted-foreground">{copy(KIND_LABELS[row.kind] ?? 'Something else')}</span></p>

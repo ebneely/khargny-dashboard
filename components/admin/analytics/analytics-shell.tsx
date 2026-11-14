@@ -45,7 +45,7 @@ function AnalyticsContent({ children }: { children: React.ReactNode }) {
     for (const key of Array.from(next.keys())) if (key.endsWith('-skip')) next.delete(key);
     window.history.replaceState(null, '', `${pathname}?${next}`);
   };
-  const live = stripLang(pathname).startsWith('/dashboard/numbers/live'); // the minute-by-minute visitors page
+  const live = ['/dashboard/numbers/live', '/dashboard/numbers/health'].some((p) => stripLang(pathname).startsWith(p)); // pages with their own timing: no window or filters
   return <FiltersContext.Provider value={{ query, valid, period, cities: cities.data ?? [] }}><div className="min-w-0 space-y-6">
     <header><h1 className="font-display text-2xl font-semibold">{copy('Numbers')}</h1></header>
     {!live && <WindowSwitch />}

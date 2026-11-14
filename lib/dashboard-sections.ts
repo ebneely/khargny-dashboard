@@ -29,6 +29,7 @@ export const SECTIONS: Section[] = [
     { href: '/dashboard/numbers/movement', label: 'Paths' },
     { href: '/dashboard/numbers/keywords', label: 'Keyword searches' },
     { href: '/dashboard/numbers/live', label: 'Live' },
+    { href: '/dashboard/numbers/health', label: 'Health' },
   ] },
   { href: '/dashboard/settings', label: 'Settings', icon: 'settings', key: 's', tabs: [
     { href: '/dashboard/settings', label: 'General' },

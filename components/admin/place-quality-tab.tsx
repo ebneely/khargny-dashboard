@@ -15,6 +15,7 @@ import { useRouter } from '@/lib/dash-router';
 import { ActionDialog, LoadingState, RequestError, StatusBadge, type ActionSpec } from './subscriber-ui';
 import { PlaceSearchPicker } from './place-search-picker';
 import { useDashboardCopy } from './dashboard-text';
+import { QualityOverview } from './place-quality-score';
 
 // GET /v1/admin/verification/places/:id (only the fields this tab reads).
 interface Section { section: string; applicable: boolean; state: string; changedSinceVerified?: boolean; note?: string | null; verifiedAt?: string | null }
@@ -55,6 +56,7 @@ export function PlaceQualityTab({ placeId, canWrite }: { placeId: string; canWri
   const open = (data?.findings ?? []).filter((finding) => !finding.dismissed);
   const n = (value: number) => value.toLocaleString(localeFor(lang));
   return <div className="space-y-6">
+    <QualityOverview placeId={placeId} canWrite={canWrite} />
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
         <div><CardTitle className="flex items-center gap-2"><ShieldCheck className="size-4 text-primary" aria-hidden="true" />{copy('Is what we show right?')}</CardTitle>
