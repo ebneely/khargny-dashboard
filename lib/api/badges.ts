@@ -16,6 +16,8 @@ export interface BadgeHolder {
   placeId?: string; id?: string; name: string; nameEn: string | null; slug?: string; cityId: string; categoryId: string | null;
   rank: number | null; value: number | null; window: { start: string | null; end: string; days: number | null } | null;
   computedAt?: string; scope?: BadgeScope | null; source: 'earned' | 'pinned' | 'status'; override?: BadgeOverride | null;
+  /** Status badges: price_match = when the team confirmed the prices; visited = first team visit (YYYY-MM-DD). */
+  earnedAt?: string | null; lastVisitAt?: string | null; visitSubscriberId?: string | null;
 }
 export interface BadgeCandidate {
   cover?: string | null;
@@ -36,5 +38,6 @@ export const badgesApi = {
   overrides: (key: BadgeKey) => adminApi.get<BadgeOverride[]>(`/v1/admin/badges/${key}/overrides`),
   addOverride: (key: BadgeKey, body: { placeId: string; kind: 'pin' | 'exclude'; reason: string; until?: string }) => adminApi.post<BadgeOverride>(`/v1/admin/badges/${key}/overrides`, body),
   removeOverride: (key: BadgeKey, id: string) => adminApi.delete<{ deleted: true }>(`/v1/admin/badges/${key}/overrides/${id}`),
+  setPriceMatch: (placeId: string, verified: boolean) => adminApi.put<{ placeId: string; verified: boolean; verifiedAt: string | null }>(`/v1/admin/places/${placeId}/price-verification`, { verified }),
   placeStatus: (id: string) => adminApi.get<{ badgeStatus?: PlaceBadgeStatus[] }>(`/v1/admin/places/${id}`),
 };
