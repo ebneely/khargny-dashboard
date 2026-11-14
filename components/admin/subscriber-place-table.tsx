@@ -1,5 +1,7 @@
 'use client';
 
+import { GovIcon } from '@/components/gov-icon';
+import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
 import { PlacePublicStatus } from './place-public-status';
@@ -89,7 +91,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
   return <div className="min-w-0 space-y-4">
     <SegmentedControl label="Link state" value={filter} onValueChange={(next) => { setSkip(0); onValueChange(next); }} options={[{ value: 'available', label: text('Available', 'المتاح') }, { value: 'linked', label: text('Linked here', 'المرتبط هنا'), disabled: !subscriberId }, { value: 'all', label: text('All', 'الكل') }].map((option) => ({ ...option, count: !loading && resultFilter === option.value ? total : undefined }))} />
     {error && <p role="alert" className="text-sm text-destructive">{error}<Button type="button" variant="outline" onClick={() => setRetry((current) => current + 1)}>{text('Retry', 'إعادة المحاولة')}</Button></p>}
-    <RecordList scope="linked-places" address={address} records={rows} total={total} busy={loading} searchText={(place) => `${place.name} ${place.nameEn ?? ''}`} filters={[{ key: 'city', label: 'All cities', options: (cities?.items ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn) })), value: () => '' }]} render={(visible) =>
+    <RecordList scope="linked-places" address={address} records={rows} total={total} busy={loading} searchText={(place) => `${place.name} ${place.nameEn ?? ''}`} filters={[{ key: 'city', label: 'All cities', options: (cities?.items ?? []).map((city) => ({ value: city.id, label: pick(city.name, city.nameEn), icon: <GovIcon city={city} /> })), value: () => '' }]} render={(visible) =>
     <div data-slot="linked-places-table" className="h-[320px] overflow-auto rounded-lg border sm:h-[420px]" aria-busy={loading}>
       <table className="w-full table-fixed text-start text-sm">
         <thead className="sticky top-0 z-10 bg-muted"><tr>
@@ -121,7 +123,7 @@ function SubscriberPlaceTableContent({ value, persisted = value, onChange, subsc
     </div>
     } />
     <section data-slot="chosen-places" className="space-y-3" aria-label={text('Chosen places', 'الأماكن المختارة')}>
-      <h3 className="text-base font-semibold">{text('Chosen places', 'الأماكن المختارة')} <span className="text-xs font-normal tabular-nums text-muted-foreground">({value.length.toLocaleString(lang)})</span></h3>
+      <h3 className="text-base font-semibold">{text('Chosen places', 'الأماكن المختارة')} <span className="text-xs font-normal tabular-nums text-muted-foreground">({value.length.toLocaleString(localeFor(lang))})</span></h3>
       {!value.length ? <p className="text-sm text-muted-foreground">{text('No linked places yet.', 'لا توجد أماكن مرتبطة بعد.')}</p> :
         <RecordList scope="chosen-places" records={value} searchText={(place) => `${place.name} ${place.nameEn ?? ''}`} filters={[{ key: 'link', label: 'All link states', options: [{ value: 'persisted', label: 'Already linked' }, { value: 'added', label: 'Newly chosen' }], value: (place) => persisted.some((entry) => entry.id === place.id) ? 'persisted' : 'added' }]} render={(visible) => <ul className="space-y-2">{visible.map((chosen) => {
           const place = rows.find((entry) => entry.id === chosen.id) ?? chosen;

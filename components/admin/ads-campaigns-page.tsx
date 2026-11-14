@@ -1,5 +1,6 @@
 'use client';
 
+import { GovIcon } from '@/components/gov-icon';
 import { readCampaignList } from '@/lib/ads-campaign-list';
 
 import { RecordCell } from './record-cell';
@@ -169,7 +170,7 @@ function CampaignsContent({ initialFilters, canWrite }: { initialFilters: Campai
                       <p className="line-clamp-2 leading-4" title={campaign.advertiserName}>{campaign.advertiserName}</p>
                       {campaign.advertiserPhone && <p className="truncate text-xs text-muted-foreground" dir="ltr" title={campaign.advertiserPhone}>{campaign.advertiserPhone}</p>}
                     </TableCell>
-                    <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${controlCopy(surfaceLabels[campaign.placement])} ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} ${campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}`}>{controlCopy(surfaceLabels[campaign.placement])} {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} {campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</p></TableCell>
+                    <TableCell className="text-muted-foreground"><p className="line-clamp-2 leading-4" title={`${controlCopy(surfaceLabels[campaign.placement])} ${campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : controlCopy('All Egypt')} ${campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}`}>{controlCopy(surfaceLabels[campaign.placement])} {campaign.city ? <span className="inline-flex items-center gap-1.5 align-middle"><GovIcon city={campaign.city} />{pick(campaign.city.name, campaign.city.nameEn)}</span> : controlCopy('All Egypt')} {campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</p></TableCell>
                     <TableCell className="text-muted-foreground"><DateRange start={campaign.startDate} end={campaign.endDate} /></TableCell>
                     <TableCell className="text-end tabular-nums">{formatMoney(campaign.amountPaid, campaign.currency)}</TableCell>
                     <TableCell className="text-end tabular-nums">{formatCount(campaign.totals?.impressions)}</TableCell>

@@ -19,6 +19,7 @@ import {
 import { useAdminCities } from '@/lib/api/hooks/use-admin-cities';
 import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { StatusBadge } from '@/components/admin/subscriber-ui';
+import { GovIcon } from '@/components/gov-icon';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
 
@@ -84,7 +85,7 @@ export default function CitiesPage() {
                             className="hover:text-primary font-medium"
                             data-trace-id={`city-list-name-${city.id}`}
                           >
-                            <RecordCell icon="location" nameAr={city.name} nameEn={city.nameEn} thumbnail={city.imageUrl ?? null} />
+                            <RecordCell leading={<GovIcon city={city} className="size-5" />} nameAr={city.name} nameEn={city.nameEn} thumbnail={city.imageUrl ?? null} />
                           </Link>
                         </TableCell>
                         <TableCell className="text-muted-foreground">{city.slug}</TableCell>

@@ -18,7 +18,8 @@ import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { useSearchParams } from 'next/navigation';
 import { numbersRange, readNumbersWindow } from '@/components/admin/analytics/window-switch';
-import { regionLabel } from '@/lib/egypt-regions';
+import { regionLabel, findRegion } from '@/lib/egypt-regions';
+import { GovIcon } from '@/components/gov-icon';
 import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
 import { AR_LOCALE } from '@/lib/locale';
@@ -44,6 +45,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
         .map((c) => ({
           key: c.key,
           label: label(c.labelAr, c.labelEn, c.key),
+          leading: <GovIcon city={{ slug: c.key, nameEn: c.labelEn, name: c.labelAr }} className="size-5" />,
           value: c[measure],
           meta: `${c.places.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))
@@ -59,6 +61,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           // The region column holds the English name as a key; the Arabic label comes from
           // the shared catalog, the same way every other surface resolves it.
           label: regionLabel(r.key, lang) || r.key,
+          leading: <GovIcon city={{ nameEn: findRegion(r.key)?.governorate }} className="size-5" />,
           value: r[measure],
           meta: `${r.places.toLocaleString(lang === 'ar' ? AR_LOCALE : 'en-US')} ${lang === 'ar' ? 'أماكن' : 'places'}`,
         }))

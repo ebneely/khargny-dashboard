@@ -1,5 +1,6 @@
 'use client';
 
+import { localeFor } from '@/lib/locale';
 import * as React from 'react';
 import { RecordList } from '../record-list';
 import { RecordCell } from '../record-cell';
@@ -13,6 +14,8 @@ export type RankedRow = {
   value?: number;
   /** Secondary context shown under the label, e.g. "12 places". */
   meta?: string;
+  /** Replaces the location tile, e.g. a governorate icon. */
+  leading?: React.ReactNode;
 };
 
 /**
@@ -70,14 +73,14 @@ export function RankedBars({
                 : 'var(--brand-400)';
         return (
           <li key={row.key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1">
-            <RecordCell icon="location" name={row.label} thumbnail={null} />
+            <RecordCell icon="location" leading={row.leading} name={row.label} thumbnail={null} />
             <span className="text-sm font-semibold tabular-nums text-foreground">
-              {row.value === undefined ? '—' : row.value.toLocaleString(lang)}
+              {row.value === undefined ? '—' : row.value.toLocaleString(localeFor(lang))}
             </span>
             <div
               className="col-span-2 h-2 overflow-hidden rounded-full bg-muted"
               role="img"
-              aria-label={`${row.label}: ${row.value === undefined ? '—' : row.value.toLocaleString(lang)} ${measureLabel}`}
+              aria-label={`${row.label}: ${row.value === undefined ? '—' : row.value.toLocaleString(localeFor(lang))} ${measureLabel}`}
             >
               <div
                 className="h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out"

@@ -50,12 +50,14 @@ function CoverGrid({ urls }: { urls: string[] }) {
     : <span key={index} className="bg-muted" />)}</span>;
 }
 
-export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badgeIcon, chips, context, cover }: {
+export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, leading, badgeIcon, chips, context, cover }: {
   nameAr?: string | null;
   nameEn?: string | null;
   name?: string;
   thumbnail?: string | null;
   icon?: RecordIcon;
+  /** Replaces the icon tile, e.g. a city's governorate icon. */
+  leading?: React.ReactNode;
   badgeIcon?: BadgeIconKey;
   chips?: React.ReactNode;
   context?: React.ReactNode;
@@ -69,7 +71,7 @@ export function RecordCell({ nameAr, nameEn, name, thumbnail = null, icon, badge
   const secondary = other && other.toLocaleLowerCase() !== primary.toLocaleLowerCase() ? other : undefined;
   const alignment = { textAlign: lang === 'ar' ? 'right' as const : 'left' as const };
   return <div data-slot="record-cell" dir={lang === 'ar' ? 'rtl' : 'ltr'} style={alignment} className="flex min-w-0 max-w-64 items-center gap-2 whitespace-normal leading-4">
-    {cover?.length ? <CoverGrid urls={cover} /> : icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
+    {cover?.length ? <CoverGrid urls={cover} /> : leading ? <span data-slot="record-icon" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">{leading}</span> : icon ? <RecordIconTile kind={icon} badgeIcon={badgeIcon} /> : <RecordThumbnail src={thumbnail} />}
     <div data-slot="record-name-text" className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-2"><span data-slot="record-name-primary" lang={primaryLang} dir="auto" style={alignment} className="min-w-0 max-w-full line-clamp-2 break-words font-medium" title={primary}>{primary}</span>{chips}</div>
       {secondary && <p data-slot="record-name-secondary" lang={secondaryLang} dir="auto" style={alignment} className="line-clamp-2 break-words text-sm leading-4 text-muted-foreground" title={secondary}>{secondary}</p>}

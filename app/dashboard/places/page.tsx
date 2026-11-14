@@ -35,6 +35,7 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { PlacePublicStatus } from '@/components/admin/place-public-status';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
+import { GovIcon } from '@/components/gov-icon';
 import { WindowSwitch } from '@/components/admin/analytics/window-switch';
 
 const HYPE_WINDOWS = ['live', '24h', '7d', '30d'] as const;
@@ -137,7 +138,7 @@ export default function PlacesPage() {
           <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }, { value: 'hype', label: 'Hype first' }]} />
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
             <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter('all'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />
-            <FilterSelect label="Any city" value={cityFilter} onValueChange={(value) => { setCityFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any city' }, ...(cityData?.items ?? []).map((city) => ({ value: city.id, label: pickName(city.name, city.nameEn, lang) }))]} />
+            <FilterSelect label="Any city" value={cityFilter} onValueChange={(value) => { setCityFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any city' }, ...(cityData?.items ?? []).map((city) => ({ value: city.id, label: pickName(city.name, city.nameEn, lang), icon: <GovIcon city={city} /> }))]} />
             <FilterSelect label="Any category" value={categoryFilter} onValueChange={(value) => { setCategoryFilter(value); setPage(0); }} options={[{ value: 'all', label: 'Any category' }, ...(categoryData ?? []).map((category) => ({ value: category.id, label: pickName(category.nameAr, category.nameEn, lang) }))]} />
             <PlaceOwnerFilter value={ownerFilter} onChange={(value) => { setOwnerFilter(value); setPage(0); }} />
             <FilterSelect label="Any media" value={mediaFilter} onValueChange={(value) => { setMediaFilter(value);  setPage(0); }} options={[{ value: 'all', label: 'Any media' }, { value: 'with', label: 'Has media' }, { value: 'without', label: 'Needs media' }]} />
@@ -189,7 +190,7 @@ export default function PlacesPage() {
                           <span data-place-detail="metrics">{copy('Likes')}: {engagementNumber(place.likeCount, lang)} {copy('Saves')}: {place.saveCount ?? 0} {copy('Views')}: {place.viewCount ?? 0} {copy('5argny taps')}: {place.directionsCount ?? 0}</span>
                         </p>
                       </TableCell>
-                      <TableCell data-place-field="city" className="text-muted-foreground"><p className="line-clamp-1 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{pickName(place.city?.name, place.city?.nameEn, lang)}</p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
+                      <TableCell data-place-field="city" className="text-muted-foreground"><p className="flex items-center gap-1.5 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{place.city && <GovIcon city={place.city} />}<span className="line-clamp-1 min-w-0">{pickName(place.city?.name, place.city?.nameEn, lang)}</span></p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
                       <TableCell data-place-field="owner" className="text-muted-foreground">{place.subscriber ? <Link className="block truncate leading-4 hover:underline" title={place.subscriber.name} href={`/dashboard/subscribers/${place.subscriber.id}`}>{place.subscriber.name}</Link>: '—'}</TableCell>
                       <TableCell data-place-field="price" className="text-muted-foreground">{place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</TableCell>
                       <TableCell data-place-field="status" column="status">

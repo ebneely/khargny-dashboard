@@ -15,7 +15,7 @@ export function FilterSearch({ label, ...props }: Omit<ComponentProps<typeof Inp
   return <div data-slot="filter-search" className="relative min-w-0"><Search className="pointer-events-none absolute start-3 top-3.5 size-4 text-muted-foreground" aria-hidden="true" /><Input data-ro-allow="true" {...props} placeholder={copy(label)} aria-label={copy(label)} className="ps-9" /></div>;
 }
 
-export function FilterSelect({ label, value, options, onValueChange }: { label: string; value: string; options: { value: string; label: string }[]; onValueChange: (value: string) => void }) {
+export function FilterSelect({ label, value, options, onValueChange }: { label: string; value: string; options: { value: string; label: string; icon?: ReactNode }[]; onValueChange: (value: string) => void }) {
   const copy = useDashboardCopy();
-  return <Select value={value} onValueChange={(next) => { if (next) onValueChange(next); }}><SelectTrigger data-ro-allow="true" className="w-full" aria-label={copy(label)}><SelectValue /></SelectTrigger><SelectContent>{options.map((option) => <SelectItem key={option.value} value={option.value}>{copy(option.label)}</SelectItem>)}</SelectContent></Select>;
+  return <Select value={value} onValueChange={(next) => { if (next) onValueChange(next); }}><SelectTrigger data-ro-allow="true" className="w-full" aria-label={copy(label)}><SelectValue /></SelectTrigger><SelectContent>{options.map((option) => <SelectItem key={option.value} value={option.value}>{option.icon ? <span className="flex items-center gap-2">{option.icon}{copy(option.label)}</span> : copy(option.label)}</SelectItem>)}</SelectContent></Select>;
 }

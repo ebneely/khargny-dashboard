@@ -1,5 +1,7 @@
 'use client';
 
+import { GovIcon } from '@/components/gov-icon';
+import { dashboardDateTime } from '@/lib/dashboard-date';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { surfaceLabels } from '@/lib/ads-round7b';
 import { RecordList } from './record-list';
@@ -63,7 +65,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
 
   const { campaign, totals, days, methodology } = report;
   const placeName = pick(campaign.place.name, campaign.place.nameEn) || '—';
-  const generatedAt = new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: report.timezone }).format(new Date(report.generatedAt));
+  const generatedAt = dashboardDateTime(report.generatedAt, lang);
 
   return (
     <div className="ad-report">
@@ -81,7 +83,7 @@ export function AdReportPage({ campaignId }: { campaignId: string }) {
       <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y bg-card px-4 py-3 text-sm">
         <AdStateBadge state={campaign.state} />
         <span><strong><DashboardText>Where it appears:</DashboardText></strong> <DashboardText>{surfaceLabels[campaign.placement]}</DashboardText></span>
-        <span><strong><DashboardText>Scope:</DashboardText></strong> {campaign.city ? pick(campaign.city.name, campaign.city.nameEn) : <DashboardText>All Egypt</DashboardText>} <span dir="auto">{campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</span></span>
+        <span><strong><DashboardText>Scope:</DashboardText></strong> {campaign.city ? <span className="inline-flex items-center gap-1.5 align-middle"><GovIcon city={campaign.city} />{pick(campaign.city.name, campaign.city.nameEn)}</span> : <DashboardText>All Egypt</DashboardText>} <span dir="auto">{campaign.areaKey ?? (campaign.category ? pick(campaign.category.nameAr, campaign.category.nameEn) : null) ?? (campaign.section ? pick(campaign.section.titleAr, campaign.section.titleEn) : null) ?? campaign.categoryId ?? campaign.sectionId ?? ''}</span></span>
         <span><strong><DashboardText>Dates:</DashboardText></strong> {formatDate(campaign.startDate)} – {campaign.endDate ? formatDate(campaign.endDate) : controlCopy('No end date')}</span>
         <span><strong><DashboardText>Timezone:</DashboardText></strong> {report.timezone}</span>
       </div>

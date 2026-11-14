@@ -28,7 +28,7 @@ export function useListAddress(scope: string) {
 }
 
 export type ListAddress = ReturnType<typeof useListAddress>;
-export type RecordFilter<T> = { key: string; label: string; options: { value: string; label: string }[]; value: (record: T) => string; defaultValue?: string; matches?: (record: T, selected: string) => boolean };
+export type RecordFilter<T> = { key: string; label: string; options: { value: string; label: string; icon?: React.ReactNode }[]; value: (record: T) => string; defaultValue?: string; matches?: (record: T, selected: string) => boolean };
 
 export function RecordList<T>(props: {
   scope: string; records: T[]; searchText: (record: T) => string;

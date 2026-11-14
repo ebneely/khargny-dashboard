@@ -18,6 +18,7 @@ import { Check } from 'lucide-react';
 import { EGYPT_CITIES, regionsForCity } from '@/lib/egypt-regions';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { GovIcon } from '@/components/gov-icon';
 
 export function CityPicker({
   value,
@@ -73,7 +74,8 @@ export function CityPicker({
                     : 'border-transparent hover:border-[var(--gray-300)] hover:bg-[var(--gray-50)]',
                 )}
               >
-                <span className="min-w-0">
+                <GovIcon city={{ nameEn: c.value }} className="text-inherit" />
+                <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{c.value}</span>
                   <span className="block truncate text-[10px] text-muted-foreground">
                     {c.nameAr} {areaCount} <DashboardText>area</DashboardText>{areaCount === 1 ? '' : 's'}

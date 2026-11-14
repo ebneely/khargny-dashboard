@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { GovIcon } from '@/components/gov-icon';
 
 export function RegionPicker({
   value,
@@ -146,7 +147,8 @@ export function RegionPicker({
         ) : (
           groups.map(([cityName, regions]) => (
             <div key={cityName} className="mb-3 last:mb-0">
-              <p className="px-1 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="flex items-center gap-1.5 px-1 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <GovIcon city={{ nameEn: cityName }} />
                 {cityName}
                 <span className="ml-1.5 font-normal normal-case opacity-70">
                   {regions.length} <DashboardText>area</DashboardText>{regions.length === 1 ? '' : 's'}
