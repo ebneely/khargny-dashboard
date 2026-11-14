@@ -222,7 +222,7 @@ export default function PlacesPage() {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
-                {statusFilter === 'deleted' ? 'No deleted places.' : 'No places found'}
+                {copy(statusFilter === 'deleted' ? 'No deleted places.' : 'No places found')}
               </p>
             </div>
           )}

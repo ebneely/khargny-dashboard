@@ -20,10 +20,12 @@ import { SubscriberAccountPanel } from './subscriber-account';
 import { SubscriberPhotosPanel } from './subscriber-photos';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
 import { PlaceMenuEditor } from './place-menu-editor';
+import { useDashboardCopy } from './dashboard-text';
 import { LoadingState, SavedRefreshError, MoneyText, RequestError, StatusBadge, subscriberError, useSubscriberText } from './subscriber-ui';
 
 export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscriberId?: string; canWrite: boolean }) {
   const { text, lang, pick } = useSubscriberText();
+  const copy = useDashboardCopy();
   const load = React.useCallback(() => subscriberId ? adminApi.get<SubscriberDetail>(`/v1/admin/subscribers/${subscriberId}`) : Promise.resolve(null), [subscriberId]);
   const resource = useSubscriberResource(load);
   const subscriber = resource.data;
@@ -42,30 +44,28 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
     {subscriberId && resource.loading && <LoadingState />}
     {resource.error && (resource.savedRefreshFailed ? <SavedRefreshError retry={() => { void resource.refetch(); }} /> : <RequestError message={subscriberError(resource.error, lang)} retry={() => { void resource.refetch(); }} />)}
     {!subscriberId && <SubscriberProfileForm canWrite={canWrite} onSaved={resource.refreshAfterSave} />}
-    {subscriber && <UrlTabs values={["details", "places", "subscriptions", "visits", "account", "menus"]}>
+    {/* Four tabs by job (DIRECTION section 1); older ?tab=visits and ?tab=menus links open Places, which now holds both. */}
+    {subscriber && <UrlTabs values={['details', 'places', 'subscriptions', 'account']} renamed={{ visits: 'places', menus: 'places' }}>
       <TabsList aria-label={text('Subscriber sections', 'أقسام المشترك')}>
-        <TabsTrigger value="details">{text('Details', 'البيانات')}</TabsTrigger>
+        <TabsTrigger value="details">{copy('Overview')}</TabsTrigger>
         <TabsTrigger value="places">{text('Places', 'الأماكن')}</TabsTrigger>
-        <TabsTrigger value="subscriptions">{text('Subscriptions', 'الاشتراكات')}</TabsTrigger>
-        <TabsTrigger value="visits">{text('Visits', 'الزيارات')}</TabsTrigger>
-        <TabsTrigger value="account">{text('Account', 'الحساب')}</TabsTrigger>
-        <TabsTrigger value="menus">{text('Pricing', 'الأسعار')}</TabsTrigger>
+        <TabsTrigger value="subscriptions">{copy('Billing')}</TabsTrigger>
+        <TabsTrigger value="account">{copy('Owner portal')}</TabsTrigger>
       </TabsList>
-      <SubscriberProfileForm subscriber={subscriber} canWrite={canWrite} onSaved={resource.refreshAfterSave} placesContent={
+      <SubscriberProfileForm subscriber={subscriber} canWrite={canWrite} onSaved={resource.refreshAfterSave} placesContent={<>
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">{text('Place details', 'تفاصيل الأماكن')}</h2>
           {!subscriber.places.length && <p className="text-sm text-muted-foreground">{text('Link a place to manage its details and pricing.', 'اربط مكاناً لإدارة تفاصيله وأسعاره.')}</p>}
           {subscriber.places.map((place) => <SubscriberPlaceDetails key={place.id} placeId={place.id} canWrite={canWrite} revision={subscriber} />)}
         </section>
-      } />
+        <SubscriberVisits subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} />
+        {subscriber.places.length > 0 && <section className="space-y-6">
+          <h2 className="text-lg font-semibold">{text('Pricing', 'الأسعار')}</h2>
+          {subscriber.places.map((place, placeIndex) => <section key={place.id} className="space-y-3"><h3 className="font-semibold">{pick(place.name, place.nameEn)}</h3><PlaceMenuEditor placeId={place.id} canWrite={canWrite} primaryAction={placeIndex === 0} onChanged={resource.refreshAfterSave} /></section>)}
+        </section>}
+      </>} />
       <UrlTabsContent value="subscriptions"><SubscriberSubscriptions subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
-      <UrlTabsContent value="visits"><SubscriberVisits subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
       <UrlTabsContent value="account" className="space-y-6"><SubscriberAccountPanel key={subscriber.id} subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /><SubscriberPhotosPanel subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
-      <UrlTabsContent value="menus" lazy className="space-y-6">
-        <h2 className="text-lg font-semibold">{text('Pricing', 'الأسعار')}</h2>
-        {!subscriber.places.length && <Card><CardHeader><CardTitle>{text('No linked places', 'لا توجد أماكن مرتبطة')}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{text('Link a place in the Places tab to add its pricing.', 'اربط مكاناً في تبويب الأماكن لإضافة أسعاره.')}</p></CardContent></Card>}
-        {subscriber.places.map((place, placeIndex) => <section key={place.id} className="space-y-3"><h3 className="font-semibold">{pick(place.name, place.nameEn)}</h3><PlaceMenuEditor placeId={place.id} canWrite={canWrite} primaryAction={placeIndex === 0} onChanged={resource.refreshAfterSave} /></section>)}
-      </UrlTabsContent>
     </UrlTabs>}
   </div></ActionBarNavigation>;
 }

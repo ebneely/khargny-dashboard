@@ -9,14 +9,14 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 
 const ActiveTab = React.createContext<string | undefined>(undefined);
 
-type UrlTabsProps = Omit<React.ComponentProps<typeof Tabs>, 'value' | 'defaultValue' | 'onValueChange'> & { values: readonly string[] };
+type UrlTabsProps = Omit<React.ComponentProps<typeof Tabs>, 'value' | 'defaultValue' | 'onValueChange'> & { values: readonly string[]; renamed?: Record<string, string> };
 
 export function UrlTabs(props: UrlTabsProps) {
   return <React.Suspense fallback={null}><ControlledUrlTabs {...props} /></React.Suspense>;
 }
 
-function ControlledUrlTabs({ values, children, ...props }: UrlTabsProps) {
-  const tab = useUrlTab(values);
+function ControlledUrlTabs({ values, renamed, children, ...props }: UrlTabsProps) {
+  const tab = useUrlTab(values, values[0], 'tab', renamed);
   const { lang } = useDashboardLang();
   const direction = props.dir === 'ltr' || props.dir === 'rtl' ? props.dir : lang === 'ar' ? 'rtl' : 'ltr';
   return <DirectionProvider direction={direction}><ActiveTab.Provider value={tab.value}><Tabs {...props} {...tab} dir={direction}>{children}</Tabs></ActiveTab.Provider></DirectionProvider>;

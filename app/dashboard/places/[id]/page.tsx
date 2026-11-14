@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { HiddenOnTab, UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
+import { UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -39,6 +39,7 @@ import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { PlaceMenuTab } from '@/components/admin/place-menu-page';
 import { PlaceBadgesTab } from '@/components/admin/place-badges-tab';
+import { PlaceSubmissions } from '@/components/admin/place-submissions';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
@@ -49,8 +50,12 @@ export default function EditPlacePage() {
   return <Suspense fallback={null}><EditPlaceContent /></Suspense>;
 }
 
+// Tabs grouped by job (DIRECTION section 1). Older ?tab= links land on the tab that now holds them.
+const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'submissions'];
+const RENAMED_PLACE_TABS: Record<string, string> = { amenities: 'features', tags: 'features', ads: 'visibility', badges: 'visibility' };
+
 function EditPlaceContent() {
-  const activeTab = useUrlTab(['details', 'amenities', 'tags', 'hours', 'photos', 'menu', 'ads', 'badges']).value;
+  const activeTab = useUrlTab(PLACE_TABS, PLACE_TABS[0], 'tab', RENAMED_PLACE_TABS).value;
   const controlCopy = useDashboardCopy();
   const readOnly = useDashboardReadOnly();
   const router = useRouter();
@@ -64,9 +69,9 @@ function EditPlaceContent() {
   const detailsOpened = opened('details');
 
   const { data: place, isLoading: loadingPlace, isError: loadError } = useAdminPlace(id);
-  const { data: allAmenities, isLoading: loadingAmenities, isError: loadAmenitiesError } = useAdminAmenities(opened('amenities'));
+  const { data: allAmenities, isLoading: loadingAmenities, isError: loadAmenitiesError } = useAdminAmenities(opened('features'));
   const amenities = usePlaceAmenities(id, []);
-  const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags(opened('tags'));
+  const { data: allTags, isLoading: loadingTags, isError: loadTagsError } = useAdminTags(opened('features'));
   const tags = usePlaceTags(id, []);
   const markAmenitiesSaved = amenities.markSaved;
   const markTagsSaved = tags.markSaved;
@@ -230,16 +235,15 @@ function EditPlaceContent() {
       </div>
 
       <PlaceEngagement place={place} />
-      <UrlTabs values={["details", "amenities", "tags", "hours", "photos", "menu", "ads", "badges"]}>
+      <UrlTabs values={PLACE_TABS} renamed={RENAMED_PLACE_TABS}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">{lang === 'ar' ? 'البيانات' : 'Details'}</TabsTrigger>
-          <TabsTrigger value="amenities">{lang === 'ar' ? 'المرافق' : 'Amenities'}</TabsTrigger>
-          <TabsTrigger value="tags">{lang === 'ar' ? 'الوسوم' : 'Tags'}</TabsTrigger>
           <TabsTrigger value="hours">{lang === 'ar' ? 'المواعيد' : 'Hours'}</TabsTrigger>
           <TabsTrigger value="photos">{lang === "ar" ? "الوسائط" : "Media"}</TabsTrigger>
-          <TabsTrigger value="menu">{lang === "ar" ? "الأسعار" : "Pricing"}</TabsTrigger>
-          <TabsTrigger value="ads">{controlCopy("Ads")}</TabsTrigger>
-          <TabsTrigger value="badges">{controlCopy('Badges')}</TabsTrigger>
+          <TabsTrigger value="menu">{controlCopy("Menu & prices")}</TabsTrigger>
+          <TabsTrigger value="features">{controlCopy("Features")}</TabsTrigger>
+          <TabsTrigger value="visibility">{controlCopy("Visibility")}</TabsTrigger>
+          <TabsTrigger value="submissions">{controlCopy("Submissions")}</TabsTrigger>
         </TabsList>
 
         <TabsContent keepMounted value="details">
@@ -379,7 +383,7 @@ function EditPlaceContent() {
       </Card>
         </TabsContent>
 
-        <TabsContent keepMounted value="amenities">
+        <TabsContent keepMounted value="features" className="space-y-6">
       <Card data-trace-id="place-amenities-section">
         <CardHeader>
           <CardTitle><DashboardText>Amenities</DashboardText></CardTitle>
@@ -497,9 +501,6 @@ function EditPlaceContent() {
           )}
         </CardContent>
       </Card>
-        </TabsContent>
-
-        <TabsContent keepMounted value="tags">
       <Card data-trace-id="place-tags-section">
         <CardHeader>
           <CardTitle><DashboardText>Tags</DashboardText></CardTitle>
@@ -930,8 +931,8 @@ function EditPlaceContent() {
       </Card>
         </TabsContent>
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
-        <UrlTabsContent value="ads" lazy><PlacePromotionReport placeId={id} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
-        <UrlTabsContent value="badges" lazy><PlaceBadgesTab placeId={id} /></UrlTabsContent>
+        <UrlTabsContent value="visibility" lazy className="space-y-6"><PlacePromotionReport placeId={id} canWrite={!readOnly && !isSoftDeleted} /><PlaceBadgesTab placeId={id} /></UrlTabsContent>
+        <UrlTabsContent value="submissions" lazy><PlaceSubmissions placeId={id} canWrite /></UrlTabsContent>
       </UrlTabs>
 
       {/* Image preview lightbox — click any photo to view it large. */}
@@ -956,9 +957,10 @@ function EditPlaceContent() {
         </div>
       )}
 
-      <HiddenOnTab tab="ads"><HiddenOnTab tab="menu">
+      {/* The bar saves the place's own fields; Menu, Visibility and Submissions save live or are read-only. */}
+      {!['menu', 'visibility', 'submissions'].includes(activeTab) && <>
       <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />
-      </HiddenOnTab></HiddenOnTab>
+      </>}
     </div>
   );
 }

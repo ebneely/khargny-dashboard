@@ -2,9 +2,11 @@
 
 import { useSearchParams } from 'next/navigation';
 
-export function useUrlTab(values: readonly string[], defaultValue = values[0], parameter = 'tab') {
+/** `renamed` maps tab values from older links to the tab that now holds them, so saved ?tab= links keep working. */
+export function useUrlTab(values: readonly string[], defaultValue = values[0], parameter = 'tab', renamed: Record<string, string> = {}) {
   const searchParams = useSearchParams();
-  const requested = searchParams.get(parameter);
+  const raw = searchParams.get(parameter);
+  const requested = raw === null ? null : renamed[raw] ?? raw;
   const value = requested === null ? defaultValue : values.includes(requested) ? requested : values[0];
   const onValueChange = (nextValue: unknown) => {
     if (typeof nextValue !== 'string' || !values.includes(nextValue)) return;
