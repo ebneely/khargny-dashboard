@@ -22,6 +22,7 @@ import { regionLabel, findRegion } from '@/lib/egypt-regions';
 import { GovIcon } from '@/components/gov-icon';
 import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
+import { GpsViewersCard } from './gps-viewers-card';
 import { AR_LOCALE } from '@/lib/locale';
 
 /** The three engagement measures, each plotted on its own axis — never together. */
@@ -137,6 +138,8 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
           </TabsContent>
         </UrlTabs>
       </section>
+
+      <GpsViewersCard />
 
       {/* A table, not a chart: ten named rows across three measures is what a table is for. */}
       <section className="rounded-lg border border-border bg-card" aria-labelledby="insights-top">
