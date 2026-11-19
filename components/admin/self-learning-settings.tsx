@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { adminApi, AdminApiError } from '@/lib/api/admin-client';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useDashboardLang } from '@/lib/dashboard-lang';
+import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { localeFor } from '@/lib/locale';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useDashboardCopy } from './dashboard-text';
@@ -87,6 +88,7 @@ const toValues = (draft: Draft): Groups | null => {
 export function SelfLearningSettings() {
   // the save bar belongs to the Settings tab only
   const active = useSearchParams().get('tab') === 'settings';
+  const readOnly = useDashboardReadOnly();
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const locale = localeFor(lang);
@@ -132,7 +134,7 @@ export function SelfLearningSettings() {
   return <div className="space-y-6">
     {FORM.map(({ group, title, description, controls }) => <Card key={group}>
       <CardHeader className="flex flex-wrap items-start justify-between gap-3"><div className="space-y-1.5"><CardTitle>{copy(title)}</CardTitle><CardDescription className="max-w-2xl">{copy(description)}</CardDescription></div>
-        {group === 'learnedKeywords' && <Button type="button" variant="outline" onClick={() => { void runPreview(); }} disabled={!values || previewing || saving} title={values ? undefined : copy('Fill every number first.')}>{copy(previewing ? 'Previewing…' : 'Preview these values')}</Button>}</CardHeader>
+        {group === 'learnedKeywords' && !readOnly && <Button type="button" variant="outline" onClick={() => { void runPreview(); }} disabled={!values || previewing || saving} title={values ? undefined : copy('Fill every number first.')}>{copy(previewing ? 'Previewing…' : 'Preview these values')}</Button>}</CardHeader>
       <CardContent className="space-y-5">
         {group === 'learnedKeywords' && preview && <dl className="grid grid-cols-3 gap-4 rounded-lg bg-muted px-4 py-3 text-sm" aria-live="polite">
           {([['Learned now', preview.learnedNow], ['Would be learned', preview.wouldAssign], ['Would be removed', preview.wouldRemove]] as const).map(([label, value]) => <div key={label}><dt className="text-muted-foreground">{copy(label)}</dt><dd className="text-lg font-semibold tabular-nums">{value.toLocaleString(locale)}</dd></div>)}
@@ -149,7 +151,7 @@ export function SelfLearningSettings() {
               <p id={`${controlId}-help`} className="max-w-md text-sm text-muted-foreground">{copy(help)}</p></div>;
         })}</div>
       </CardContent></Card>)}
-    <FormActionBar active={active} dirty={changes.dirty} saving={saving} error={error} disabled={!values} disabledReason={values ? undefined : copy('Fill every number first.')} onSave={() => { void save(); }}
-      cancelHref="/dashboard/numbers/searches" primaryLabel={copy('Save search settings')} />
+    {!readOnly && <FormActionBar active={active} dirty={changes.dirty} saving={saving} error={error} disabled={!values} disabledReason={values ? undefined : copy('Fill every number first.')} onSave={() => { void save(); }}
+      cancelHref="/dashboard/numbers/searches" primaryLabel={copy('Save search settings')} />}
   </div>;
 }

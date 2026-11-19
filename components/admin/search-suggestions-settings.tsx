@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { adminApi } from '@/lib/api/admin-client';
 import { loadAllCities } from '@/lib/api/hooks/use-admin-cities';
 import { useDashboardCopy } from './dashboard-text';
+import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -17,6 +18,7 @@ const START: SearchValues = { defaultCitySlug: 'cairo', suggestInCity: true, sug
 
 export function SearchSuggestionsSettings() {
   const copy = useDashboardCopy();
+  const readOnly = useDashboardReadOnly();
   const [row, setRow] = React.useState<Row | null>(null);
   const [cities, setCities] = React.useState<{ slug: string; label: string }[]>([]);
   const [search, setSearch] = React.useState<SearchValues>(START);
@@ -45,6 +47,6 @@ export function SearchSuggestionsSettings() {
         </select></label>
       {kinds.map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4 text-sm"><span>{label.startsWith('"') ? label : copy(label)}</span>
         <Switch checked={search[key] as boolean} disabled={!row} onCheckedChange={(on: boolean) => setSearch({ ...search, [key]: on })} /></label>)}
-      <div><Button onClick={save} disabled={!row || busy}>{copy('Save')}</Button></div>
+      {!readOnly && <div><Button onClick={save} disabled={!row || busy}>{copy('Save')}</Button></div>}
     </CardContent></Card>;
 }
