@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
+import { langHref, stripLang, type DashLang } from './dashboard-lang-path';
 
-export type DashLang = 'ar' | 'en';
+export { langHref, stripLang } from './dashboard-lang-path';
+export type { DashLang } from './dashboard-lang-path';
 
 interface DashLangValue {
   /** The dashboard's language, from the URL only: `/ar/...` is Arabic, a plain URL is English. */
@@ -17,18 +19,6 @@ interface DashLangValue {
    * editor SEES, never what is saved.
    */
   pick: (ar: string | null | undefined, en: string | null | undefined) => string;
-}
-
-/** Paths that have an Arabic twin under `/ar` (the proxy rewrites `/ar/...` onto them). */
-const LOCALIZED = /^\/(dashboard|login)(?=$|[/?#])/;
-
-/** The path without its language prefix (what the app's routes are named). */
-export const stripLang = (path: string) => (path === '/ar' ? '/' : path.startsWith('/ar/') ? path.slice(3) : path);
-
-/** An internal href in a language: Arabic gets the `/ar` prefix, English never has one. */
-export function langHref(href: string, lang: DashLang) {
-  const plain = stripLang(href);
-  return lang === 'ar' && LOCALIZED.test(plain) ? `/ar${plain}` : plain;
 }
 
 const DashLangContext = React.createContext<DashLangValue | null>(null);
