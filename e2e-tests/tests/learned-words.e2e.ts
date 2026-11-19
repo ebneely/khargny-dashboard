@@ -66,8 +66,9 @@ describe('learned words: the admin reviews and decides', { session: 'admin', tag
     const { placeId } = await seedLearnedWord(term);
     try {
       await app.open(LEARNED);
-      await expect(screen.getByRole('link', { name: `Open the place: ${term}` })).toBeVisible();
-      await screen.getByRole('link', { name: `Open the place: ${term}` }).tap();
+      // For an admin the row's visible action is Promote; opening the place lives in its More actions menu.
+      await screen.getByRole('button', { name: `More actions: ${term}` }).tap();
+      await screen.getByRole('menuitem', { name: 'Open the place' }).tap();
       await expect(browser).toHaveURL(`/dashboard/places/${placeId}`, { timeout: 30_000 });
     } finally {
       await forgetLearnedWord(term, placeId);
