@@ -90,6 +90,7 @@ export default {
     },
   },
   reporters: ['list', 'markdown'],
+  workers: 5,
   actionTimeout: 60_000,
   assertionTimeout: 15_000,
 } satisfies E2EConfig;
