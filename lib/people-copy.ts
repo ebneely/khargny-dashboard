@@ -1,0 +1,22 @@
+/** Arabic for decision 0009: the People switch and the hype rank. Digits stay 0-9. */
+export const peopleCopy: Record<string, string> = {
+  'All': 'الكل',
+  'People': 'أشخاص',
+  'New': 'جدد',
+  'Returning': 'عائدون',
+  'Count': 'العدّ',
+  'Repeat': 'التكرار',
+  'Web estimated': 'الويب تقديري',
+  'Web visitors are told apart by a browser cookie, so web people are estimated.': 'زوار الويب يُميَّزون بكوكي المتصفح، فأرقام الأشخاص على الويب تقديرية.',
+  'No hype yet': 'لا رواج بعد',
+  'of': 'من',
+  'top': 'أعلى',
+  'in': 'في',
+  'people': 'شخص',
+  'new': 'جدد',
+  'each': 'لكل شخص',
+  'up': 'صعد',
+  'down': 'نزل',
+  'vs last week': 'عن الأسبوع الماضي',
+  'People: different people who did it at least once. New: their first time on 5argny is in this window. Returning: they were here before. Repeat: times per person.': 'أشخاص: ناس مختلفون عملوها مرة على الأقل. جدد: أول مرة لهم على خرجني في هذه الفترة. عائدون: كانوا هنا قبلها. التكرار: عدد المرات لكل شخص.',
+};

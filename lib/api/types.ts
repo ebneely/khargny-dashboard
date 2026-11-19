@@ -11,6 +11,8 @@ export interface AdminPlace {
   slug: string;
   /** Hype score: last-30-day views + likes + saves + shares + 5argny taps, uncapped (owner 2026-11-14). */
   hype?: number;
+  /** Decision 0009: where the hype stands (team only): rank, of how many, top %, places moved vs a week ago, and the same inside its area and category. */
+  hypeRank?: { rank: number; total: number; topPercent: number; moved: number | null; area: { rank: number; total: number } | null; category: { rank: number; total: number } | null } | null;
   /** The hype window's counts (admin list with `window`): what the Likes, Saves, Views and 5argny columns show. */
   counts?: { views: number; likes: number; saves: number; shares: number; goes: number };
   cityId: string;
