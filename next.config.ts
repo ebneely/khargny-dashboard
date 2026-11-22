@@ -101,7 +101,8 @@ const MOVES: Move[] = [
 
 const nextConfig: NextConfig = {
 
-  output: 'standalone', // self-hosted container build  poweredByHeader: false,
+  output: 'standalone', // self-hosted container build
+  poweredByHeader: false,
   async redirects() {
     const moves = MOVES.flatMap(([from, to, query]) => ["", "/ar"].map((lang) => ({
       source: lang + from,
