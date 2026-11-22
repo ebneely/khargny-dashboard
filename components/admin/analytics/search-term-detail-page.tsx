@@ -11,6 +11,7 @@ import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useInsightFilters } from './analytics-shell';
 import { RecordList } from '../record-list';
 import { RecordCell } from '../record-cell';
+import { TermKeywordPlaces } from './learned-keywords';
 import { LoadingState, RequestError, SavedRefreshError } from '../subscriber-ui';
 import { useDashboardCopy } from '../dashboard-text';
 import { Button } from '@/components/ui/button';
@@ -64,5 +65,6 @@ export function SearchTermDetailPage({ term }: { term: string }) {
       const nameEn = text('nameEn') ?? city?.nameEn;
       return <li key={text('placeId') ?? text('cityId') ?? text('id') ?? index} className="space-y-2 py-3"><RecordCell icon={kind === "cities" ? "location" : undefined} nameAr={nameAr} nameEn={nameEn} name={!nameAr && !nameEn ? copy(kind === 'cities' && row.cityId === null ? 'Unspecified city' : 'Unknown record') : undefined} thumbnail={kind === 'cities' ? undefined : placeCover({ cover: row.cover === null ? null : text('cover'), coverImage: text('coverImage') })} />{typeof row.searches === 'number' && <p className="text-sm tabular-nums">{number(row.searches)} {copy('Searches')}</p>}{typeof row.zeroResults === 'number' && <p className="text-sm tabular-nums">{number(row.zeroResults)} {copy('Nothing found')}</p>}{typeof row.clicks === 'number' && <p className="text-sm tabular-nums">{number(row.clicks)} {copy('Result taps')}</p>}</li>;
     })}</ul>} /></CardContent></Card>)}
+    <TermKeywordPlaces term={report.term} />
   </div>;
 }
