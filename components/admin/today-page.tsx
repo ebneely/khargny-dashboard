@@ -1,5 +1,6 @@
 'use client';
 
+import { HypeRank } from '@/components/admin/hype-rank';
 import * as React from 'react';
 import { ArrowRight, ChevronRight, Clock, Inbox, Layers, Megaphone, Plus, Search, UserPlus } from 'lucide-react';
 import Link from '@/components/lang-link';
@@ -81,7 +82,7 @@ export function TodayPage() {
         </Panel>
         <Panel title={copy('Hype now')} more={<span className="text-xs text-muted-foreground">{copy('30-day sum, uncapped')}</span>}>
           {hype.loading ? <div className="h-40 animate-pulse bg-muted/50" /> : hype.error || !hype.data ? <div className="border-t border-border p-4"><RequestError message={copy('Could not load the hype.')} retry={() => { void hype.refetch(); }} /></div>
-            : <ol>{hype.data.items.slice(0, 5).map((item, at) => <li key={item.id} className="border-t border-border"><Link href={`/dashboard/places/${item.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/60"><span className="w-4 text-xs text-muted-foreground tabular-nums">{n(at + 1)}</span><span dir="auto" className="min-w-0 flex-1 truncate text-sm font-medium">{pick(item.name, item.nameEn)}</span><span className="text-sm font-semibold tabular-nums">{n(item.points)}</span></Link></li>)}</ol>}
+            : <ol>{hype.data.items.slice(0, 5).map((item, at) => <li key={item.id} className="border-t border-border"><Link href={`/dashboard/places/${item.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/60"><span className="w-4 text-xs text-muted-foreground tabular-nums">{n(at + 1)}</span><span dir="auto" className="min-w-0 flex-1 truncate text-sm font-medium">{pick(item.name, item.nameEn)}</span><span className="text-sm font-semibold tabular-nums">{n(item.points)}</span>{item.rank ? <HypeRank className="ms-2" rank={{ rank: item.rank, total: item.total ?? 0, topPercent: item.topPercent ?? 100, moved: item.moved ?? null }} /> : null}</Link></li>)}</ol>}
         </Panel>
       </div>
     </div>

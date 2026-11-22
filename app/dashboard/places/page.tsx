@@ -36,6 +36,10 @@ import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
 import { WindowSwitch } from '@/components/admin/analytics/window-switch';
 import { GovIcon } from '@/components/gov-icon';
+import { PeopleSwitch, usePeople } from '@/components/admin/people-switch';
+import { HypeRank } from '@/components/admin/hype-rank';
+import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
+import type { PeopleMetric } from '@/lib/api/people';
 
 const HYPE_WINDOWS = ['live', '24h', '7d', '30d', 'all'] as const;
 
@@ -116,6 +120,17 @@ export default function PlacesPage() {
     return items.filter((p) => p.deletedAt != null);
   })();
 
+  // Decision 0009: the list's counts are 30-day sums (everything for All time), so the people are too.
+  const [mode, setMode] = useState<PeopleMode>('all');
+  const people = usePeople(hypeWindow === 'all' ? 'all' : '30d', visibleItems.map((p) => p.id), mode !== 'all');
+  const shown = (place: AdminPlace, metric: 'likes' | 'saves' | 'views' | 'goes') => {
+    const all = place.counts?.[metric] ?? 0;
+    const value = pickMode(all, people.data?.items[place.id]?.[metric as PeopleMetric], mode);
+    return value === null ? '—' : value.toLocaleString('en-US');
+  };
+  const repeatOf = (place: AdminPlace, metric: 'likes' | 'saves' | 'views' | 'goes') =>
+    mode === 'all' ? null : repeatTimes(place.counts?.[metric] ?? 0, people.data?.items[place.id]?.[metric as PeopleMetric]?.people ?? 0);
+
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
   const hasActiveFilters =
     search !== '' || statusFilter !== 'all' || cityFilter !== 'all' ||
@@ -133,7 +148,7 @@ export default function PlacesPage() {
       {canWrite && <PlaceBulkStatus key={filterKey} selected={selected.map(place => place.id)} records={selected} disabled={isLoading || isError} onBusy={setBulkBusy} refresh={refetch} onSelection={ids => setSelection({ key: filterKey, records: selected.filter(place => ids.includes(place.id)) })} />}
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype and counts in</DashboardText></span><WindowSwitch here /></div>
+          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype and counts in</DashboardText></span><WindowSwitch here /><PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} /></div>
           <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }, { value: 'hype', label: 'Hype first' }]} />
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
             <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter('all'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />
@@ -186,7 +201,7 @@ export default function PlacesPage() {
                           <span data-place-detail="price" title={`${copy('Price')}: ${place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}`}>{copy('Price')}: {place.priceRange ? priceBandLabel(place.priceRange, lang) : '—'}</span>
                           <span data-place-detail="owner" title={`${copy('Subscriber')}: ${place.subscriber?.name ?? '—'}`}>{copy('Subscriber')}: {place.subscriber?.name ?? '—'}</span>
                           <span data-place-detail="city" title={`${pickName(place.city?.name, place.city?.nameEn, lang)} ${pickName(place.category?.nameAr, place.category?.nameEn, lang)}`}>{pickName(place.city?.name, place.city?.nameEn, lang)} {pickName(place.category?.nameAr, place.category?.nameEn, lang)}</span>
-                          <span data-place-detail="metrics">{copy('Likes')}: {place.counts?.likes ?? 0} {copy('Saves')}: {place.counts?.saves ?? 0} {copy('Views')}: {place.counts?.views ?? 0} {copy('5argny taps')}: {place.counts?.goes ?? 0}</span>
+                          <span data-place-detail="metrics">{copy('Likes')}: {shown(place, 'likes')} {copy('Saves')}: {shown(place, 'saves')} {copy('Views')}: {shown(place, 'views')} {copy('5argny taps')}: {shown(place, 'goes')}</span>
                         </p>
                       </TableCell>
                       <TableCell data-place-field="city" className="text-muted-foreground"><p className="flex items-center gap-1.5 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{place.city && <GovIcon city={place.city} />}<span className="line-clamp-1 min-w-0">{pickName(place.city?.name, place.city?.nameEn, lang)}</span></p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>
@@ -195,13 +210,13 @@ export default function PlacesPage() {
                       <TableCell data-place-field="status" column="status">
                         <PlacePublicStatus place={place} />
                       </TableCell>
-                      <TableCell data-place-field="hype" className="text-end tabular-nums font-medium">{place.hype ?? 0}</TableCell>
-                      <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{place.counts?.likes ?? 0}</TableCell>
-                      <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{place.counts?.saves ?? 0}</TableCell>
-                      <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{place.counts?.views ?? 0}</TableCell>
-                      <TableCell data-place-field="directions" className="text-end tabular-nums text-muted-foreground">{place.counts?.goes ?? 0}</TableCell>
+                      <TableCell data-place-field="hype" className="text-end tabular-nums font-medium">{place.hype ?? 0}<div className="mt-1"><HypeRank rank={place.hypeRank ? { ...place.hypeRank, areaRank: place.hypeRank.area, categoryRank: place.hypeRank.category } : null} area={place.region ?? undefined} category={pickName(place.category?.nameAr, place.category?.nameEn, lang)} /></div></TableCell>
+                      <TableCell data-place-field="likes" className="text-end tabular-nums text-muted-foreground">{shown(place, 'likes')}{repeatOf(place, 'likes') !== null && <span className="ms-1 text-xs" title={copy('Repeat')}>×{repeatOf(place, 'likes')}</span>}</TableCell>
+                      <TableCell data-place-field="saves" className="text-end tabular-nums text-muted-foreground">{shown(place, 'saves')}{repeatOf(place, 'saves') !== null && <span className="ms-1 text-xs" title={copy('Repeat')}>×{repeatOf(place, 'saves')}</span>}</TableCell>
+                      <TableCell data-place-field="views" className="text-end tabular-nums text-muted-foreground">{shown(place, 'views')}{repeatOf(place, 'views') !== null && <span className="ms-1 text-xs" title={copy('Repeat')}>×{repeatOf(place, 'views')}</span>}</TableCell>
+                      <TableCell data-place-field="directions" className="text-end tabular-nums text-muted-foreground">{shown(place, 'goes')}{repeatOf(place, 'goes') !== null && <span className="ms-1 text-xs" title={copy('Repeat')}>×{repeatOf(place, 'goes')}</span>}</TableCell>
                       <TableCell data-place-field="photos" className="text-end text-muted-foreground tabular-nums">{place._count?.images ?? <DashboardText>None</DashboardText>}</TableCell>
-                      <TableCell data-place-field="metrics"><p data-slot="place-phone-metrics" className="text-xs leading-4 tabular-nums text-muted-foreground">{copy('Likes')}: {place.counts?.likes ?? 0} {copy('Saves')}: {place.counts?.saves ?? 0} {copy('Views')}: {place.counts?.views ?? 0} {copy('5argny taps')}: {place.counts?.goes ?? 0}</p></TableCell>
+                      <TableCell data-place-field="metrics"><p data-slot="place-phone-metrics" className="text-xs leading-4 tabular-nums text-muted-foreground">{copy('Likes')}: {shown(place, 'likes')} {copy('Saves')}: {shown(place, 'saves')} {copy('Views')}: {shown(place, 'views')} {copy('5argny taps')}: {shown(place, 'goes')}</p></TableCell>
                       <TableCell data-place-field="actions" column="actions" className="text-end">
                         <RowActions recordName={pickName(place.name, place.nameEn, lang)} actions={[
                           { label: canWrite ? 'Edit' : 'View', icon: <Pencil aria-hidden="true" />, href: `/dashboard/places/${place.id}`, traceId: `place-list-edit-${place.id}` },
