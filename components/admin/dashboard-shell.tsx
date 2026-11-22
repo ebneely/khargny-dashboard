@@ -18,7 +18,7 @@ import { RecordThumbnail } from './record-cell';
 import { cn } from '@/lib/utils';
 import type { InboxCounts } from '@/lib/api/inbox';
 
-const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, money: Wallet, marketplace: Store, numbers: ChartLine, settings: Settings };
+const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, money: Wallet, marketplace: Store, algorithm: ChartLine, settings: Settings };
 
 /** The Inbox queues, in the order the team works them (one list for the Inbox rail, Today and ⌘K). */
 export const QUEUES = [
@@ -132,7 +132,7 @@ function SectionTabs({ sections }: { sections: Section[] }) {
   if (!section || section.tabs.length < 2) return null;
   // Numbers keeps the chosen window and filters when moving between its pages.
   const carried = new URLSearchParams();
-  if (section.icon === 'numbers') for (const key of ['window', 'from', 'to', 'platform', 'cityId']) if (params.get(key)) carried.set(key, params.get(key)!);
+  if (section.icon === 'algorithm') for (const key of ['window', 'from', 'to', 'platform', 'cityId', 'who']) if (params.get(key)) carried.set(key, params.get(key)!);
   const query = carried.size ? `?${carried}` : '';
   const library = path.startsWith('/dashboard/places/library');
   const libraryTab = library ? matchHref(path, LIBRARY_TABS.map((entry) => entry.href)) : undefined;

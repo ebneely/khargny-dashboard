@@ -8,6 +8,7 @@ import { badgesCopy } from '@/lib/badges-copy';
 import { submissionsCopy } from '@/lib/submissions-copy';
 import { shellCopy } from '@/lib/shell-copy';
 import { peopleCopy } from '@/lib/people-copy';
+import { algorithmCopy } from '@/lib/algorithm-copy';
 
 const round7RenewalsCopy: Record<string, string> = {
   'Renewals': 'التجديدات',
@@ -756,6 +757,7 @@ Object.assign(dashboardCopy, badgesCopy);
 Object.assign(dashboardCopy, submissionsCopy);
 Object.assign(dashboardCopy, shellCopy);
 Object.assign(dashboardCopy, peopleCopy);
+Object.assign(dashboardCopy, algorithmCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;

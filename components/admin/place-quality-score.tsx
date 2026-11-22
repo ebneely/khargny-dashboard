@@ -144,7 +144,7 @@ export function SearchWordsCard({ search, forOwner }: { search: SearchWords; for
     <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3"><div><CardTitle className="flex items-center gap-2"><Search className="size-4 text-primary" aria-hidden="true" />{copy('Found on Google')}</CardTitle>
       <CardDescription>{copy('What people searched on Google before opening this place, last 28 days.')}</CardDescription></div>
       {search.state !== 'ok' && <StatusBadge status="draft">{copy(search.state === 'waiting' ? 'Waiting for data' : search.state === 'off' ? 'Switched off' : 'Not connected')}</StatusBadge>}
-      {search.state === 'not_connected' && !forOwner && <Button size="sm" variant="ghost" nativeButton={false} render={<Link href="/dashboard/numbers/health" />}>{copy('Open Health')}</Button>}</CardHeader>
+      {search.state === 'not_connected' && !forOwner && <Button size="sm" variant="ghost" nativeButton={false} render={<Link href="/dashboard/algorithm/health" />}>{copy('Open Health')}</Button>}</CardHeader>
     <CardContent className="space-y-4">
       {search.state !== 'ok' ? <p className="text-sm text-muted-foreground">{message}</p> : !search.queries.length ? <p className="text-sm text-muted-foreground">{copy('Found on Google: no searches reached this place in the last 28 days.')}</p> : <>
         <Table><TableHeader><TableRow><TableHead>{copy('Search')}</TableHead><TableHead className="text-end">{copy('Position')}</TableHead><TableHead className="text-end">{copy('Clicks')}</TableHead><TableHead className="text-end">{copy('Impressions')}</TableHead><TableHead className="text-end">{copy('Click rate')}</TableHead></TableRow></TableHeader>

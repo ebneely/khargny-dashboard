@@ -5,7 +5,7 @@ import type { HypeRankInfo } from '@/lib/people';
 export type NumbersWindow = 'live' | '24h' | '7d' | '30d' | 'all';
 export type HypeKind = 'place' | 'area' | 'category' | 'collection';
 
-export type HypeItem = { id: string; name: string; nameEn: string | null; score: number; points: number; views: number; likes: number; saves: number; shares: number; goes: number } & Partial<HypeRankInfo>;
+export type HypeItem = { id: string; name: string; nameEn: string | null; score: number; points: number; views: number; likes: number; saves: number; shares: number; goes: number; /** Decision 0006: the 6th hype metric, a search followed by picking this place. */ searchTaps?: number } & Partial<HypeRankInfo>;
 export interface InsightCard { kind: 'rising' | 'fading' | 'hype_now' | 'gap' | 'money'; number: string; sentence: string; sentenceAr: string; compared: string; comparedAr?: string; why: string; whyAr: string; action: { label: string; href: string } }
 export interface Answer { key: string; question: string; sentence: string; sentenceAr: string; number: string | null; numberAr: string | null; href: string; /** The hype: the other kinds' top rises. */ also?: { sentence: string; sentenceAr: string; href: string }[] }
 

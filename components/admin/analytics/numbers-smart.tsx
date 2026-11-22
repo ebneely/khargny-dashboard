@@ -26,7 +26,7 @@ function Skeleton({ rows }: { rows: number }) {
 }
 
 /** T045: the fixed questions, answered first. */
-function Answers({ window }: { window: NumbersWindow }) {
+export function Answers({ window }: { window: NumbersWindow }) {
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const load = React.useCallback(() => loadAnswers(window), [window]);
@@ -47,7 +47,7 @@ function Answers({ window }: { window: NumbersWindow }) {
 }
 
 /** T044: insight cards, ranked by the backend (change × volume). */
-function Insights({ window }: { window: NumbersWindow }) {
+export function Insights({ window }: { window: NumbersWindow }) {
   const copy = useDashboardCopy();
   const { lang } = useDashboardLang();
   const load = React.useCallback(() => loadInsights(window), [window]);
@@ -71,8 +71,8 @@ function Insights({ window }: { window: NumbersWindow }) {
   </section>;
 }
 
-type SortKey = 'score' | 'views' | 'likes' | 'saves' | 'shares' | 'goes';
-const COLUMNS: { key: SortKey; label: string }[] = [{ key: 'score', label: 'Hype' }, { key: 'views', label: 'Views' }, { key: 'likes', label: 'Loves' }, { key: 'saves', label: 'Saves' }, { key: 'shares', label: 'Shares' }, { key: 'goes', label: '5argny taps' }];
+type SortKey = 'score' | 'views' | 'likes' | 'saves' | 'shares' | 'goes' | 'searchTaps';
+const COLUMNS: { key: SortKey; label: string }[] = [{ key: 'score', label: 'Hype' }, { key: 'views', label: 'Views' }, { key: 'likes', label: 'Loves' }, { key: 'saves', label: 'Saves' }, { key: 'shares', label: 'Shares' }, { key: 'goes', label: '5argny taps' }, { key: 'searchTaps', label: 'Search points' }];
 
 /** T046: hype ranking with a sortable Hype column; team only. */
 function Hype({ window }: { window: NumbersWindow }) {
@@ -84,13 +84,13 @@ function Hype({ window }: { window: NumbersWindow }) {
   const [mode, setMode] = React.useState<PeopleMode>('all');
   const load = React.useCallback(() => loadHype(window, kind), [window, kind]);
   const res = useSubscriberResource(load);
-  const rows = [...(res.data?.items ?? [])].sort((a: HypeItem, b: HypeItem) => b[sort] - a[sort] || b.points - a.points);
+  const rows = [...(res.data?.items ?? [])].sort((a: HypeItem, b: HypeItem) => (b[sort] ?? 0) - (a[sort] ?? 0) || b.points - a.points);
   const shown = all ? rows : rows.slice(0, 10);
   // Decision 0009: the counts are the last 30 days, so the people are too. Areas, categories and collections have none.
   const people = usePeople('30d', kind === 'place' ? shown.map((r) => r.id) : [], mode !== 'all' && kind === 'place');
   return <Card data-slot="numbers-hype">
     <CardHeader className="flex flex-wrap items-start justify-between gap-3">
-      <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views + loves + saves + shares + 5argny taps over the last 30 days, one point each, no cap. Team only.')}</p></div>
+      <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views + loves + saves + shares + 5argny taps + Search points over the last 30 days, one point each, no cap. Team only.')}</p></div>
       <div className="flex flex-wrap items-center gap-3"><PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} />
       <SegmentedControl label="Hype of" value={kind} onValueChange={(v) => { setKind(v as HypeKind); setAll(false); }} options={[{ value: 'place', label: 'Places' }, { value: 'area', label: 'Areas' }, { value: 'category', label: 'Categories' }, { value: 'collection', label: 'Collections' }]} /></div>
     </CardHeader>
@@ -105,8 +105,9 @@ function Hype({ window }: { window: NumbersWindow }) {
           <td className="py-2 text-end"><span className="inline-flex min-w-12 items-center justify-end gap-2 font-semibold tabular-nums"><span aria-hidden="true" className="h-1.5 w-12 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-primary" style={{ width: `${r.score}%` }} /></span>{r.score}</span><HypeRank className="mt-1 justify-end" rank={r.rank ? { rank: r.rank, total: r.total ?? 0, topPercent: r.topPercent ?? 100, moved: r.moved ?? null, areaRank: r.areaRank, categoryRank: r.categoryRank } : null} /></td>
           {COLUMNS.slice(1).map((c) => {
             const cell = people.data?.items[r.id]?.[c.key as PeopleMetric];
-            const value = pickMode(r[c.key as 'views'], cell, mode);
-            const repeat = mode === 'all' ? null : repeatTimes(r[c.key as 'views'], cell?.people ?? 0);
+            const all = r[c.key] ?? 0;
+            const value = pickMode(all, cell, mode);
+            const repeat = mode === 'all' ? null : repeatTimes(all, cell?.people ?? 0);
             return <td key={c.key} className="py-2 text-end tabular-nums text-muted-foreground">{value === null ? '—' : digits(value)}{repeat !== null && <span className="ms-1.5 text-xs" title={copy('Repeat')}>×{repeat}</span>}</td>;
           })}
         </tr>)}</tbody></table>

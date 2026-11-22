@@ -152,6 +152,6 @@ export function SelfLearningSettings() {
         })}</div>
       </CardContent></Card>)}
     {!readOnly && <FormActionBar active={active} dirty={changes.dirty} saving={saving} error={error} disabled={!values} disabledReason={values ? undefined : copy('Fill every number first.')} onSave={() => { void save(); }}
-      cancelHref="/dashboard/numbers/searches" primaryLabel={copy('Save search settings')} />}
+      cancelHref="/dashboard/algorithm/demand" primaryLabel={copy('Save search settings')} />}
   </div>;
 }

@@ -7,16 +7,26 @@ import { useDashboardLang } from '@/lib/dashboard-lang';
 import type { AnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { StatTile } from './stat-tile';
 import { useDashboardCopy } from '@/components/admin/dashboard-text';
-import { peopleLine } from '@/lib/people';
+import { peopleLine, pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric, PeopleRow } from '@/lib/api/people';
 
 /** Engagement and catalogue tiles: the dashboard home and the Analytics overview show the same block. */
-export function InsightsSummary({ data, loading: isLoading, lang: requestedLanguage, people }: { data: AnalyticsOverview | null; loading: boolean; lang?: 'ar' | 'en'; /** Decision 0009: the site's people per metric for the same window. */ people?: PeopleRow | null }) {
+export function InsightsSummary({ data, loading: isLoading, lang: requestedLanguage, people, mode = 'all' }: { data: AnalyticsOverview | null; loading: boolean; lang?: 'ar' | 'en'; /** Decision 0009: the site's people per metric for the same window. */ people?: PeopleRow | null; /** Decision 0009: All, People, New or Returning; drives each tile's number. */ mode?: PeopleMode }) {
   const { lang: currentLanguage } = useDashboardLang();
   const lang = requestedLanguage ?? currentLanguage;
   const t = data?.totals;
   const copy = useDashboardCopy();
-  const who = (metric: PeopleMetric, all?: number) => peopleLine(all ?? 0, people?.[metric], { people: copy('people'), fresh: copy('new'), each: copy('each') }) || undefined;
+  const value = (metric: PeopleMetric, all?: number) => {
+    if (mode === 'all') return all;
+    const cell = people?.[metric];
+    // A group with no prepared people shows —, never a made-up number.
+    return cell ? pickMode(all ?? 0, cell, mode) ?? undefined : undefined;
+  };
+  const hintFor = (metric: PeopleMetric, all?: number) => {
+    if (mode === 'all') return peopleLine(all ?? 0, people?.[metric], { people: copy('people'), fresh: copy('new'), each: copy('each') }) || undefined;
+    const repeat = repeatTimes(all ?? 0, people?.[metric]?.people ?? 0);
+    return repeat === null ? copy('No people count prepared for this window yet.') : `${repeat.toFixed(1)}× ${copy('Repeat')}`;
+  };
   return (
     <>
       <section aria-labelledby="insights-engagement">
@@ -24,16 +34,16 @@ export function InsightsSummary({ data, loading: isLoading, lang: requestedLangu
           <DashboardText>Engagement</DashboardText>
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <StatTile label="Views" value={t?.views} hint={who('views', t?.views)} icon={engagementMetrics[0].icon} loading={isLoading} />
-          <StatTile label="Saves" value={t?.saves} hint={who('saves', t?.saves)} icon={engagementMetrics[1].icon} loading={isLoading} />
+          <StatTile label="Views" value={value('views', t?.views)} hint={hintFor('views', t?.views)} icon={engagementMetrics[0].icon} loading={isLoading} />
+          <StatTile label="Saves" value={value('saves', t?.saves)} hint={hintFor('saves', t?.saves)} icon={engagementMetrics[1].icon} loading={isLoading} />
           <StatTile
             label="5argny taps"
-            value={t?.directions ?? 0}
-            hint={who('goes', t?.directions)}
+            value={value('goes', t?.directions) ?? 0}
+            hint={hintFor('goes', t?.directions)}
             icon={engagementMetrics[3].icon}
             loading={isLoading}
           />
-          <StatTile label="Likes" value={t?.likes} hint={who('likes', t?.likes ?? undefined)} icon={engagementMetrics[2].icon} loading={isLoading} />
+          <StatTile label="Likes" value={value('likes', t?.likes ?? undefined)} hint={hintFor('likes', t?.likes ?? undefined)} icon={engagementMetrics[2].icon} loading={isLoading} />
           <StatTile
             label="Live places"
             value={t?.places ?? 0}

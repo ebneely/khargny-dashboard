@@ -4,7 +4,7 @@
  * Money, Marketplace, Numbers, with Settings). Labels are English; the copy dictionary turns them
  * Arabic on /ar pages. `superAdminOnly` tabs are dropped on the server before they reach the page.
  */
-export type SectionIcon = 'today' | 'inbox' | 'places' | 'money' | 'marketplace' | 'numbers' | 'settings';
+export type SectionIcon = 'today' | 'inbox' | 'places' | 'money' | 'marketplace' | 'algorithm' | 'settings';
 export interface SectionTab { href: string; label: string; superAdminOnly?: boolean; also?: string[] }
 export interface Section { href: string; label: string; icon: SectionIcon; key: string; tabs: SectionTab[] }
 
@@ -21,15 +21,14 @@ export const SECTIONS: Section[] = [
     { href: '/dashboard/money/plans', label: 'Plans and prices' },
   ] },
   { href: '/dashboard/marketplace', label: 'Marketplace', icon: 'marketplace', key: 'k', tabs: [] },
-  { href: '/dashboard/numbers', label: 'Numbers', icon: 'numbers', key: 'n', tabs: [
-    { href: '/dashboard/numbers', label: 'Answers' },
-    { href: '/dashboard/numbers/people', label: 'People and places' },
-    { href: '/dashboard/numbers/searches', label: 'Searches' },
-    { href: '/dashboard/numbers/missing-words', label: 'Words we don\'t know' },
-    { href: '/dashboard/numbers/movement', label: 'Paths' },
-    { href: '/dashboard/numbers/keywords', label: 'Keyword searches' },
-    { href: '/dashboard/numbers/live', label: 'Live' },
-    { href: '/dashboard/numbers/health', label: 'Health' },
+  { href: '/dashboard/algorithm/today', label: 'Algorithm', icon: 'algorithm', key: 'a', tabs: [
+    { href: '/dashboard/algorithm/today', label: 'Today' },
+    { href: '/dashboard/algorithm/people', label: 'People' },
+    { href: '/dashboard/algorithm/places', label: 'Places' },
+    { href: '/dashboard/algorithm/demand', label: 'Demand' },
+    { href: '/dashboard/algorithm/money', label: 'Money' },
+    { href: '/dashboard/algorithm/movement', label: 'Movement' },
+    { href: '/dashboard/algorithm/health', label: 'Health' },
   ] },
   { href: '/dashboard/settings', label: 'Settings', icon: 'settings', key: 's', tabs: [
     { href: '/dashboard/settings', label: 'General' },

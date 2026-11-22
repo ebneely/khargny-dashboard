@@ -68,7 +68,7 @@ export function TodayPage() {
         </Panel>
         <Panel title={copy('When you have time')}>
           <JobRow href="/dashboard/inbox?queue=no-hours" icon={<Clock className="size-4" aria-hidden="true" />} title={copy('Add missing hours')} sub={copy('Live places with no opening hours')} count={counts?.no_hours} />
-          <JobRow href="/dashboard/numbers/missing-words" icon={<Search className="size-4" aria-hidden="true" />} title={copy('Fix searches that found nothing')} sub={copy('Teach the search the words people use')} />
+          <JobRow href="/dashboard/algorithm/demand" icon={<Search className="size-4" aria-hidden="true" />} title={copy('Fix searches that found nothing')} sub={copy('Teach the search the words people use')} />
         </Panel>
         <Panel title={copy('Start something')}>
           <div className="flex flex-wrap gap-2 border-t border-border p-4">{([['/dashboard/places/new', 'Add a place', Plus], ['/dashboard/money/ads/new', 'Sell an ad', Megaphone], ['/dashboard/money/owners/new', 'New owner', UserPlus], ['/dashboard/places/library/collections', 'Make a collection', Layers]] as const).map(([href, label, Icon]) =>
@@ -76,7 +76,7 @@ export function TodayPage() {
         </Panel>
       </div>
       <div className="space-y-5">
-        <Panel title={copy('Last 24 hours')} more={<Link href="/dashboard/numbers?window=24h" className="text-[12.5px] font-medium text-primary">{copy('Numbers')}</Link>}>
+        <Panel title={copy('Last 24 hours')} more={<Link href="/dashboard/algorithm/today?window=24h" className="text-[12.5px] font-medium text-primary">{copy('Algorithm')}</Link>}>
           {answers.loading ? <div className="h-40 animate-pulse bg-muted/50" /> : answers.error || !answers.data ? <div className="border-t border-border p-4"><RequestError message={copy('Could not load the answers.')} retry={() => { void answers.refetch(); }} /></div>
             : <ul>{answers.data.answers.slice(0, 4).map((answer) => <li key={answer.key} className="border-t border-border"><Link href={answer.href} className="block px-4 py-2.5 hover:bg-muted/60"><span className="block text-xs text-muted-foreground">{copy(answer.question)}</span><span className="block text-sm">{lang === 'ar' ? answer.sentenceAr : answer.sentence}</span></Link></li>)}</ul>}
         </Panel>

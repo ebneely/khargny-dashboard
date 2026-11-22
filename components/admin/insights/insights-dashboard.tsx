@@ -24,6 +24,7 @@ import { InsightsSummary } from './insights-summary';
 import { RankedBars, type RankedRow } from './ranked-bars';
 import { GpsViewersCard } from './gps-viewers-card';
 import { useSitePeople } from '../people-switch';
+import { PEOPLE_MODES, type PeopleMode } from '@/lib/people';
 import { AR_LOCALE } from '@/lib/locale';
 
 /** The three engagement measures, each plotted on its own axis — never together. */
@@ -38,6 +39,8 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
   const { data, isLoading, isError, refetch } = useAnalyticsOverview(numbersRange(chosen, params));
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
   const people = useSitePeople(chosen);
+  const requestedWho = params.get('who');
+  const mode: PeopleMode = requestedWho && (PEOPLE_MODES as readonly string[]).includes(requestedWho) ? requestedWho as PeopleMode : 'all';
 
   const label = React.useCallback((ar: string | null, en: string | null, fallback: string) =>
     (lang === 'ar' ? ar || en : en || ar) || fallback, [lang]);
@@ -92,7 +95,7 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
 
   return (
     <div className="flex flex-col gap-6">
-      <InsightsSummary data={data} loading={isLoading} lang={lang} people={people} />
+      <InsightsSummary data={data} loading={isLoading} lang={lang} people={people} mode={mode} />
 
       <section className="rounded-lg border border-border bg-card" aria-labelledby="insights-breakdown">
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
