@@ -67,7 +67,9 @@ export default {
           args: ['scripts/dev-local.mjs', '--e2e'],
           cwd: resolve(suiteDir, process.env.KHARGNY_BACKEND_DIR ?? '../../khargny-backend'),
           reuseExisting: true,
-          startupTimeout: 300_000,
+          // A cold start builds the backend and the dashboard after initialising the database; measured ~6-7 minutes
+          // on this laptop, so 5 minutes killed every run that had no stack already serving.
+          startupTimeout: 600_000,
           log: '.e2e/logs/stack.log',
           env: stackEnv,
         },
