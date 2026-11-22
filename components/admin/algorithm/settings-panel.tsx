@@ -165,7 +165,8 @@ function buildValues(values: Record<string, unknown>, draft: Draft): Record<stri
     if (field.kind === 'bool') out = writePath(out, field.path, Boolean(raw));
     else if (field.kind === 'counts') out = writePath(out, field.path, raw as string[]);
     else if (field.kind === 'text') out = writePath(out, field.path, String(raw ?? '').trim());
-    else out = writePath(out, field.path, raw === '' ? NaN : Number(raw));
+    else if (raw === '' || raw === undefined) continue;
+    else out = writePath(out, field.path, Number(raw));
   }
   return out;
 }
@@ -177,18 +178,18 @@ export function AlgorithmSettingsPanel({ open, onOpenChange }: { open: boolean; 
   const canWrite = session.data?.user.role === 'super_admin';
   const resource = useSubscriberResource<AlgorithmSettingsRow>(loadAlgorithmSettings);
   const [group, setGroup] = React.useState('fair');
-  const [draft, setDraft] = React.useState<Draft>({});
-  const [version, setVersion] = React.useState<number | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState('');
   const [preview, setPreview] = React.useState<AlgorithmPreview | null>(null);
-
-  React.useEffect(() => {
-    if (!resource.data || resource.data.version === version) return;
-    setVersion(resource.data.version);
-    setDraft(draftFrom(resource.data.values));
-    setPreview(null);
-  }, [resource.data, version]);
+  const [draftState, setDraftState] = React.useState<{ version: number; values: Draft } | null>(null);
+  // The draft follows the loaded version; a save or a refetch starts a fresh one from the server's values.
+  const draft = React.useMemo(() =>
+    draftState && resource.data && draftState.version === resource.data.version
+      ? draftState.values
+      : resource.data ? draftFrom(resource.data.values) : {}
+  , [draftState, resource.data]);
+  const edit = (path: string, value: string | boolean | string[]) =>
+    setDraftState({ version: resource.data?.version ?? 0, values: { ...draft, [path]: value } });
 
   const values = React.useMemo(() => resource.data ? buildValues(resource.data.values, draft) : null, [resource.data, draft]);
   const active = GROUPS.find((entry) => entry.id === group) ?? GROUPS[0];
@@ -198,8 +199,8 @@ export function AlgorithmSettingsPanel({ open, onOpenChange }: { open: boolean; 
     setBusy(true); setError('');
     try {
       const row = await saveAlgorithmSettings(values, 'algorithm dashboard');
-      setVersion(row.version);
-      setDraft(draftFrom(row.values));
+      setDraftState(null);
+      setPreview(null);
       toast.success(`${copy('Saved as version')} ${row.version.toLocaleString('en-US')}.`);
       void resource.refetch();
     } catch (caught) {
@@ -234,18 +235,18 @@ export function AlgorithmSettingsPanel({ open, onOpenChange }: { open: boolean; 
                 const raw = draft[field.path];
                 if (field.kind === 'bool') return <div key={field.path} className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
                   <Label htmlFor={id} className="text-sm font-normal">{copy(field.label)}</Label>
-                  <Switch id={id} checked={Boolean(raw)} disabled={!canWrite || busy} onCheckedChange={(checked) => setDraft((now) => ({ ...now, [field.path]: checked }))} />
+                  <Switch id={id} checked={Boolean(raw)} disabled={!canWrite || busy} onCheckedChange={(checked) => edit(field.path, Boolean(checked))} />
                 </div>;
                 if (field.kind === 'counts') return <fieldset key={field.path} className="sm:col-span-2"><legend className="mb-2 text-sm">{copy(field.label)}</legend>
                   <div className="flex flex-wrap gap-3">{HYPE_COUNTS.map((count) => {
                     const chosen = Array.isArray(raw) ? raw.includes(count) : false;
-                    return <label key={count} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm"><Checkbox checked={chosen} disabled={!canWrite || busy} onCheckedChange={(checked) => setDraft((now) => ({ ...now, [field.path]: checked ? [...new Set([...(Array.isArray(raw) ? raw : []), count])] : (Array.isArray(raw) ? raw : []).filter((entry) => entry !== count) }))} />{copy(COUNT_WORDS[count])}</label>;
+                    return <label key={count} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm"><Checkbox checked={chosen} disabled={!canWrite || busy} onCheckedChange={(checked) => edit(field.path, checked ? [...new Set([...(Array.isArray(raw) ? raw : []), count])] : (Array.isArray(raw) ? raw : []).filter((entry) => entry !== count))} />{copy(COUNT_WORDS[count])}</label>;
                   })}</div>
                   <p className="mt-1 text-xs text-muted-foreground">{copy('The sixth metric, Search points, is a search followed by tapping the place.')}</p>
                 </fieldset>;
                 return <div key={field.path} className="space-y-1">
                   <Label htmlFor={id} className="text-sm font-normal">{copy(field.label)}</Label>
-                  <Input id={id} type={field.kind === 'text' ? 'text' : 'number'} inputMode={field.kind === 'text' ? 'text' : 'decimal'} step="any" value={String(raw ?? '')} disabled={!canWrite || busy} onChange={(event) => setDraft((now) => ({ ...now, [field.path]: event.target.value }))} />
+                  <Input id={id} type={field.kind === 'text' ? 'text' : 'number'} inputMode={field.kind === 'text' ? 'text' : 'decimal'} step="any" value={String(raw ?? '')} disabled={!canWrite || busy} onChange={(event) => edit(field.path, event.target.value)} />
                 </div>;
               })}
             </div>

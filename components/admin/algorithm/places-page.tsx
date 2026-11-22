@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import Link from '@/components/lang-link';
 import { ArrowDown, Search } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { loadHype, type HypeItem } from '@/lib/api/numbers';
@@ -38,7 +38,7 @@ export function AlgorithmPlacesPage() {
   const statuses = useSubscriberResource<AlgorithmPlaceList>(loadStatuses);
   const loadHypeRows = React.useCallback(() => loadHype((window === 'all' ? 'all' : '30d'), 'place'), [window]);
   const hype = useSubscriberResource(loadHypeRows);
-  const hypeRows = hype.data?.items ?? [];
+  const hypeRows = React.useMemo(() => hype.data?.items ?? [], [hype.data]);
   const rankOf = React.useMemo(() => new Map(hypeRows.map((row) => [row.id, row])), [hypeRows]);
   const counts = statuses.data?.counts ?? {};
 
@@ -76,10 +76,10 @@ export function AlgorithmPlacesPage() {
                   return <tr key={row.placeId} className="h-14 hover:bg-muted/40">
                     <td className="py-2 pe-3"><Link href={`/dashboard/places/${row.placeId}`} className="font-medium hover:underline" dir="auto">{row.name}</Link>{row.nameEn && row.name !== row.nameEn ? <span className="block text-xs text-muted-foreground" dir="auto">{row.nameEn}</span> : null}</td>
                     <td className="py-2 pe-3"><span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', statusClass(row.status))}>{copy(STATUS_WORDS[row.status] ?? 'Normal')}</span></td>
-                    <td className="hidden max-w-[320px] truncate py-2 pe-3 text-muted-foreground md:table-cell" title={row.reason ?? undefined}>{row.reason ?? '—'}</td>
+                    <td className="hidden max-w-[320px] truncate py-2 pe-3 text-muted-foreground md:table-cell" title={row.reason ?? undefined}>{row.reason ?? 'â€”'}</td>
                     <td className="py-2 text-end font-medium tabular-nums">{row.hype.toLocaleString('en-US')}<HypeRank className="mt-1 justify-end" rank={rank?.rank ? { rank: rank.rank, total: rank.total ?? 0, topPercent: rank.topPercent ?? 100, moved: rank.moved ?? null, areaRank: rank.areaRank, categoryRank: rank.categoryRank } : null} /></td>
                     <td className="hidden py-2 text-end tabular-nums text-muted-foreground sm:table-cell">{(rank?.searchTaps ?? 0).toLocaleString('en-US')}</td>
-                    <td className="py-2 text-end text-muted-foreground">{row.paid ? copy('Paid') : '—'}</td>
+                    <td className="py-2 text-end text-muted-foreground">{row.paid ? copy('Paid') : 'â€”'}</td>
                   </tr>;
                 })}</tbody>
               </table></div>}
@@ -106,13 +106,14 @@ function HypeTable({ rows, loading, error, retry, mode }: { rows: HypeItem[]; lo
   const [sort, setSort] = React.useState<SortKey>('points');
   const filtered = React.useMemo(() => rows.filter((row) => !address.query || pick(row.name, row.nameEn).toLowerCase().includes(address.query.toLowerCase())), [rows, address.query, pick]);
   const ordered = React.useMemo(() => [...filtered].sort((a, b) => (b[sort] ?? 0) - (a[sort] ?? 0)), [filtered, sort]);
-  const visible = ordered.slice(address.skip, address.skip + address.limit);
+  const start = Math.min(address.skip, Math.max(0, Math.floor(Math.max(0, ordered.length - 1) / address.limit) * address.limit));
+  const visible = ordered.slice(start, start + address.limit);
   const people = usePeople('30d', visible.map((row) => row.id), mode !== 'all');
   const number = (row: HypeItem, key: SortKey, metric: PeopleMetric) => {
     const all = row[key] ?? 0;
     const value = pickMode(all, people.data?.items[row.id]?.[metric], mode);
     const repeat = mode === 'all' ? null : repeatTimes(all, people.data?.items[row.id]?.[metric]?.people ?? 0);
-    return <>{value === null ? '—' : value.toLocaleString('en-US')}{repeat !== null && <span className="ms-1 text-xs text-muted-foreground">×{repeat}</span>}</>;
+    return <>{value === null ? 'â€”' : value.toLocaleString('en-US')}{repeat !== null && <span className="ms-1 text-xs text-muted-foreground">Ã—{repeat}</span>}</>;
   };
   return <Card><CardContent className="space-y-3">
     <div className="flex items-center gap-2"><Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><Input className="max-w-sm" aria-label={copy('Find a place')} placeholder={copy('Find a place')} value={address.query} onChange={(event) => address.change('q', event.target.value)} /></div>
@@ -126,12 +127,12 @@ function HypeTable({ rows, loading, error, retry, mode }: { rows: HypeItem[]; lo
               {[{ key: 'points' as SortKey, label: 'Hype' }, ...METRICS].map((column) => <th key={column.key} aria-sort={sort === column.key ? 'descending' : undefined} className="py-2 text-end font-normal"><button type="button" data-ro-allow="true" onClick={() => setSort(column.key)} className={cn('-me-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 hover:bg-muted', sort === column.key && 'bg-muted font-medium text-foreground')}>{copy(column.label)}{sort === column.key && <ArrowDown aria-hidden="true" className="size-3" />}</button></th>)}
             </tr></thead>
             <tbody className="divide-y">{visible.map((row, at) => <tr key={row.id} className="h-14 hover:bg-muted/40">
-              <td className="py-2 text-xs text-muted-foreground tabular-nums">{address.skip + at + 1}</td>
+              <td className="py-2 text-xs text-muted-foreground tabular-nums">{start + at + 1}</td>
               <td className="py-2 pe-3"><Link href={`/dashboard/places/${row.id}`} className="font-medium hover:underline" dir="auto">{pick(row.name, row.nameEn)}</Link><HypeRank className="mt-1" rank={row.rank ? { rank: row.rank, total: row.total ?? 0, topPercent: row.topPercent ?? 100, moved: row.moved ?? null, areaRank: row.areaRank, categoryRank: row.categoryRank } : null} /></td>
               <td className="py-2 text-end font-medium tabular-nums">{row.points.toLocaleString('en-US')}</td>
               {METRICS.map((column) => <td key={column.key} className={cn('py-2 text-end tabular-nums text-muted-foreground', column.key !== 'searchTaps' && column.key !== 'views' && 'hidden lg:table-cell')}>{number(row, column.key, column.metric)}</td>)}
             </tr>)}</tbody>
           </table></div>}
-    <Pager skip={address.skip} pageSize={address.limit} total={ordered.length} count={visible.length} pageSizes={[10, 20, 50]} onPageSizeChange={(size) => address.change('limit', String(size))} onPrevious={() => address.change('skip', String(Math.max(0, address.skip - address.limit)))} onNext={() => address.change('skip', String(address.skip + address.limit))} />
+    <Pager skip={start} pageSize={address.limit} total={ordered.length} count={visible.length} pageSizes={[10, 20, 50]} onPageSizeChange={(size) => address.change('limit', String(size))} onPrevious={() => address.change('skip', String(Math.max(0, start - address.limit)))} onNext={() => address.change('skip', String(start + address.limit))} />
   </CardContent></Card>;
 }
