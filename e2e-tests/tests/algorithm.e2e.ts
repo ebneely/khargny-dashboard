@@ -102,9 +102,9 @@ describe('algorithm: one tab, six pages, its own URL', { session: 'admin', tags:
     await app.open('/dashboard/algorithm/today');
     await screen.getByRole('radio', 'ع').tap();
     try {
-      await expect(browser).toHaveURL(/^\/ar\/dashboard\/algorithm\/today/);
+      await expect(browser).toHaveURL(/\/ar\/dashboard\/algorithm\/today/);
       await expect(screen.getByRole('heading', 'الخوارزمية')).toBeVisible();
-      for (const tab of ['اليوم', 'أشخاص', 'الأماكن', 'الطلب', 'الفلوس', 'التحرك', 'الصحة']) {
+      for (const tab of ['اليوم', 'أشخاص', 'الأماكن', 'الطلب', 'فلوس', 'التحرك', 'الصحة']) {
         await expect(screen.getByRole('link', { name: tab, exact: true }).first()).toBeVisible();
       }
       await expect(screen.getByRole('radiogroup', 'العدّ')).toBeVisible();

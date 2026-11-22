@@ -21,7 +21,7 @@ export function AlgorithmShell({ children }: { children: React.ReactNode }) {
 
 function AlgorithmContent({ children }: { children: React.ReactNode }) {
   const copy = useDashboardCopy();
-  const { window, people, setPeople, valid } = useInsightFilters();
+  const { people, setPeople, valid } = useInsightFilters();
   const [panel, setPanel] = React.useState<'settings' | 'how' | null>(null);  return <div className="min-w-0 space-y-5">
     <header className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">

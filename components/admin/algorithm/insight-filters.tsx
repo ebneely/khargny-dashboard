@@ -50,7 +50,7 @@ export function InsightFiltersProvider({ children }: { children: React.ReactNode
   const period = { live: '1', '24h': '1', '7d': '7', '30d': '30', all: '30', custom: 'custom' }[chosen];
   const platform = params.get('platform');
   // A window goes as `window` (back from now); only a custom range sends whole days.
-  const query: InsightQuery = { ...numbersRange(chosen, params), platform: platform === 'app' || platform === 'web' ? platform : undefined, cityId: params.get('cityId') || undefined };
+  const query = React.useMemo<InsightQuery>(() => ({ ...numbersRange(chosen, params), platform: platform === 'app' || platform === 'web' ? platform : undefined, cityId: params.get('cityId') || undefined }), [chosen, params, platform]);
   const { from, to } = customRange(params);
   const valid = chosen !== 'custom' || (isCalendarDate(from) && isCalendarDate(to) && from <= to && calendarStamp(to) - calendarStamp(from) <= 400 * 86400000);
   const loadCities = React.useCallback(() => loadInsightOptions<AdminCity>('/v1/admin/cities'), []);
@@ -67,9 +67,12 @@ export function InsightFiltersProvider({ children }: { children: React.ReactNode
 
   const setPeople = React.useCallback((mode: PeopleMode) => change('who', mode === 'all' ? 'all' : mode), [change]);
 
+  const cityRows = cities.data;
+  const cityError = cities.error;
+  const refetchCities = cities.refetch;
   const value = React.useMemo<InsightFiltersValue>(() => ({
-    query, window: chosen === 'custom' ? '30d' : chosen, people, setPeople, valid, period, cities: cities.data ?? [], citiesError: !!cities.error, refetchCities: () => { void cities.refetch(); }, change,
-  }), [query, chosen, people, setPeople, valid, period, cities.data, cities.error, cities.refetch, change]);
+    query, window: chosen === 'custom' ? '30d' : chosen, people, setPeople, valid, period, cities: cityRows ?? [], citiesError: !!cityError, refetchCities: () => { void refetchCities(); }, change,
+  }), [query, chosen, people, setPeople, valid, period, cityRows, cityError, refetchCities, change]);
 
   return <FiltersContext.Provider value={value}>{children}</FiltersContext.Provider>;
 }

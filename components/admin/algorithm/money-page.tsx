@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from '@/components/lang-link';
 import { ArrowUpRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { adminApi } from '@/lib/api/admin-client';
 import { readCampaignList } from '@/lib/ads-campaign-list';
@@ -17,7 +17,7 @@ import { MoneyText, RequestError } from '../subscriber-ui';
 export function AlgorithmMoneyPage() {
   const copy = useDashboardCopy();
   const summary = useSubscriberResource(() => adminApi.get<SubscriberSummary>('/v1/admin/subscribers/summary'));
-  const ads = useSubscriberResource(() => readCampaignList((skip, limit) => adminApi.get('/v1/admin/ads/campaigns', { state: 'live', skip, limit })));
+  const ads = useSubscriberResource(() => readCampaignList(() => adminApi.get('/v1/admin/ads/campaigns', { state: 'live' })));
   const plans = useSubscriberResource<PlanCatalogueRow[]>(plansApi.catalogue);
   const totals = React.useMemo(() => {
     const rows = ads.data ?? [];
