@@ -10,6 +10,13 @@ export interface LiveRank { cover?: string | null; deleted?: boolean; id: string
 export interface LiveStep { kind: string; target: string; at: string; name: string | null }
 export interface LiveJourney { visit: string; startedAt: string; lastActivityAt: string; durationSeconds: number; platform: string; entry: LiveStep; steps: LiveStep[]; totalSteps: number; truncated: boolean; gap: boolean }
 export interface LiveBundle { summary: LiveSummary; where: LiveMeta & { platforms: LiveRank[]; languages: LiveRank[]; cities: LiveRank[] }; top: LiveMeta & { pages: LiveRank[]; places: LiveRank[] }; journeys: LiveMeta & { visits: LiveJourney[]; nextBefore: string | null }; searches: LiveMeta & { terms: { term: string; searches: number; noResults: number; clicks: number }[] }; funnel: LiveMeta & { stages: { name: string; visits: number; rateFromPrevious: number | null }[] } }
+/**
+ * The bundle's "Right now" totals. The API nests them under `summary.now`, while the older
+ * `summary.totals` shape is not returned; read it here once so every screen agrees.
+ */
+export function liveNowTotals(bundle: LiveBundle | null | undefined): LiveTotals | null {
+  return bundle?.summary?.now?.totals ?? null;
+}
 export function refreshDelay(window: LiveWindow) { return ['1m', '5m', '15m', '30m'].includes(window) ? 5000 : 60000; }
 export function liveState(error: unknown) { return (error as { code?: string })?.code === 'live_disabled' ? 'disabled' : 'error'; }
 export function lineSegments(series: LivePoint[], metric: LiveMeasure) {

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { loadLiveBundle } from '@/lib/api/live-status';
+import { liveNowTotals } from '@/lib/live-status';
 import { useDashboardCopy } from '../dashboard-text';
 import { RequestError } from '../subscriber-ui';
 import { Answers, Insights } from '../analytics/numbers-smart';
@@ -41,7 +42,7 @@ function LiveNow() {
   const copy = useDashboardCopy();
   const load = React.useCallback(() => loadLiveBundle('5m'), []);
   const res = useSubscriberResource(load);
-  const totals = res.data?.summary.totals;
+  const totals = liveNowTotals(res.data);
   const tiles = [
     { label: 'People online', value: totals?.visitors, icon: Users },
     { label: 'Visits started', value: totals?.visits, icon: Activity },
@@ -55,11 +56,12 @@ function LiveNow() {
     </CardHeader>
     <CardContent>
       {res.loading ? <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy="true">{tiles.map((tile) => <div key={tile.label} className="h-24 animate-pulse rounded-lg bg-muted" />)}</div>
-        : res.error || !res.data || !totals ? <RequestError message={copy('Could not load the live snapshot.')} retry={() => { void res.refetch(); }} />
-          : <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">{tiles.map(({ label, value, icon: Icon }) => <div key={label} className="rounded-lg border border-border p-4">
-            <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon className="size-4" aria-hidden="true" />{copy(label)}</dt>
-            <dd className="mt-2 font-display text-2xl font-semibold tabular-nums"><CountUp value={value} /></dd>
-          </div>)}</dl>}
+        : res.error || !res.data ? <RequestError message={copy('Could not load the live snapshot.')} retry={() => { void res.refetch(); }} />
+          : !totals ? <p role="status" className="text-sm text-muted-foreground">{copy('No live snapshot is available right now.')}</p>
+            : <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">{tiles.map(({ label, value, icon: Icon }) => <div key={label} className="rounded-lg border border-border p-4">
+              <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon className="size-4" aria-hidden="true" />{copy(label)}</dt>
+              <dd className="mt-2 font-display text-2xl font-semibold tabular-nums">{typeof value === 'number' ? <CountUp value={value} /> : '—'}</dd>
+            </div>)}</dl>}
     </CardContent>
   </Card>;
 }
