@@ -10,34 +10,36 @@ import { readCampaignList } from '@/lib/ads-campaign-list';
 import type { AdCampaign } from '@/lib/api/ads';
 import { plansApi, type PlanCatalogueRow } from '@/lib/api/plans';
 import type { SubscriberSummary } from '@/lib/api/subscribers';
+import { runningAdsTotals } from '@/lib/algorithm-money';
 import { useDashboardCopy } from '../dashboard-text';
 import { MoneyText, RequestError } from '../subscriber-ui';
+
+// Stable loaders: `useSubscriberResource` re-runs when its loader changes identity, so an inline
+// arrow would restart the 250 ms read on every render and never settle.
+const loadMoneySummary = () => adminApi.get<SubscriberSummary>('/v1/admin/subscribers/summary');
+const loadRunningAds = () => readCampaignList((skip, limit) => adminApi.get('/v1/admin/ads/campaigns', { state: 'live', skip, limit }));
+const loadPlans = plansApi.catalogue;
+
+function TileSkeleton() {
+  return <span aria-hidden="true" className="block h-7 w-16 animate-pulse rounded bg-muted motion-reduce:animate-none" />;
+}
 
 /** Decision 0006 Money: one read-only summary; every action stays on the Money pages. */
 export function AlgorithmMoneyPage() {
   const copy = useDashboardCopy();
-  const summary = useSubscriberResource(() => adminApi.get<SubscriberSummary>('/v1/admin/subscribers/summary'));
-  const ads = useSubscriberResource(() => readCampaignList(() => adminApi.get('/v1/admin/ads/campaigns', { state: 'live' })));
-  const plans = useSubscriberResource<PlanCatalogueRow[]>(plansApi.catalogue);
-  const totals = React.useMemo(() => {
-    const rows = ads.data ?? [];
-    return {
-      ads: rows.length,
-      impressions: rows.reduce((sum, row) => sum + (row.totals?.impressions ?? 0), 0),
-      taps: rows.reduce((sum, row) => sum + (row.totals?.taps ?? 0), 0),
-      amount: rows.reduce((sum, row) => sum + Number(row.amountPaid ?? 0), 0),
-      top: [...rows].sort((a: AdCampaign, b: AdCampaign) => (b.totals?.impressions ?? 0) - (a.totals?.impressions ?? 0)).slice(0, 8),
-    };
-  }, [ads.data]);
+  const summary = useSubscriberResource<SubscriberSummary>(loadMoneySummary);
+  const ads = useSubscriberResource<AdCampaign[]>(loadRunningAds);
+  const plans = useSubscriberResource<PlanCatalogueRow[]>(loadPlans);
+  const totals = React.useMemo(() => runningAdsTotals(ads.data), [ads.data]);
   return <div className="space-y-8">
     <section aria-labelledby="algorithm-money-top" className="space-y-3">
       <div><h2 id="algorithm-money-top" className="text-xl font-semibold">{copy('Is the money side healthy?')}</h2><p className="mt-1 text-sm text-muted-foreground">{copy('Money is counted in EGP, not people.')}</p></div>
       {summary.error ? <RequestError message={copy('Could not load the money summary.')} retry={() => { void summary.refetch(); }} />
         : <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Active owners')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? '—' : (summary.data?.active ?? 0).toLocaleString('en-US')}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Revenue this month')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? '—' : <MoneyText value={summary.data?.revenueThisMonth ?? null} mutedUnit />}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Renewing within 30 days')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? '—' : (summary.data?.expiringWithin30Days ?? 0).toLocaleString('en-US')}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Running ads')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{ads.loading ? '—' : totals.ads.toLocaleString('en-US')}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Active owners')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? <TileSkeleton /> : typeof summary.data?.active === 'number' ? summary.data.active.toLocaleString('en-US') : <span className="text-sm font-normal text-muted-foreground">{copy('Active owners are not reported yet.')}</span>}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Revenue this month')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? <TileSkeleton /> : summary.data?.revenueThisMonth ? <MoneyText value={summary.data.revenueThisMonth} mutedUnit /> : <span className="text-sm font-normal text-muted-foreground">{copy('No revenue is recorded this month yet.')}</span>}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Renewing within 30 days')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{summary.loading ? <TileSkeleton /> : typeof summary.data?.expiringWithin30Days === 'number' ? summary.data.expiringWithin30Days.toLocaleString('en-US') : <span className="text-sm font-normal text-muted-foreground">{copy('Renewing owners are not reported yet.')}</span>}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-muted-foreground">{copy('Running ads')}</p><p className="mt-2 text-2xl font-semibold tabular-nums">{ads.loading ? <TileSkeleton /> : ads.error ? <span className="text-sm font-normal text-muted-foreground">{copy('Could not load the running ads.')}</span> : totals.ads.toLocaleString('en-US')}</p></CardContent></Card>
         </div>}
     </section>
 
@@ -56,10 +58,12 @@ export function AlgorithmMoneyPage() {
     <section aria-labelledby="algorithm-plans" className="space-y-3">
       <div><h2 id="algorithm-plans" className="text-xl font-semibold">{copy('Plans and prices')}</h2><p className="mt-1 text-sm text-muted-foreground">{copy('Every plan that is on sale, with its one-month price.')}</p></div>
       {plans.error ? <RequestError message={copy('Could not load the plans.')} retry={() => { void plans.refetch(); }} />
-        : <Card><CardContent>{plans.loading ? <div className="h-32 animate-pulse rounded-lg bg-muted" aria-busy="true" /> : <ul className="divide-y">{(plans.data ?? []).map((plan) => <li key={plan.plan} className="flex min-h-12 flex-wrap items-center justify-between gap-3 py-2">
-          <span className="font-medium">{copy(plan.nameEn || plan.nameAr)}</span>
-          <span className="text-sm tabular-nums text-muted-foreground">{plan.prices['1'] ? `${Number(plan.prices['1']).toLocaleString('en-US')} ${plan.currency}` : '—'} · {plan.active ? copy('On sale') : copy('Not on sale')}</span>
-        </li>)}</ul>}</CardContent></Card>}
+        : <Card><CardContent>{plans.loading ? <div className="h-32 animate-pulse rounded-lg bg-muted" aria-busy="true" />
+          : !(plans.data ?? []).length ? <p className="py-4 text-sm text-muted-foreground">{copy('No plans are on sale yet.')}</p>
+            : <ul className="divide-y">{(plans.data ?? []).map((plan) => <li key={plan.plan} className="flex min-h-12 flex-wrap items-center justify-between gap-3 py-2">
+              <span className="font-medium">{copy(plan.nameEn || plan.nameAr)}</span>
+              <span className="text-sm tabular-nums text-muted-foreground">{plan.prices['1'] ? `${Number(plan.prices['1']).toLocaleString('en-US')} ${plan.currency}` : copy('No price set')} · {plan.active ? copy('On sale') : copy('Not on sale')}</span>
+            </li>)}</ul>}</CardContent></Card>}
     </section>
   </div>;
 }
