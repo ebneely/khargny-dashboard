@@ -11,6 +11,8 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { useDashboardCopy } from '../dashboard-text';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { loadAlgorithmSettings, previewAlgorithm, saveAlgorithmSettings, type AlgorithmPreview, type AlgorithmSettingsRow } from '@/lib/api/algorithm';
+import { ALGORITHM_STATUS_ORDER, ALGORITHM_STATUS_WORDS, isAlgorithmStatus } from '@/lib/algorithm-status';
+import { AlgorithmStatusLegend, StatusIcon } from './status-mark';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -171,6 +173,14 @@ function buildValues(values: Record<string, unknown>, draft: Draft): Record<stri
   return out;
 }
 
+/** The preview's rows in the place-journey order; any status the server adds that we do not know follows alphabetically. */
+function previewStatusOrder(preview: AlgorithmPreview): string[] {
+  const seen = new Set([...Object.keys(preview.statusCounts.before), ...Object.keys(preview.statusCounts.after)]);
+  const known = ALGORITHM_STATUS_ORDER.filter((key) => seen.has(key));
+  const unknown = [...seen].filter((key) => !isAlgorithmStatus(key)).sort();
+  return [...known, ...unknown];
+}
+
 export function AlgorithmSettingsPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const copy = useDashboardCopy();
   const { pick } = useDashboardLang();
@@ -259,7 +269,8 @@ export function AlgorithmSettingsPanel({ open, onOpenChange }: { open: boolean; 
           {preview && <div className="space-y-4 rounded-lg border border-border p-3">
             <div><h4 className="font-medium">{copy('Preview: statuses before and after')}</h4><p className="text-xs text-muted-foreground">{copy('Nothing is saved until you save.')}</p></div>
             <table className="w-full text-sm"><thead><tr className="text-muted-foreground"><th className="py-1 text-start font-normal">{copy('Status')}</th><th className="py-1 text-end font-normal">{copy('Before')}</th><th className="py-1 text-end font-normal">{copy('After')}</th></tr></thead>
-              <tbody className="divide-y">{Object.keys({ ...preview.statusCounts.before, ...preview.statusCounts.after }).sort().map((key) => <tr key={key}><td className="py-1.5">{copy(key)}</td><td className="py-1.5 text-end tabular-nums text-muted-foreground">{(preview.statusCounts.before[key] ?? 0).toLocaleString('en-US')}</td><td className="py-1.5 text-end font-medium tabular-nums">{(preview.statusCounts.after[key] ?? 0).toLocaleString('en-US')}</td></tr>)}</tbody></table>
+              <tbody className="divide-y">{previewStatusOrder(preview).map((key) => <tr key={key}><td className="py-1.5">{isAlgorithmStatus(key) ? <span className="inline-flex items-center gap-1.5"><StatusIcon status={key} />{copy(ALGORITHM_STATUS_WORDS[key])}</span> : copy(key)}</td><td className="py-1.5 text-end tabular-nums text-muted-foreground">{(preview.statusCounts.before[key] ?? 0).toLocaleString('en-US')}</td><td className="py-1.5 text-end font-medium tabular-nums">{(preview.statusCounts.after[key] ?? 0).toLocaleString('en-US')}</td></tr>)}</tbody></table>
+            <AlgorithmStatusLegend />
             {preview.learnedKeywords && <p className="text-sm text-muted-foreground">{copy('Learned words')}: {(preview.learnedKeywords.learnedNow ?? 0).toLocaleString('en-US')} {copy('Now')} · {(preview.learnedKeywords.wouldAssign ?? 0).toLocaleString('en-US')} {copy('Would be assigned')} · {(preview.learnedKeywords.wouldRemove ?? 0).toLocaleString('en-US')} {copy('Would be removed')}</p>}
             {!!preview.sampleFeed?.length && <div><h4 className="text-sm font-medium">{copy('Sample feed')}</h4><ol className="mt-1 space-y-1 text-sm">{preview.sampleFeed.slice(0, 10).map((row, at) => <li key={`${row.placeId}-${at}`} className="flex items-baseline gap-2"><span className="w-4 text-xs text-muted-foreground tabular-nums">{at + 1}</span><span className="min-w-0 flex-1 truncate" dir="auto">{pick(row.name, null)}</span><span className="text-xs text-muted-foreground">{copy(row.slot === 'fair' ? 'Fair chance' : row.slot === 'ad' ? 'Paid' : 'Hyped')}</span></li>)}</ol></div>}
           </div>}

@@ -19,11 +19,11 @@ import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric } from '@/lib/api/people';
 import { useInsightFilters } from './insight-filters';
 import { cn } from '@/lib/utils';
+import {
+  algorithmStatusTotal, ALGORITHM_STATUS_ORDER, ALGORITHM_STATUS_WORDS,
+} from '@/lib/algorithm-status';
+import { AlgorithmStatusLegend, StatusIcon } from './status-mark';
 
-const STATUS_ORDER: AlgorithmStatus[] = ['new', 'trial', 'rising', 'hyped', 'normal', 'cooling', 'resting', 'needs_listing'];
-const STATUS_WORDS: Record<AlgorithmStatus, string> = {
-  new: 'New', normal: 'Normal', trial: 'On trial', rising: 'Rising', hyped: 'Hyped', cooling: 'Cooling', resting: 'Resting', needs_listing: 'Needs listing',
-};
 const statusClass = (status: AlgorithmStatus) => status === 'hyped' ? 'bg-primary/12 text-primary' : status === 'rising' ? 'bg-success-bg text-success' : status === 'cooling' ? 'bg-destructive/10 text-destructive' : status === 'new' ? 'bg-info-bg text-info' : 'bg-muted text-muted-foreground';
 
 export function AlgorithmPlacesPage() {
@@ -41,6 +41,8 @@ export function AlgorithmPlacesPage() {
   const hypeRows = React.useMemo(() => hype.data?.items ?? [], [hype.data]);
   const rankOf = React.useMemo(() => new Map(hypeRows.map((row) => [row.id, row])), [hypeRows]);
   const counts = statuses.data?.counts ?? {};
+  // The endpoint's own `total` follows the selected status; the unfiltered total is the sum of every status.
+  const allCount = algorithmStatusTotal(counts);
 
   return <div className="space-y-8">
     <section aria-labelledby="algorithm-places-top" className="space-y-3">
@@ -51,9 +53,10 @@ export function AlgorithmPlacesPage() {
     <section aria-labelledby="algorithm-status" className="space-y-3">
       <div><h2 id="algorithm-status" className="text-xl font-semibold">{copy('Every place, its status and why')}</h2><p className="mt-1 text-sm text-muted-foreground">{copy('Statuses are managed in Settings; customers never see them.')}</p></div>
       <div role="group" aria-label={copy('Place status')} className="flex flex-wrap gap-2">
-        <button type="button" data-ro-allow="true" aria-pressed={!status} onClick={() => { setStatus(''); statusAddress.change('skip', ''); }} className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm', !status ? 'border-primary bg-accent text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}>{copy('All statuses')}<span className="tabular-nums">{(statuses.data?.total ?? 0).toLocaleString('en-US')}</span></button>
-        {STATUS_ORDER.map((key) => <button key={key} type="button" data-ro-allow="true" aria-pressed={status === key} onClick={() => { setStatus(key); statusAddress.change('skip', ''); }} className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm', status === key ? 'border-primary bg-accent text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}><span className={cn('size-2 rounded-full', key === 'hyped' ? 'bg-primary' : key === 'rising' ? 'bg-success' : key === 'cooling' ? 'bg-destructive' : 'bg-muted-foreground/50')} aria-hidden="true" />{copy(STATUS_WORDS[key])}<span className="tabular-nums">{(counts[key] ?? 0).toLocaleString('en-US')}</span></button>)}
+        <button type="button" data-ro-allow="true" aria-pressed={!status} onClick={() => { setStatus(''); statusAddress.change('skip', ''); }} className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm', !status ? 'border-primary bg-accent text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}>{copy('All statuses')}<span className="tabular-nums">{allCount.toLocaleString('en-US')}</span></button>
+        {ALGORITHM_STATUS_ORDER.map((key) => <button key={key} type="button" data-ro-allow="true" aria-pressed={status === key} onClick={() => { setStatus(key); statusAddress.change('skip', ''); }} className={cn('inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm', status === key ? 'border-primary bg-accent text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}><StatusIcon status={key} />{copy(ALGORITHM_STATUS_WORDS[key])}<span className="tabular-nums">{(counts[key] ?? 0).toLocaleString('en-US')}</span></button>)}
       </div>
+      <AlgorithmStatusLegend className="max-w-3xl" />
       <Card><CardContent className="space-y-3">
         <div className="flex items-center gap-2">
           <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -75,11 +78,11 @@ export function AlgorithmPlacesPage() {
                   const rank = rankOf.get(row.placeId);
                   return <tr key={row.placeId} className="h-14 hover:bg-muted/40">
                     <td className="py-2 pe-3"><Link href={`/dashboard/places/${row.placeId}`} className="font-medium hover:underline" dir="auto">{row.name}</Link>{row.nameEn && row.name !== row.nameEn ? <span className="block text-xs text-muted-foreground" dir="auto">{row.nameEn}</span> : null}</td>
-                    <td className="py-2 pe-3"><span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', statusClass(row.status))}>{copy(STATUS_WORDS[row.status] ?? 'Normal')}</span></td>
-                    <td className="hidden max-w-[320px] truncate py-2 pe-3 text-muted-foreground md:table-cell" title={row.reason ?? undefined}>{row.reason ?? 'â€”'}</td>
+                    <td className="py-2 pe-3"><span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium', statusClass(row.status))}><StatusIcon status={row.status} className="size-3.5" />{copy(ALGORITHM_STATUS_WORDS[row.status] ?? 'Normal')}</span></td>
+                    <td className="hidden max-w-[320px] truncate py-2 pe-3 text-muted-foreground md:table-cell" title={row.reason ?? undefined}>{row.reason ?? '—'}</td>
                     <td className="py-2 text-end font-medium tabular-nums">{row.hype.toLocaleString('en-US')}<HypeRank className="mt-1 justify-end" rank={rank?.rank ? { rank: rank.rank, total: rank.total ?? 0, topPercent: rank.topPercent ?? 100, moved: rank.moved ?? null, areaRank: rank.areaRank, categoryRank: rank.categoryRank } : null} /></td>
                     <td className="hidden py-2 text-end tabular-nums text-muted-foreground sm:table-cell">{(rank?.searchTaps ?? 0).toLocaleString('en-US')}</td>
-                    <td className="py-2 text-end text-muted-foreground">{row.paid ? copy('Paid') : 'â€”'}</td>
+                    <td className="py-2 text-end text-muted-foreground">{row.paid ? copy('Paid') : '—'}</td>
                   </tr>;
                 })}</tbody>
               </table></div>}
@@ -113,7 +116,7 @@ function HypeTable({ rows, loading, error, retry, mode }: { rows: HypeItem[]; lo
     const all = row[key] ?? 0;
     const value = pickMode(all, people.data?.items[row.id]?.[metric], mode);
     const repeat = mode === 'all' ? null : repeatTimes(all, people.data?.items[row.id]?.[metric]?.people ?? 0);
-    return <>{value === null ? 'â€”' : value.toLocaleString('en-US')}{repeat !== null && <span className="ms-1 text-xs text-muted-foreground">Ã—{repeat}</span>}</>;
+    return <>{value === null ? '—' : value.toLocaleString('en-US')}{repeat !== null && <span className="ms-1 text-xs text-muted-foreground">×{repeat}</span>}</>;
   };
   return <Card><CardContent className="space-y-3">
     <div className="flex items-center gap-2"><Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><Input className="max-w-sm" aria-label={copy('Find a place')} placeholder={copy('Find a place')} value={address.query} onChange={(event) => address.change('q', event.target.value)} /></div>
