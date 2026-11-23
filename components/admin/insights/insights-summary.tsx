@@ -38,7 +38,7 @@ export function InsightsSummary({ data, loading: isLoading, lang: requestedLangu
           <StatTile label="Saves" value={value('saves', t?.saves)} hint={hintFor('saves', t?.saves)} icon={engagementMetrics[1].icon} loading={isLoading} />
           <StatTile
             label="5argny taps"
-            value={value('goes', t?.directions) ?? 0}
+            value={value('goes', t?.directions)}
             hint={hintFor('goes', t?.directions)}
             icon={engagementMetrics[3].icon}
             loading={isLoading}

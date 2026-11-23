@@ -81,7 +81,7 @@ export function AlgorithmPlacesPage() {
                     <td className="py-2 pe-3"><span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium', statusClass(row.status))}><StatusIcon status={row.status} className="size-3.5" />{copy(ALGORITHM_STATUS_WORDS[row.status] ?? 'Normal')}</span></td>
                     <td className="hidden max-w-[320px] truncate py-2 pe-3 text-muted-foreground md:table-cell" title={row.reason ?? undefined}>{row.reason ?? '—'}</td>
                     <td className="py-2 text-end font-medium tabular-nums">{row.hype.toLocaleString('en-US')}<HypeRank className="mt-1 justify-end" rank={rank?.rank ? { rank: rank.rank, total: rank.total ?? 0, topPercent: rank.topPercent ?? 100, moved: rank.moved ?? null, areaRank: rank.areaRank, categoryRank: rank.categoryRank } : null} /></td>
-                    <td className="hidden py-2 text-end tabular-nums text-muted-foreground sm:table-cell">{(rank?.searchTaps ?? 0).toLocaleString('en-US')}</td>
+                    <td className="hidden py-2 text-end tabular-nums text-muted-foreground sm:table-cell">{typeof rank?.searchTaps === 'number' ? rank.searchTaps.toLocaleString('en-US') : '—'}</td>
                     <td className="py-2 text-end text-muted-foreground">{row.paid ? copy('Paid') : '—'}</td>
                   </tr>;
                 })}</tbody>

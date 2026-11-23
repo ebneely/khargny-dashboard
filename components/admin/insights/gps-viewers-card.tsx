@@ -9,6 +9,7 @@ import { localeFor } from '@/lib/locale';
 import { regionLabel, findRegion } from '@/lib/egypt-regions';
 import { GovIcon } from '@/components/gov-icon';
 import { numbersRange, readNumbersWindow } from '@/components/admin/analytics/window-switch';
+import { Button } from '@/components/ui/button';
 import { RankedBars, type RankedRow } from './ranked-bars';
 
 type Count = { sessions: number; devices: number };
@@ -22,8 +23,8 @@ type GpsReport = Count & {
 };
 
 const COPY = {
-  en: { title: 'Where viewers are (GPS)', body: 'Sessions whose phone or browser already had location on. We never ask for it for this.', gpsOn: 'of sessions had GPS on', outside: 'Outside Egypt', sessions: 'sessions', devices: 'devices', areas: 'Top areas', empty: 'No sessions with GPS on in this window.', error: 'Could not load GPS viewers.' },
-  ar: { title: 'أماكن المشاهدين (GPS)', body: 'الزيارات التي كان موقع الهاتف أو المتصفح فيها مفعّلًا من قبل. لا نطلبه لهذا أبدًا.', gpsOn: 'من الزيارات كان الـGPS فيها مفعّلًا', outside: 'خارج مصر', sessions: 'زيارة', devices: 'جهاز', areas: 'أكثر المناطق', empty: 'لا زيارات بموقع مفعّل في هذه الفترة.', error: 'تعذّر تحميل أماكن المشاهدين.' },
+  en: { title: 'Where viewers are (GPS)', body: 'Sessions whose phone or browser already had location on. We never ask for it for this.', gpsOn: 'of sessions had GPS on', outside: 'Outside Egypt', sessions: 'sessions', devices: 'devices', areas: 'Top areas', empty: 'No sessions with GPS on in this window.', error: 'Could not load GPS viewers.', retry: 'Retry' },
+  ar: { title: 'أماكن المشاهدين (GPS)', body: 'الزيارات التي كان موقع الهاتف أو المتصفح فيها مفعّلًا من قبل. لا نطلبه لهذا أبدًا.', gpsOn: 'من الزيارات كان الـGPS فيها مفعّلًا', outside: 'خارج مصر', sessions: 'زيارة', devices: 'جهاز', areas: 'أكثر المناطق', empty: 'لا زيارات بموقع مفعّل في هذه الفترة.', error: 'تعذّر تحميل أماكن المشاهدين.', retry: 'إعادة المحاولة' },
 };
 
 /** Numbers > People: viewers by the city their GPS puts them in (GET /v1/admin/analytics/gps), for the page's window. */
@@ -34,7 +35,7 @@ export function GpsViewersCard() {
   const range = numbersRange(readNumbersWindow(params), params);
   const key = JSON.stringify(range);
   const load = React.useCallback(() => adminApi.get<GpsReport>('/v1/admin/analytics/gps', JSON.parse(key)), [key]);
-  const { data, loading, error } = useSubscriberResource(load);
+  const { data, loading, error, refetch } = useSubscriberResource(load);
   const n = (v: number) => v.toLocaleString(localeFor(lang));
   const meta = (c: Count) => `${n(c.sessions)} ${t.sessions} · ${n(c.devices)} ${t.devices}`;
   const cities: RankedRow[] = (data?.cities ?? []).map((c) => ({
@@ -59,7 +60,7 @@ export function GpsViewersCard() {
         <p className="text-sm text-muted-foreground">{t.body}</p>
       </div>
       <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[1fr_1fr]">
-        {error ? <p role="alert" className="text-sm text-destructive">{t.error}</p> : loading || !data ? <div className="h-24 animate-pulse rounded bg-muted" aria-hidden="true" /> : <>
+        {error ? <div className="flex flex-wrap items-center justify-between gap-3"><p role="alert" className="text-sm text-destructive">{t.error}</p><Button variant="outline" size="sm" onClick={() => { void refetch(); }}>{t.retry}</Button></div> : loading || !data ? <div className="h-24 animate-pulse rounded bg-muted" aria-hidden="true" /> : <>
           <div className="space-y-4">
             <p><span className="font-display text-3xl font-semibold tabular-nums">{data.gpsShare.toLocaleString(localeFor(lang), { style: 'percent', maximumFractionDigits: 1 })}</span> <span className="text-sm text-muted-foreground">{t.gpsOn} ({n(data.gpsSessions)} / {n(data.sessions)})</span></p>
             <RankedBars scope="gps-cities" rows={cities} valueLabel={t.sessions} emptyLabel={t.empty} />
