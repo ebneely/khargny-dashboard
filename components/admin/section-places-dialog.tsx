@@ -47,35 +47,46 @@ export function SectionPlacesDialog({
   const [pinned, setPinned] = React.useState<PickPlace[]>([]);
   const [results, setResults] = React.useState<PickPlace[]>([]);
   const [query, setQuery] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+  const [loadedSectionId, setLoadedSectionId] = React.useState<string | null>(null);
   const [loadError, setLoadError] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
   const pinnedIds = React.useMemo(() => new Set(pinned.map((p) => p.id)), [pinned]);
+  // Still loading until this section's pins have arrived (reset when the dialog closes).
+  const loading = Boolean(open && sectionId) && loadedSectionId !== sectionId && !loadError;
 
   // Load the current pins when the dialog opens.
   React.useEffect(() => {
     if (!open || !sectionId) return;
     let current = true;
-    setLoading(true); setLoadError(false); setPinned([]);
-    setQuery('');
-    setResults([]);
     adminApi
       .get<PickPlace[]>(`/v1/admin/storefront/sections/${sectionId}/places`)
-      .then((rows) => { if (current) setPinned(Array.isArray(rows) ? rows : []); })
-      .catch(() => { if (current) { setLoadError(true); toast.error(controlCopy('Could not load this section’s places.')); } })
-      .finally(() => { if (current) setLoading(false); });
+      .then((rows) => {
+        if (!current) return;
+        setPinned(Array.isArray(rows) ? rows : []);
+        setLoadedSectionId(sectionId);
+      })
+      .catch(() => { if (current) { setLoadError(true); toast.error(controlCopy('Could not load this section’s places.')); } });
     return () => { current = false; };
   }, [open, sectionId, controlCopy]);
+
+  // Clear the picker as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setPinned([]);
+      setQuery('');
+      setResults([]);
+      setLoadError(false);
+      setLoadedSectionId(null);
+    }
+    onOpenChange(next);
+  };
 
   // Debounced catalog search.
   React.useEffect(() => {
     if (!open || !canWrite) return;
     const q = query.trim();
-    if (!q) {
-      setResults([]);
-      return;
-    }
+    if (!q) return;
     const id = setTimeout(() => {
       adminApi
         .get<{ data?: PickPlace[]; items?: PickPlace[] } | PickPlace[]>(
@@ -114,7 +125,7 @@ export function SectionPlacesDialog({
         placeIds: pinned.map((p) => p.id),
       });
       toast.success(controlCopy('Section places saved.'));
-      onOpenChange(false);
+      handleOpenChange(false);
       onSaved?.();
     } catch (e) {
       const err = e as AdminApiError;
@@ -127,7 +138,7 @@ export function SectionPlacesDialog({
   const label = (p: PickPlace) => p.name || p.nameEn || '—';
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
+    <Dialog open={open} onOpenChange={(o) => { if (!saving) handleOpenChange(o); }}>
       <DialogContent data-trace-id="section-places-dialog" className="max-w-2xl">
         <DialogHeader>
           <DialogTitle><DashboardText>Places in “</DashboardText>{sectionTitle}”</DialogTitle>
@@ -142,7 +153,7 @@ export function SectionPlacesDialog({
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); if (!e.target.value.trim()) setResults([]); }}
               placeholder={controlCopy("Search places to add…")}
               className="ps-9"
               data-trace-id="section-places-search"
@@ -216,7 +227,7 @@ export function SectionPlacesDialog({
         </div>
 
         <DialogFooter>
-          <Button data-ro-allow="true" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button data-ro-allow="true" variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button onClick={save} disabled={!canWrite || loading || loadError || saving} data-trace-id="section-places-save">

@@ -66,7 +66,13 @@ export function SubmissionsList({ canWrite, placeId }: { canWrite: boolean; plac
   };
   const key = JSON.stringify(filters);
   const [pages, setPages] = React.useState(1);
-  React.useEffect(() => { setPages(1); }, [key]);
+  const [pagesKey, setPagesKey] = React.useState(key);
+  // A filter change starts again from page 1. Adjusting during render (not in an effect)
+  // re-renders before anything is painted, so no results from the new filter are shown first.
+  if (pagesKey !== key) {
+    setPagesKey(key);
+    setPages(1);
+  }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- key is the filters
   const load = React.useCallback(() => loadSubmissions(filters, pages), [key, pages]);
   const resource = useSubscriberResource(load);
