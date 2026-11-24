@@ -6,7 +6,7 @@ import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-te
 import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
-import { autoSlug } from '@/lib/utils/slug';
+import { slugForForm } from '@/lib/form-slug';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/lib/dash-router';
 import Link from '@/components/lang-link';
@@ -59,16 +59,24 @@ export default function EditCityPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
 
-  const [nameEdited, setNameEdited] = useState(false);
-
-  // Field edits overlay the loaded city, so the form needs no effect to seed it.
-  const [draft, setDraft] = useState<Partial<CityDraft>>({});
-  const edit = <K extends keyof CityDraft>(key: K, value: CityDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
+  // Field edits overlay the loaded city, so the form needs no effect to seed it. The edits are
+  // tied to the record version they were made against: when a save comes back with a new
+  // updatedAt, they are dropped in the same render as the refetched city, so the fields show
+  // what the server stored — no flash of the old values, and the saved slug is never swapped
+  // for the generated one on a later save.
+  const cityVersion = city ? `${city.id}:${city.updatedAt}` : null;
+  const [draftState, setDraftState] = useState<{ version: string | null; values: Partial<CityDraft> } | null>(null);
+  const draft: Partial<CityDraft> = draftState && draftState.version === cityVersion ? draftState.values : {};
+  const edit = <K extends keyof CityDraft>(key: K, value: CityDraft[K]) =>
+    setDraftState((state) => ({
+      version: cityVersion,
+      values: { ...(state && state.version === cityVersion ? state.values : {}), [key]: value },
+    }));
   const name = draft.name ?? city?.name ?? '';
   const nameEn = draft.nameEn ?? city?.nameEn ?? '';
-  // The slug follows the name until the admin hand-edits it, so the loaded slug is never
-  // clobbered on hydration.
-  const slug = draft.slug ?? (nameEdited ? autoSlug(name, nameEn) : city?.slug ?? '');
+  // Editing either name regenerates the slug, until the admin types a slug of their own.
+  const nameEdited = draft.name !== undefined || draft.nameEn !== undefined;
+  const slug = slugForForm({ draft, loadedSlug: city?.slug ?? '', nameEdited, name, nameEn });
   const areaKeys = draft.areaKeys ?? city?.areaKeys ?? [];
   const descriptionAr = draft.descriptionAr ?? city?.descriptionAr ?? '';
   const descriptionEn = draft.descriptionEn ?? city?.descriptionEn ?? '';
@@ -96,8 +104,6 @@ export default function EditCityPage() {
       });
       setError('');
       await refetch();
-      // The saved city is the new baseline: drop the overlays so the fields show it.
-      setDraft({});
       formChanges.markSaved();
     } catch (e) {
       const err = e as AdminApiError;
@@ -179,7 +185,7 @@ export default function EditCityPage() {
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e) => { edit('name', e.target.value); setNameEdited(true); }}
+                  onChange={(e) => edit('name', e.target.value)}
                   data-trace-id="edit-city-name"
                   required
                 />
@@ -189,7 +195,7 @@ export default function EditCityPage() {
                 <Input
                   id="nameEn"
                   value={nameEn}
-                  onChange={(e) => { edit('nameEn', e.target.value); setNameEdited(true); }}
+                  onChange={(e) => edit('nameEn', e.target.value)}
                   data-trace-id="edit-city-name-en"
                 />
               </div>
