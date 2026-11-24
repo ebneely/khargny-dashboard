@@ -8,7 +8,7 @@ export const featureLabels = {
 };
 export const planMonths: PlanMonths[] = ['1', '2', '3', '6'];
 export const priceFields = { '1': 'price1Month', '2': 'price2Months', '3': 'price3Months', '6': 'price6Months' } as const;
-export function planMoneyLabel(value: string, _lang: 'en' | 'ar') {
+export function planMoneyLabel(value: string) {
   return value; // Western digits in both languages
 }
 export function planPriceRequest(values: Record<PlanMonths, string>): PlanPatch {

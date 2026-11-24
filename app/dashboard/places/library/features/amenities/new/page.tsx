@@ -41,8 +41,8 @@ export default function NewAmenityPage() {
       });
       router.push('/dashboard/places/library/features');
       formChanges.markSaved();
-    } catch (e: any) {
-      setError(e.message || 'Failed to create amenity');
+    } catch (e) {
+      setError((e as Error).message || 'Failed to create amenity');
     } finally {
       setSaving(false);
     }

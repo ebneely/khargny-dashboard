@@ -14,7 +14,7 @@ import { useDashboardCopy } from './dashboard-text';
 import { RecordCell } from './record-cell';
 import { RecordList } from './record-list';
 import { FormActionBar } from './form-action-bar';
-import { Field, LoadingState, RequestError, useSubscriberText } from './subscriber-ui';
+import { Field, LoadingState, RequestError } from './subscriber-ui';
 
 export function SubscriberPlans({ canWrite, active, onEdit }: { canWrite: boolean; active: boolean; onEdit: () => void }) {
   const copy = useDashboardCopy();
@@ -26,7 +26,6 @@ export function SubscriberPlans({ canWrite, active, onEdit }: { canWrite: boolea
 }
 function PlanPrices({ plan, canWrite, active, onEdit }: { plan: PlanCatalogueRow; canWrite: boolean; active: boolean; onEdit: () => void }) {
   const copy = useDashboardCopy();
-  const { lang } = useSubscriberText();
   const [saved, setSaved] = React.useState(plan);
   const initial = (row: PlanCatalogueRow) => Object.fromEntries(planMonths.map((months) => [months, row.prices[months] ?? ''])) as Record<PlanMonths, string>;
   const [prices, setPrices] = React.useState(() => initial(plan));
@@ -57,7 +56,7 @@ function PlanPrices({ plan, canWrite, active, onEdit }: { plan: PlanCatalogueRow
     <div className="flex flex-wrap items-center justify-between gap-3"><RecordCell icon="plan" nameAr={saved.nameAr} nameEn={saved.nameEn} />{!saved.active && <span className="text-sm text-muted-foreground">{copy('Inactive plan')}</span>}</div>
     <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">{saved.features.map((feature) => <li key={feature}>{copy(featureLabels[feature])}</li>)}</ul>
     <div className="grid gap-4 sm:grid-cols-2">{planMonths.map((months) => <Field key={months} label={`${copy(`${months} ${months === '1' ? 'month' : 'months'}`)} ${copy('EGP')}`} error={errors[priceFields[months]]}>
-      {canWrite ? <Input type="text" inputMode="decimal" dir="ltr" disabled={busy} value={prices[months]} placeholder={copy('No price set')} onFocus={onEdit} onChange={(event) => { onEdit(); setPrices((current) => ({ ...current, [months]: event.target.value })); setErrors((current) => ({ ...current, [priceFields[months]]: '' })); setError(''); }} /> : <p className="tabular-nums">{saved.prices[months] === null ? copy('No price set') : planMoneyLabel(saved.prices[months], lang)}</p>}
+      {canWrite ? <Input type="text" inputMode="decimal" dir="ltr" disabled={busy} value={prices[months]} placeholder={copy('No price set')} onFocus={onEdit} onChange={(event) => { onEdit(); setPrices((current) => ({ ...current, [months]: event.target.value })); setErrors((current) => ({ ...current, [priceFields[months]]: '' })); setError(''); }} /> : <p className="tabular-nums">{saved.prices[months] === null ? copy('No price set') : planMoneyLabel(saved.prices[months])}</p>}
     </Field>)}</div>
     {error && <RequestError message={error} />}
     {canWrite && <Button type="button" variant="outline" onClick={onEdit}>{copy('Plan prices')}: {copy(plan.plan === 'owner' ? 'Owner' : 'Owner Plus')}</Button>}

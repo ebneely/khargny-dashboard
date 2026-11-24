@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/lib/dash-router';
 import { QUEUES, useShellInboxCounts } from './dashboard-shell';
 import { RecordRow } from './record-list';
-import { RecordCell, RecordThumbnail } from './record-cell';
+import { RecordCell } from './record-cell';
 import { useDashboardCopy } from './dashboard-text';
 import { ActionDialog, LoadingState, RequestError, useSubscriberText, type ActionSpec } from './subscriber-ui';
 import { AdminApiError } from '@/lib/api/admin-client';
@@ -130,11 +130,6 @@ function Age({ createdAt }: { createdAt: string }) {
   const age = hours < 1 ? text('Under 1 hour ago', 'من أقل من ساعة') : hours < 48 ? text(`${hours} h ago`, `من ${hours} ساعة`) : text(`${Math.floor(hours / 24)} days ago`, `من ${Math.floor(hours / 24)} يوم`);
   const full = new Intl.DateTimeFormat(lang === 'ar' ? AR_LOCALE : 'en-US', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short', hour12: true }).format(new Date(createdAt));
   return <span title={full} className={`inline-flex items-center gap-1 ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}><Clock className="size-3.5" aria-hidden="true" />{age}{late && <span>{text('Past the 48 h promise', 'تعدّى وعد الـ 48 ساعة')}</span>}</span>;
-}
-
-function Photo({ url }: { url?: string | null }) {
-  const copy = useDashboardCopy();
-  return url ? <a href={url} target="_blank" rel="noreferrer" aria-label={copy('Open the photo')} className="shrink-0"><RecordThumbnail src={url} size={48} /></a> : null;
 }
 
 export const KIND_LABELS: Record<CorrectionRow['kind'], string> = { hours: 'Hours', location: 'Location', phone: 'Phone', closed: 'Closed for good', photos: 'Photos', prices: 'Prices', name: 'Name', other: 'Something else' };

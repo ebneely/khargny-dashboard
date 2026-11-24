@@ -24,7 +24,6 @@ import {
   type AdCampaignReport,
   type AdReportDay,
 } from '@/lib/api/ads';
-import { AR_LOCALE } from '@/lib/locale';
 
 export function AdReportPage({ campaignId }: { campaignId: string }) {
   const controlCopy = useDashboardCopy();

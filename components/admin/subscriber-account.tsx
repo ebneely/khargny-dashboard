@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { adminApi } from '@/lib/api/admin-client';
 import { optionalText, type SubscriberDetail } from '@/lib/api/subscribers';
 import { ActionDialog, type ActionSpec, RequestError, StatusBadge, useSubscriberText } from './subscriber-ui';
-import { AR_LOCALE } from '@/lib/locale';
 
 export function SubscriberAccountPanel({ subscriber, canWrite, refresh }: { subscriber: SubscriberDetail; canWrite: boolean; refresh: () => Promise<boolean> }) {
   const { text, lang } = useSubscriberText();

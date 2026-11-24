@@ -13,7 +13,7 @@ import type { SubscriberDetail } from '@/lib/api/subscribers';
 import { useSubscriberResource } from '@/lib/api/hooks/use-subscriber-resource';
 import { ActionDialog, type ActionSpec, RequestError, useSubscriberText } from './subscriber-ui';
 import { LoadingState } from './subscriber-ui';
-import { AR_LOCALE, localeFor } from '@/lib/locale';
+import { localeFor } from '@/lib/locale';
 
 interface PhotoSubmission {
   id: string;

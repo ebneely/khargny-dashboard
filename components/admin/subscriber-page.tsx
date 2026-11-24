@@ -4,7 +4,6 @@ import * as React from 'react';
 import { PageActions } from './page-actions';
 import { ActionBarNavigation } from './form-action-bar';
 import { ContactRound } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UrlTabs, UrlTabsContent } from '@/components/ui/url-tabs';
 import { adminApi } from '@/lib/api/admin-client';
