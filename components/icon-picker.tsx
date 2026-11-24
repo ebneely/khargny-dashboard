@@ -14,7 +14,7 @@
  */
 
 import { DashboardText } from '@/components/admin/dashboard-text';
-import { useMemo, useState } from 'react';
+import { createElement, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import {
   ICONS,
@@ -55,8 +55,9 @@ function isRenderable(comp: unknown): boolean {
 }
 
 export function IconPreview({ name, size = 18 }: { name?: string | null; size?: number }) {
-  const Comp = lucideByName(name) ?? Lucide.MapPin;
-  return <Comp size={size} />;
+  // The glyph is looked up by catalog name, so it is rendered through createElement:
+  // JSX with a variable tag reads as a component created during render (react-hooks/static-components).
+  return createElement(lucideByName(name) ?? Lucide.MapPin, { size });
 }
 
 export function IconPicker({

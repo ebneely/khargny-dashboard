@@ -43,7 +43,7 @@ export function RegionPicker({
   city?: string;
   allowedKeys?: string[];
 }) {
-  const allowed = allowedKeys && allowedKeys.length > 0 ? new Set(allowedKeys) : null;
+  const allowedKey = allowedKeys?.join(',') ?? '';
   const [query, setQuery] = useState('');
   // Filter by city as well as free-text search: an editor who knows the place is in Cairo
   // shouldn't have to scroll past every other governorate to find its district.
@@ -60,6 +60,7 @@ export function RegionPicker({
     const activeCity = city || cityFilter;
     // A curated area list wins over the governorate filter: it's the exact set the city
     // offers, so nothing outside it should ever appear.
+    const allowed = allowedKey ? new Set(allowedKey.split(',')) : null;
     const base = allowed
       ? EGYPT_REGIONS.filter((r) => allowed.has(r.value))
       : EGYPT_REGIONS;
@@ -85,9 +86,8 @@ export function RegionPicker({
       byCity.get(region.governorate)!.push(region);
     }
     return Array.from(byCity.entries());
-    // allowedKeys drives `allowed`; include it so the pool recomputes when the city changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, city, cityFilter, allowedKeys?.join(',')]);
+    // allowedKey is allowedKeys joined, so the pool recomputes only when it really changes.
+  }, [query, city, cityFilter, allowedKey]);
 
   return (
     <div className="space-y-2" data-trace-id={traceId}>
