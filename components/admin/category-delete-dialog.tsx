@@ -23,12 +23,14 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleDelete = async () => {
     if (!categoryId) return;
@@ -37,7 +39,7 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
     try {
       await adminApi.delete(`/v1/admin/categories/${categoryId}`);
       toast.success(`"${categoryName}" has been deleted.`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onDeleted();
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string };
@@ -54,7 +56,7 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id="category-delete-dialog">
         <DialogHeader>
           <DialogTitle><DashboardText>Delete</DashboardText> {categoryName || 'this category'}?</DialogTitle>
@@ -64,7 +66,7 @@ export function CategoryDeleteDialog({ categoryId, categoryName, open, onOpenCha
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting}>

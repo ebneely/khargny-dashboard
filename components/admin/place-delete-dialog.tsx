@@ -23,12 +23,14 @@ export function PlaceDeleteDialog({ placeId, placeName, open, onOpenChange, onDe
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleDelete = async () => {
     if (!placeId) return;
@@ -37,7 +39,7 @@ export function PlaceDeleteDialog({ placeId, placeName, open, onOpenChange, onDe
     try {
       await adminApi.delete(`/v1/admin/places/${placeId}`);
       toast.success(`"${placeName}" has been deleted.`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onDeleted();
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -48,7 +50,7 @@ export function PlaceDeleteDialog({ placeId, placeName, open, onOpenChange, onDe
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id="place-delete-dialog">
         <DialogHeader>
           <DialogTitle><DashboardText>Delete</DashboardText> {placeName || 'this place'}?</DialogTitle>
@@ -58,7 +60,7 @@ export function PlaceDeleteDialog({ placeId, placeName, open, onOpenChange, onDe
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting} data-trace-id="place-delete-confirm">

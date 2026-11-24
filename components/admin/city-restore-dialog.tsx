@@ -23,12 +23,14 @@ export function CityRestoreDialog({ cityId, cityName, open, onOpenChange, onRest
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleRestore = async () => {
     if (!cityId) return;
@@ -37,7 +39,7 @@ export function CityRestoreDialog({ cityId, cityName, open, onOpenChange, onRest
     try {
       await adminApi.post(`/v1/admin/cities/${cityId}/restore`);
       toast.success(`"${cityName}" has been restored.`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onRestored();
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string };
@@ -54,7 +56,7 @@ export function CityRestoreDialog({ cityId, cityName, open, onOpenChange, onRest
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id="city-restore-dialog">
         <DialogHeader>
           <DialogTitle><DashboardText>Restore</DashboardText> {cityName || 'this city'}?</DialogTitle>
@@ -64,7 +66,7 @@ export function CityRestoreDialog({ cityId, cityName, open, onOpenChange, onRest
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" onClick={handleRestore} disabled={submitting}>

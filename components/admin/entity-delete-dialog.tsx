@@ -49,12 +49,14 @@ export function EntityDeleteDialog({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleDelete = async () => {
     if (!entityId) return;
@@ -63,7 +65,7 @@ export function EntityDeleteDialog({
     try {
       await adminApi.delete(`${endpoint}/${entityId}`);
       toast.success(`"${entityName}" has been deleted.`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onDeleted();
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string };
@@ -81,7 +83,7 @@ export function EntityDeleteDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id={traceId}>
         <DialogHeader>
           <DialogTitle><DashboardText>Delete</DashboardText> {entityName || `this ${entityLabel}`}?</DialogTitle>
@@ -91,7 +93,7 @@ export function EntityDeleteDialog({
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting}>

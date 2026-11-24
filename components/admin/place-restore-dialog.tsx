@@ -23,12 +23,14 @@ export function PlaceRestoreDialog({ placeId, placeName, open, onOpenChange, onR
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleRestore = async () => {
     if (!placeId) return;
@@ -37,7 +39,7 @@ export function PlaceRestoreDialog({ placeId, placeName, open, onOpenChange, onR
     try {
       await adminApi.post(`/v1/admin/places/${placeId}/restore`, {});
       toast.success(`"${placeName}" has been restored (as a draft).`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onRestored();
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -48,7 +50,7 @@ export function PlaceRestoreDialog({ placeId, placeName, open, onOpenChange, onR
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id="place-restore-dialog">
         <DialogHeader>
           <DialogTitle><DashboardText>Restore</DashboardText> {placeName || 'this place'}?</DialogTitle>
@@ -58,7 +60,7 @@ export function PlaceRestoreDialog({ placeId, placeName, open, onOpenChange, onR
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" onClick={handleRestore} disabled={submitting} data-trace-id="place-restore-confirm">

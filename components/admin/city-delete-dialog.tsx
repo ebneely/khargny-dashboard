@@ -23,12 +23,14 @@ export function CityDeleteDialog({ cityId, cityName, open, onOpenChange, onDelet
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (!open) {
+  // Clear the last attempt as the dialog closes, so it opens clean next time.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setError(null);
       setSubmitting(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const handleDelete = async () => {
     if (!cityId) return;
@@ -37,7 +39,7 @@ export function CityDeleteDialog({ cityId, cityName, open, onOpenChange, onDelet
     try {
       await adminApi.delete(`/v1/admin/cities/${cityId}`);
       toast.success(`"${cityName}" has been deleted.`);
-      onOpenChange(false);
+      handleOpenChange(false);
       onDeleted();
     } catch (e: unknown) {
       const err = e as { message?: string };
@@ -48,7 +50,7 @@ export function CityDeleteDialog({ cityId, cityName, open, onOpenChange, onDelet
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent data-trace-id="city-delete-dialog">
         <DialogHeader>
           <DialogTitle><DashboardText>Delete</DashboardText> {cityName || 'this city'}?</DialogTitle>
@@ -58,7 +60,7 @@ export function CityDeleteDialog({ cityId, cityName, open, onOpenChange, onDelet
         </DialogHeader>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
             <DashboardText>Cancel</DashboardText>
           </Button>
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={submitting}>
