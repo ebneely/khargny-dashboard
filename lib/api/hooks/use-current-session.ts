@@ -23,46 +23,46 @@ export function useCurrentSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
-  const fetchSession = useCallback(async () => {
-    setIsLoading(true);
-    setIsError(false);
-    try {
-      let res = await window.fetch('/api/auth/session', { credentials: 'include' });
-      // The access token lives ~15min. When it expires /api/auth/session 401s; rather
-      // than stick on the loading skeleton forever, try a one-shot refresh (the backend
-      // issues a new pair from the refresh_token cookie) and re-fetch once.
-      if (res.status === 401) {
-        const refreshed = await window.fetch('/api/auth/refresh', {
-          method: 'POST',
-          credentials: 'include',
-        });
-        if (refreshed.ok) {
-          res = await window.fetch('/api/auth/session', { credentials: 'include' });
-        }
+  const request = useCallback(async (): Promise<CurrentSession | null> => {
+    let res = await window.fetch('/api/auth/session', { credentials: 'include' });
+    // The access token lives ~15min. When it expires /api/auth/session 401s; rather
+    // than stick on the loading skeleton forever, try a one-shot refresh (the backend
+    // issues a new pair from the refresh_token cookie) and re-fetch once.
+    if (res.status === 401) {
+      const refreshed = await window.fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (refreshed.ok) {
+        res = await window.fetch('/api/auth/session', { credentials: 'include' });
       }
-      if (!res.ok) {
-        setIsError(true);
-        return;
-      }
-      // /api/auth/session wraps the payload in an envelope:
-      // { success: true, data: { user, session } }. Unwrap to the
-      // CurrentSession shape every consumer expects (session.user.*).
-      const json = (await res.json()) as { success?: boolean; data?: CurrentSession };
-      if (!json?.data?.user) {
-        setIsError(true);
-        return;
-      }
-      setData(json.data);
-    } catch {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
     }
+    if (!res.ok) return null;
+    // /api/auth/session wraps the payload in an envelope:
+    // { success: true, data: { user, session } }. Unwrap to the
+    // CurrentSession shape every consumer expects (session.user.*).
+    const json = (await res.json()) as { success?: boolean; data?: CurrentSession };
+    return json?.data?.user ? json.data : null;
   }, []);
 
-  useEffect(() => {
-    fetchSession();
-  }, [fetchSession]);
+  // State is written only from the request's callbacks, never synchronously in an effect.
+  const track = useCallback((pending: Promise<CurrentSession | null>) => {
+    pending
+      .then((result) => {
+        if (result) setData(result);
+        else setIsError(true);
+      })
+      .catch(() => setIsError(true))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  return { data, isLoading, isError, refetch: fetchSession };
+  useEffect(() => { track(request()); }, [track, request]);
+
+  const refetch = useCallback(() => {
+    setIsLoading(true);
+    setIsError(false);
+    track(request());
+  }, [track, request]);
+
+  return { data, isLoading, isError, refetch };
 }

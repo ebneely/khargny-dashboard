@@ -10,24 +10,29 @@ export function useAdminCategories() {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(() => adminApi.get<AdminCategory[]>('/v1/admin/categories'), []);
+
+  // State is written only from the request's callbacks, never synchronously in an effect.
+  const track = useCallback((request: Promise<AdminCategory[]>) => {
+    request
+      .then((result) => setData(result))
+      .catch((e) => {
+        setIsError(true);
+        setError(e as Error);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => { track(load()); }, [track, load]);
+
+  const refetch = useCallback(() => {
     setIsLoading(true);
     setIsError(false);
     setError(null);
-    try {
-      const result = await adminApi.get<AdminCategory[]>('/v1/admin/categories');
-      setData(result);
-    } catch (e) {
-      setIsError(true);
-      setError(e as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    track(load());
+  }, [track, load]);
 
-  useEffect(() => { fetch(); }, [fetch]);
-
-  return { data, isLoading, isError, error, refetch: fetch };
+  return { data, isLoading, isError, error, refetch };
 }
 
 export function useAdminCategory(id: string) {
@@ -36,23 +41,27 @@ export function useAdminCategory(id: string) {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(() => adminApi.get<AdminCategory>(`/v1/admin/categories/${id}`), [id]);
+
+  const track = useCallback((request: Promise<AdminCategory | null>) => {
+    request
+      .then((result) => setData(result))
+      .catch((e) => {
+        setIsError(true);
+        setError(e as Error);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => { if (id) track(load()); }, [track, load, id]);
+
+  const refetch = useCallback(() => {
     if (!id) return;
     setIsLoading(true);
     setIsError(false);
     setError(null);
-    try {
-      const result = await adminApi.get<AdminCategory>(`/v1/admin/categories/${id}`);
-      setData(result);
-    } catch (e) {
-      setIsError(true);
-      setError(e as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+    track(load());
+  }, [track, load, id]);
 
-  useEffect(() => { fetch(); }, [fetch]);
-
-  return { data, isLoading, isError, error, refetch: fetch };
+  return { data, isLoading, isError, error, refetch };
 }
