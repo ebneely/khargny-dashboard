@@ -3,7 +3,7 @@
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { autoSlug } from '@/lib/utils/slug';
@@ -30,6 +30,18 @@ import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { StatusBadge } from '@/components/admin/subscriber-ui';
 import type { AdminApiError } from '@/lib/api/admin-client';
 
+type CityDraft = {
+  name: string;
+  nameEn: string;
+  slug: string;
+  areaKeys: string[];
+  descriptionAr: string;
+  descriptionEn: string;
+  featured: boolean;
+  status: string;
+  imageUrl: string | null;
+};
+
 export default function EditCityPage() {
   const controlCopy = useDashboardCopy();
   const router = useRouter();
@@ -47,39 +59,22 @@ export default function EditCityPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
 
-  const [name, setName] = useState('');
-  const [nameEn, setNameEn] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
   const [nameEdited, setNameEdited] = useState(false);
-  const [areaKeys, setAreaKeys] = useState<string[]>([]);
-  const [descriptionAr, setDescriptionAr] = useState('');
-  const [descriptionEn, setDescriptionEn] = useState('');
-  const [featured, setFeatured] = useState(false);
-  const [status, setStatus] = useState('draft');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (city) {
-      setName(city.name);
-      setNameEn(city.nameEn || '');
-      setSlug(city.slug);
-      setAreaKeys(city.areaKeys ?? []);
-      setDescriptionAr(city.descriptionAr || '');
-      setDescriptionEn(city.descriptionEn || '');
-      setFeatured(city.featured);
-      setStatus(city.status);
-      setImageUrl((city as { imageUrl?: string | null }).imageUrl ?? null);
-    }
-  }, [city]);
-
-  // Auto-regenerate the slug from the name — but ONLY after the admin actually edits the name
-  // (nameEdited), and only until they hand-edit the slug (slugTouched). This matches the create
-  // form's behavior without clobbering the loaded slug on initial hydration.
-  useEffect(() => {
-    if (!nameEdited || slugTouched) return;
-    setSlug(autoSlug(name, nameEn));
-  }, [name, nameEn, nameEdited, slugTouched]);
+  // Field edits overlay the loaded city, so the form needs no effect to seed it.
+  const [draft, setDraft] = useState<Partial<CityDraft>>({});
+  const edit = <K extends keyof CityDraft>(key: K, value: CityDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
+  const name = draft.name ?? city?.name ?? '';
+  const nameEn = draft.nameEn ?? city?.nameEn ?? '';
+  // The slug follows the name until the admin hand-edits it, so the loaded slug is never
+  // clobbered on hydration.
+  const slug = draft.slug ?? (nameEdited ? autoSlug(name, nameEn) : city?.slug ?? '');
+  const areaKeys = draft.areaKeys ?? city?.areaKeys ?? [];
+  const descriptionAr = draft.descriptionAr ?? city?.descriptionAr ?? '';
+  const descriptionEn = draft.descriptionEn ?? city?.descriptionEn ?? '';
+  const featured = draft.featured ?? city?.featured ?? false;
+  const status = draft.status ?? city?.status ?? 'draft';
+  const imageUrl = draft.imageUrl ?? (city as { imageUrl?: string | null } | null)?.imageUrl ?? null;
 
   const formChanges = useFormChanges({ name, nameEn, slug, areaKeys, descriptionAr, descriptionEn, featured, status }, { name: city?.name, nameEn: city?.nameEn || '', slug: city?.slug, areaKeys: city?.areaKeys ?? [], descriptionAr: city?.descriptionAr || '', descriptionEn: city?.descriptionEn || '', featured: city?.featured, status: city?.status });
 
@@ -101,8 +96,10 @@ export default function EditCityPage() {
       });
       setError('');
       await refetch();
+      // The saved city is the new baseline: drop the overlays so the fields show it.
+      setDraft({});
       formChanges.markSaved();
-    } catch (e: any) {
+    } catch (e) {
       const err = e as AdminApiError;
       if (err.status === 409) {
         setSlugError('This slug is already in use. Please choose a different one.');
@@ -182,7 +179,7 @@ export default function EditCityPage() {
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e) => { setName(e.target.value); setNameEdited(true); }}
+                  onChange={(e) => { edit('name', e.target.value); setNameEdited(true); }}
                   data-trace-id="edit-city-name"
                   required
                 />
@@ -192,7 +189,7 @@ export default function EditCityPage() {
                 <Input
                   id="nameEn"
                   value={nameEn}
-                  onChange={(e) => { setNameEn(e.target.value); setNameEdited(true); }}
+                  onChange={(e) => { edit('nameEn', e.target.value); setNameEdited(true); }}
                   data-trace-id="edit-city-name-en"
                 />
               </div>
@@ -204,7 +201,7 @@ export default function EditCityPage() {
                 <Input
                   id="slug"
                   value={slug}
-                  onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
+                  onChange={(e) => { edit('slug', e.target.value); setSlugError(''); }}
                   data-trace-id="edit-city-slug"
                   aria-invalid={!!slugError}
                   aria-describedby={slugError ? 'edit-city-slug-error' : undefined}
@@ -224,12 +221,12 @@ export default function EditCityPage() {
                 in the city picks its region from exactly this set. */}
             <div className="space-y-2">
               <Label><DashboardText>Regions / areas in this city</DashboardText></Label>
-              <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={setAreaKeys} />
+              <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={(keys) => edit('areaKeys', keys)} />
             </div>
 
             <div className="space-y-2">
               <Label><DashboardText>Cover photo</DashboardText></Label>
-              <CityImageUpload cityId={id} imageUrl={imageUrl} onChange={setImageUrl} />
+              <CityImageUpload cityId={id} imageUrl={imageUrl} onChange={(url) => edit('imageUrl', url)} />
             </div>
 
             <div className="space-y-2">
@@ -246,7 +243,7 @@ export default function EditCityPage() {
                 <Input
                   id="descriptionAr"
                   value={descriptionAr}
-                  onChange={(e) => setDescriptionAr(e.target.value)}
+                  onChange={(e) => edit('descriptionAr', e.target.value)}
                   data-trace-id="edit-city-desc-ar"
                 />
               </div>
@@ -255,7 +252,7 @@ export default function EditCityPage() {
                 <Input
                   id="descriptionEn"
                   value={descriptionEn}
-                  onChange={(e) => setDescriptionEn(e.target.value)}
+                  onChange={(e) => edit('descriptionEn', e.target.value)}
                   data-trace-id="edit-city-desc-en"
                 />
               </div>
@@ -266,14 +263,14 @@ export default function EditCityPage() {
                 <Checkbox
                   id="featured"
                   checked={featured}
-                  onCheckedChange={(v) => setFeatured(v === true)}
+                  onCheckedChange={(v) => edit('featured', v === true)}
                   data-trace-id="edit-city-featured"
                 />
                 <Label htmlFor="featured"><DashboardText>Featured</DashboardText></Label>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="status"><DashboardText>Status</DashboardText></Label>
-                <Select value={status} onValueChange={(v) => v && setStatus(v)}>
+                <Select value={status} onValueChange={(v) => v && edit('status', v)}>
                   <SelectTrigger className="w-32" data-trace-id="edit-city-status">
                     <SelectValue />
                   </SelectTrigger>

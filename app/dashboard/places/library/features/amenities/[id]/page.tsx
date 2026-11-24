@@ -3,7 +3,7 @@
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText } from '@/components/admin/dashboard-text';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useParams } from 'next/navigation';
@@ -17,6 +17,8 @@ import { IconPicker } from '@/components/icon-picker';
 import { useAdminAmenity } from '@/lib/api/hooks/use-admin-amenities';
 import { adminApi } from '@/lib/api/admin-client';
 
+type AmenityDraft = { name: string; nameEn: string; icon: string };
+
 export default function EditAmenityPage() {
   const router = useRouter();
   const params = useParams();
@@ -26,17 +28,11 @@ export default function EditAmenityPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const [name, setName] = useState('');
-  const [nameEn, setNameEn] = useState('');
-  const [icon, setIcon] = useState('');
-
-  useEffect(() => {
-    if (amenity) {
-      setName(amenity.name);
-      setNameEn(amenity.nameEn || '');
-      setIcon(amenity.icon || '');
-    }
-  }, [amenity]);
+  // Edits overlay the loaded amenity, so the form needs no effect to seed it.
+  const [draft, setDraft] = useState<Partial<AmenityDraft>>({});
+  const name = draft.name ?? amenity?.name ?? '';
+  const nameEn = draft.nameEn ?? amenity?.nameEn ?? '';
+  const icon = draft.icon ?? amenity?.icon ?? '';
 
   const formChanges = useFormChanges({ name, nameEn, icon }, { name: amenity ? amenity.name : '', nameEn: amenity ? amenity.nameEn || '' : '', icon: amenity ? amenity.icon || '' : '' });
 
@@ -50,8 +46,8 @@ export default function EditAmenityPage() {
       });
       router.push('/dashboard/places/library/features');
       formChanges.markSaved();
-    } catch (e: any) {
-      setError(e.message || 'Failed to update amenity');
+    } catch (e) {
+      setError((e as Error).message || 'Failed to update amenity');
     } finally {
       setSaving(false);
     }
@@ -76,19 +72,19 @@ export default function EditAmenityPage() {
 
             <div className="space-y-2">
               <Label htmlFor="name"><DashboardText>Name *</DashboardText></Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input id="name" value={name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="nameEn"><DashboardText>English Name</DashboardText></Label>
-              <Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+              <Input id="nameEn" value={nameEn} onChange={(e) => setDraft((d) => ({ ...d, nameEn: e.target.value }))} />
             </div>
 
             {/* Catalog picker, not free text — see the create form for why. An icon saved
                 before this change that isn't in the catalog shows as unselected here. */}
             <div className="space-y-2">
               <Label htmlFor="icon"><DashboardText>Icon</DashboardText></Label>
-              <IconPicker value={icon} onChange={setIcon} traceId="edit-amenity-icon" scope="amenity" />
+              <IconPicker value={icon} onChange={(value) => setDraft((d) => ({ ...d, icon: value }))} traceId="edit-amenity-icon" scope="amenity" />
             </div>
 
             <div className="flex gap-3 pt-4">

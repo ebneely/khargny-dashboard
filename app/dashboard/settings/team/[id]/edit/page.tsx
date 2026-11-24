@@ -5,7 +5,7 @@ import { useDashboardLang } from '@/lib/dashboard-lang';
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText } from '@/components/admin/dashboard-text';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
 import { useParams } from 'next/navigation';
@@ -33,21 +33,17 @@ export default function EditAdminPage() {
   const { data: admin, isLoading, isError, refetch } = useAdmin(id);
   const { data: session } = useCurrentSession();
 
-  const [role, setRole] = useState<AdminRole>('admin');
-  const [status, setStatus] = useState<AdminStatus>('active');
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [formReady, setFormReady] = useState(false);
+
+  // Edits overlay the loaded admin, so the form needs no effect to seed it; the controls
+  // stay disabled until it has loaded.
+  const [draft, setDraft] = useState<{ role?: AdminRole; status?: AdminStatus }>({});
+  const role = draft.role ?? admin?.role ?? 'admin';
+  const status = draft.status ?? admin?.status ?? 'active';
+  const formReady = !!admin;
 
   const formChanges = useFormChanges({ role, status }, { role: admin ? admin.role : 'admin', status: admin ? admin.status : 'active' });
-  // Seed form once the admin loads. Mirrors the pattern in places/[id]/page.tsx.
-  useEffect(() => {
-    if (admin) {
-      setRole(admin.role);
-      setStatus(admin.status);
-      setFormReady(true);
-    }
-  }, [admin]);
 
   const currentUserId = session?.user.id;
   const currentUserRole = session?.user.role;
@@ -177,7 +173,7 @@ export default function EditAdminPage() {
               <Label htmlFor="admin-edit-role"><DashboardText>Role</DashboardText></Label>
               <Select
                 value={role}
-                onValueChange={(v) => v && setRole(v as AdminRole)}
+                onValueChange={(v) => v && setDraft((d) => ({ ...d, role: v as AdminRole }))}
                 disabled={!formReady || isSelf}
               >
                 <SelectTrigger id="admin-edit-role" data-trace-id="admin-edit-role">
@@ -202,7 +198,7 @@ export default function EditAdminPage() {
               <Label htmlFor="admin-edit-status"><DashboardText>Status</DashboardText></Label>
               <Select
                 value={status}
-                onValueChange={(v) => v && setStatus(v as AdminStatus)}
+                onValueChange={(v) => v && setDraft((d) => ({ ...d, status: v as AdminStatus }))}
                 disabled={!formReady}
               >
                 <SelectTrigger id="admin-edit-status" data-trace-id="admin-edit-status">
