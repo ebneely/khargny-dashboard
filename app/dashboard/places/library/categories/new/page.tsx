@@ -32,8 +32,10 @@ export default function NewCategoryPage() {
 
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [slug, setSlug] = useState('');
+  const [slugInput, setSlugInput] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
+  // Derived, so the box always shows the generated slug until the admin edits it.
+  const slug = slugTouched ? slugInput : autoSlug(nameAr, nameEn);
   const [icon, setIcon] = useState('');
   const [parentId, setParentId] = useState<string | null>('');
   const [sortOrder, setSortOrder] = useState('0');
@@ -49,12 +51,6 @@ export default function NewCategoryPage() {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    if (slugTouched) return;
-    const generated = autoSlug(nameAr, nameEn);
-    setSlug(generated);
-  }, [nameAr, nameEn, slugTouched]);
 
   const formChanges = useFormChanges({ nameAr, nameEn, slug, icon, parentId, sortOrder, status }, { nameAr: '', nameEn: '', slug: '', icon: '', parentId: '', sortOrder: '0', status: 'active' });
 
@@ -81,10 +77,12 @@ export default function NewCategoryPage() {
       });
       router.push('/dashboard/places/library/categories');
       formChanges.markSaved();
-    } catch (e: any) {
+    } catch (e) {
       const err = e as AdminApiError;
       if (err.status === 409) {
         setSlugError('This slug is already in use. Please choose a different one.');
+        // Freeze the generated slug in the box so it stays visible for editing.
+        setSlugInput(slug);
         setSlugTouched(true);
       } else {
         setError(err.message || 'Failed to create category');
@@ -143,7 +141,7 @@ export default function NewCategoryPage() {
                 <Input
                   id="slug"
                   value={slug}
-                  onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
+                  onChange={(e) => { setSlugInput(e.target.value); setSlugTouched(true); setSlugError(''); }}
                   placeholder={controlCopy("category-slug")}
                   data-trace-id="create-category-slug"
                   aria-invalid={!!slugError}

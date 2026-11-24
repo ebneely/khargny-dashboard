@@ -3,7 +3,7 @@
 import { PageActions } from '@/components/admin/page-actions';
 
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FormActionBar } from '@/components/admin/form-action-bar';
 import { useFormChanges } from '@/lib/use-form-changes';
@@ -35,14 +35,16 @@ export default function NewCityPage() {
 
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [slug, setSlug] = useState('');
+  const [slugInput, setSlugInput] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
+  // Derived, so the box always shows the generated slug until the admin edits it.
+  const slug = slugTouched ? slugInput : autoSlug(name, nameEn);
   const [areaKeys, setAreaKeys] = useState<string[]>([]);
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState('active');
-  const [parentCityId, setParentCityId] = useState('');
+  const [parentCityId] = useState('');
   // Cover photo chosen on THIS form (not only after saving), buffered with a preview and
   // uploaded right after the city is created (the image endpoint needs the city id).
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -53,12 +55,6 @@ export default function NewCityPage() {
     setCoverFile(file);
     setCoverPreview(file ? URL.createObjectURL(file) : null);
   };
-
-  useEffect(() => {
-    if (slugTouched) return;
-    const generated = autoSlug(name, nameEn);
-    setSlug(generated);
-  }, [name, nameEn, slugTouched]);
 
   const formChanges = useFormChanges({ name, nameEn, slug, areaKeys, descriptionAr, descriptionEn, featured, status, parentCityId, coverFile: coverFile ? [coverFile.name, coverFile.size, coverFile.lastModified] : null }, { name: '', nameEn: '', slug: '', areaKeys: [], descriptionAr: '', descriptionEn: '', featured: false, status: 'active', parentCityId: '', coverFile: null });
 
@@ -101,7 +97,7 @@ export default function NewCityPage() {
       formChanges.markSaved();
       if (created?.id) router.push(`/dashboard/places/library/cities/${created.id}`);
       else router.push('/dashboard/places/library/cities');
-    } catch (e: any) {
+    } catch (e) {
       const err = e as AdminApiError;
       if (err.status === 409) {
         setSlugError('This slug is already in use. Please choose a different one.');
@@ -218,7 +214,7 @@ export default function NewCityPage() {
                 <Input
                   id="slug"
                   value={slug}
-                  onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); setSlugError(''); }}
+                  onChange={(e) => { setSlugInput(e.target.value); setSlugTouched(true); setSlugError(''); }}
                   placeholder={controlCopy("city-slug")}
                   data-trace-id="create-city-slug"
                   aria-invalid={!!slugError}
