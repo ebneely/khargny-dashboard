@@ -48,6 +48,7 @@ export const nearbyCopy: Record<string, string> = {
     'المدن دي ملهاش مركز متسجل، فمينفعش نحكم على أماكنها بالمسافة',
   'Distance': 'المسافة',
   'Coordinates': 'الإحداثيات',
+  'km': 'كم',
   'Place': 'المكان',
   'City': 'المدينة',
   'Unknown': 'غير معروف',
