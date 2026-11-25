@@ -89,6 +89,27 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    id: 'nearby-feed',
+    title: 'Nearby: the feed',
+    description: 'When the person shares a position, the real distance decides the feed. A place 3 km away counts half as near as one next door.',
+    fields: [
+      f('feed.nearby.weight', 'Feed: how strongly nearness counts'),
+      f('feed.nearby.halfKm', 'Feed: the half distance (km)'),
+      f('feed.nearby.maxKm', 'Feed: the furthest distance (km)'),
+      f('feed.nearby.floor', 'Feed: the lowest nearness'),
+    ],
+  },
+  {
+    id: 'nearby-ads',
+    title: 'Nearby: the ads',
+    description: 'Ads are served by the nearest region. A place 5 km away counts half as near as one next door, and no ad is shown past the furthest distance.',
+    fields: [
+      f('ads.nearby.weight', 'Ads: how strongly nearness counts'),
+      f('ads.nearby.halfKm', 'Ads: the half distance (km)'),
+      f('ads.nearby.maxKm', 'Ads: the furthest distance (km)'),
+    ],
+  },
+  {
     id: 'search', title: 'Search and quality',
     description: 'What the search box suggests, and the quality a place needs before a fair trial.',
     fields: [
