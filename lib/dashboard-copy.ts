@@ -9,6 +9,7 @@ import { submissionsCopy } from '@/lib/submissions-copy';
 import { shellCopy } from '@/lib/shell-copy';
 import { peopleCopy } from '@/lib/people-copy';
 import { algorithmCopy } from '@/lib/algorithm-copy';
+import { systemCopy } from '@/lib/system-copy';
 
 const round7RenewalsCopy: Record<string, string> = {
   'Renewals': 'التجديدات',
@@ -240,6 +241,9 @@ const round6CombinedCopy: Record<string, string> = {
 };
 
 export const dashboardCopy: Record<string, string> = {
+  // The Health page's System section (scale/13): its own words and the backend's fixed
+  // check labels and to-do lines.
+  ...systemCopy,
   ...round7RenewalsCopy,
   ...round6CombinedCopy,
   // Round 6A: separate bilingual Analytics and list-rule additions.

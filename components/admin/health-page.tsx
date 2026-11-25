@@ -16,6 +16,7 @@ import { localeFor } from '@/lib/locale';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useDashboardCopy } from './dashboard-text';
 import { PageActions } from './page-actions';
+import { SystemStatusCard } from './system-status';
 import { Field, LoadingState, RequestError, StatusBadge } from './subscriber-ui';
 
 // GET /v1/admin/seo/health (decision 0008, section 4): the newest snapshot of every area.
@@ -100,6 +101,8 @@ export function HealthPage() {
     <header className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-display text-xl font-semibold">{copy('Health')}</h2>
       <p className="text-sm text-muted-foreground" aria-live="polite">{running ? copy('Checking the website now…') : last ? `${copy('Last checked')} ${dashboardDateTime(last, lang)}. ${copy('It also runs by itself every night.')}` : copy('Can Google and AI search find and read 5argny.com? Checked every night.')}</p></div>
       <PageActions actions={[{ label: 'Run the health check', icon: <RefreshCw />, disabled: running, disabledReason: 'A check is running.', onClick: () => { void run(); } }]} /></header>
+
+    <SystemStatusCard />
 
     {resource.loading && !data ? <Card><CardContent><LoadingState /></CardContent></Card>
       : resource.error || !data ? <RequestError message={copy('Could not load the health report.')} retry={() => { void refetch(); }} />
