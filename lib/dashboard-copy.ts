@@ -10,6 +10,7 @@ import { shellCopy } from '@/lib/shell-copy';
 import { peopleCopy } from '@/lib/people-copy';
 import { algorithmCopy } from '@/lib/algorithm-copy';
 import { systemCopy } from '@/lib/system-copy';
+import { placeSeoCopy } from '@/lib/place-seo-copy';
 
 const round7RenewalsCopy: Record<string, string> = {
   'Renewals': 'التجديدات',
@@ -762,6 +763,7 @@ Object.assign(dashboardCopy, submissionsCopy);
 Object.assign(dashboardCopy, shellCopy);
 Object.assign(dashboardCopy, peopleCopy);
 Object.assign(dashboardCopy, algorithmCopy);
+Object.assign(dashboardCopy, placeSeoCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;
