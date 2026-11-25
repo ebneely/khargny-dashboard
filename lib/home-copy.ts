@@ -1,0 +1,35 @@
+/**
+ * Dashboard copy for the home summary blocks and the Analytics engagement trend (issue
+ * khargny-dashboard#30). Keys are the English sentence exactly as it appears on screen.
+ */
+export const homeCopy: Record<string, string> = {
+  'At a glance': 'نظرة سريعة',
+  'Engagement, the last 7 days': 'التفاعل خلال آخر 7 أيام',
+  'Compared with the 7 days before.': 'مقارنة بالأيام السبعة السابقة.',
+  'Open the numbers': 'افتح الأرقام',
+  'Money and renewals': 'المال والتجديدات',
+  'Renewal receipts waiting': 'إيصالات تجديد بانتظار المراجعة',
+  'Renewing within 30 days': 'تجديد خلال 30 يوماً',
+  'What changed': 'ما تغيّر',
+  'Nothing moved enough to call out in the last 24 hours.': 'لا تغيّر يستحق الذكر خلال آخر 24 ساعة.',
+  'Open what moved': 'افتح ما تغيّر',
+  'Could not load the live snapshot.': 'تعذّر تحميل اللقطة المباشرة.',
+  'Live is switched off on this run.': 'النشاط المباشر معطل في هذه النسخة.',
+  'No place has hype in the last 24 hours.': 'لا يوجد مكان عليه رواج خلال آخر 24 ساعة.',
+  'Could not load the engagement.': 'تعذّر تحميل التفاعل.',
+  'Could not load what changed.': 'تعذّر تحميل ما تغيّر.',
+  'The trend, day by day': 'الاتجاه يوماً بيوم',
+  'Known days only: a day with no stored count is left blank, never zero.': 'الأيام المسجّلة فقط: اليوم الذي لا يوجد له عدّ محفوظ يبقى خالياً، وليس صفراً.',
+  'Top places for this measure': 'أعلى الأماكن في هذا المقياس',
+  'Share of the period': 'نصيب الفترة',
+  'No stored days in this range.': 'لا توجد أيام محفوظة في هذه الفترة.',
+  'No place recorded this measure in these days.': 'لم يسجّل أي مكان هذا المقياس خلال هذه الأيام.',
+  'Reported place views in these days.': 'مشاهدات الأماكن المسجّلة خلال هذه الأيام.',
+  'Reported save events, not confirmed new saves.': 'أحداث حفظ مسجّلة، وليست حفظاً جديداً مؤكداً.',
+  'Directions and Go taps in these days.': 'طلبات الاتجاهات ونقرات Go خلال هذه الأيام.',
+  'Reported share events in these days.': 'أحداث مشاركة مسجّلة خلال هذه الأيام.',
+  'Could not load the trend.': 'تعذّر تحميل الاتجاه.',
+  'vs the period before': 'مقارنة بالفترة السابقة',
+  'No comparison for these days.': 'لا توجد مقارنة لهذه الأيام.',
+  'in these days': 'خلال هذه الأيام',
+};

@@ -33,6 +33,18 @@ export function numbersRange(chosen: NumbersWindow | 'custom', params: URLSearch
   return chosen === 'custom' ? customRange(params) : { window: chosen };
 }
 
+/**
+ * The whole Cairo days a daily trend is drawn for (the engagement report stores days, so a
+ * 24-hour window is today and yesterday). Live has no days of its own and All time has no
+ * start, so both draw the last 30 days — the dates are always printed beside the chart.
+ */
+export function trendRange(chosen: NumbersWindow | 'custom', params: URLSearchParams): { from: string; to: string } {
+  if (chosen === 'custom') return customRange(params);
+  const days = chosen === '24h' ? 2 : chosen === '7d' ? 7 : 30;
+  const today = cairoDate();
+  return { from: shiftCalendarDays(today, -(days - 1)), to: today };
+}
+
 /** `here`: the window stays a query value on this page (Places hype), Live included, no custom range. */
 export function WindowSwitch({ here = false }: { here?: boolean }) {
   const copy = useDashboardCopy();

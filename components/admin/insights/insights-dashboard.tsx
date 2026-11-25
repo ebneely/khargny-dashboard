@@ -17,10 +17,11 @@ import { SegmentedControl } from '@/components/admin/segmented-control';
 import { useDashboardLang } from '@/lib/dashboard-lang';
 import { useAnalyticsOverview } from '@/lib/api/hooks/use-analytics';
 import { useSearchParams } from 'next/navigation';
-import { numbersRange, readNumbersWindow } from '@/components/admin/analytics/window-switch';
+import { numbersRange, readNumbersWindow, trendRange } from '@/components/admin/analytics/window-switch';
 import { regionLabel, findRegion } from '@/lib/egypt-regions';
 import { GovIcon } from '@/components/gov-icon';
 import { InsightsSummary } from './insights-summary';
+import { EngagementTrend } from './engagement-trend';
 import { RankedBars, type RankedRow } from './ranked-bars';
 import { GpsViewersCard } from './gps-viewers-card';
 import { useSitePeople } from '../people-switch';
@@ -36,6 +37,9 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
   const lang = requestedLanguage ?? currentLanguage;
   const params = useSearchParams();
   const chosen = readNumbersWindow(params);
+  const trend = trendRange(chosen, params);
+  const platform = params.get('platform') ?? undefined;
+  const cityId = params.get('cityId') ?? undefined;
   const { data, isLoading, isError, refetch } = useAnalyticsOverview(numbersRange(chosen, params));
   const [measure, setMeasure] = React.useState<MeasureKey>('views');
   const people = useSitePeople(chosen);
@@ -111,6 +115,8 @@ export function InsightsDashboard({ lang: requestedLanguage }: { lang?: 'ar' | '
               them on one axis would flatten two of them into nothing. */}
           <SegmentedControl label="Measure" value={measure} onValueChange={(value) => setMeasure(value as typeof measure)} options={MEASURES.map(({ key, label, icon: Icon }) => ({ value: key, label, icon: <Icon aria-hidden="true" /> }))} />
         </div>
+
+        <div className="border-t border-border px-4 py-4 sm:px-5"><EngagementTrend metric={measure} from={trend.from} to={trend.to} platform={platform} cityId={cityId} /></div>
 
         <UrlTabs values={["city", "region"]} className="p-4 sm:p-5">
           <TabsList>

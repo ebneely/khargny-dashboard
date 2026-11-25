@@ -49,7 +49,7 @@ function LiveNow() {
     { label: 'Pages viewed', value: totals?.pages, icon: Eye },
     { label: 'Actions', value: totals?.actions, icon: Route },
   ];
-  return <Card>
+  return <Card id="live-now">
     <CardHeader className="flex flex-wrap items-start justify-between gap-3">
       <div><CardTitle>{copy('Right now')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Always live; it ignores the window.')}</p></div>
       <Button data-ro-allow="true" type="button" variant="outline" size="sm" disabled={res.loading} onClick={() => { void res.refetch(); }}><RefreshCw aria-hidden="true" className={res.loading ? 'animate-spin motion-reduce:animate-none' : undefined} />{copy('Refresh')}</Button>

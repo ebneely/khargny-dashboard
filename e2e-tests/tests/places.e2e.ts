@@ -25,7 +25,12 @@ describe('category create-and-remove round trip', { session: 'admin' }, () => {
 
   categoryTest('creates a category without uploading a file', async ({ app, screen, browser, categoryName }) => {
     await app.open('/dashboard');
-    await screen.getByRole('navigation', 'Dashboard').getByRole('link', 'Categories').tap();
+    // The shell's grouped sidebar: Places, then its Library tab, then the Categories tab (2026-11 shell).
+    await screen.getByRole('navigation', 'Dashboard').getByRole('link', 'Places', { exact: true }).first().tap();
+    await expect(screen.getByRole('heading', 'Places')).toBeVisible();
+    await screen.getByRole('link', { name: 'Library', exact: true }).first().tap();
+    await expect(browser).toHaveURL(/\/dashboard\/places\/library/);
+    await screen.getByRole('link', { name: 'Categories', exact: true }).first().tap();
     await expect(screen.getByRole('heading', 'Categories')).toBeVisible();
     await screen.getByRole('button', 'Add Category').first().tap();
     await expect(screen.getByRole('heading', 'New Category')).toBeVisible();
