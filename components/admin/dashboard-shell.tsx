@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, ChartLine, CornerDownLeft, Inbox, Keyboard, MapPin, Megaphone, Plus, Search, Settings, Store, Sun, UserPlus, Wallet, Layers, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ChartLine, HeartHandshake, CornerDownLeft, Inbox, Keyboard, MapPin, Megaphone, Plus, Search, Settings, Store, Sun, UserPlus, Wallet, Layers, type LucideIcon } from 'lucide-react';
 import Link from '@/components/lang-link';
 import { ProfileHeader } from '@/components/auth/profile-header';
 import { DashboardLangToggle } from './dashboard-lang-toggle';
@@ -18,7 +18,7 @@ import { RecordThumbnail } from './record-cell';
 import { cn } from '@/lib/utils';
 import type { InboxCounts } from '@/lib/api/inbox';
 
-const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, money: Wallet, marketplace: Store, algorithm: ChartLine, settings: Settings };
+const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, moods: HeartHandshake, money: Wallet, marketplace: Store, algorithm: ChartLine, settings: Settings };
 
 /** The Inbox queues, in the order the team works them (one list for the Inbox rail, Today and ⌘K). */
 export const QUEUES = [
