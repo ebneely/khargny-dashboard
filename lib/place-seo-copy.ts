@@ -97,6 +97,7 @@ export const placeSeoCopy: Record<string, string> = {
   'Hours': 'المواعيد',
   'Phone': 'الهاتف',
   'Both names': 'الاسمان',
+  Both: 'الاثنان',
   'Features': 'المزايا',
   'Words': 'الكلمات',
   'Schema type': 'نوع البيانات المنظمة',

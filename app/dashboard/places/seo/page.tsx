@@ -218,11 +218,11 @@ export default function PlacesSeoPage() {
                   <TableRow>
                     <TableHead>{copy('Name')}</TableHead>
                     <TableHead>{copy('Score')}</TableHead>
-                    <TableHead>{copy('Name position')}</TableHead>
-                    <TableHead className="text-end">{copy('Impressions')}</TableHead>
-                    <TableHead className="text-end">{copy('Clicks')}</TableHead>
-                    <TableHead>{copy('Indexed')}</TableHead>
-                    <TableHead />
+                    <TableHead className="hidden sm:table-cell">{copy('Name position')}</TableHead>
+                    <TableHead className="hidden text-end sm:table-cell">{copy('Impressions')}</TableHead>
+                    <TableHead className="hidden text-end sm:table-cell">{copy('Clicks')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{copy('Indexed')}</TableHead>
+                    <TableHead className="hidden sm:table-cell" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -244,19 +244,19 @@ export default function PlacesSeoPage() {
                           {n(item.score)}
                         </span>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap tabular-nums">
+                      <TableCell className="hidden whitespace-nowrap tabular-nums sm:table-cell">
                         {n(item.namePosition.en)} / {n(item.namePosition.ar)}
                       </TableCell>
-                      <TableCell className="text-end tabular-nums">{n(item.impressions)}</TableCell>
-                      <TableCell className="text-end tabular-nums">{n(item.clicks)}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden text-end tabular-nums sm:table-cell">{n(item.impressions)}</TableCell>
+                      <TableCell className="hidden text-end tabular-nums sm:table-cell">{n(item.clicks)}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <span className="inline-flex items-center gap-2">
                           <IndexMark value={item.indexed.en} />
                           <span className="text-muted-foreground">/</span>
                           <IndexMark value={item.indexed.ar} />
                         </span>
                       </TableCell>
-                      <TableCell className="text-end">
+                      <TableCell className="hidden text-end sm:table-cell">
                         <Button
                           size="sm"
                           variant="ghost"

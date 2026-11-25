@@ -312,7 +312,7 @@ export function PlaceSeoTab({ placeId }: { placeId: string }) {
                 <StatusIcon status={check.status} />
                 <span className="w-44 shrink-0 text-sm font-medium">{label(check.id)}</span>
                 <span className="w-24 shrink-0 text-sm tabular-nums text-muted-foreground">
-                  {check.value}
+                  {check.value === 'Both' ? copy('Both') : check.value}
                 </span>
                 <span className="min-w-0 flex-1 basis-56 text-sm">{hint(check)}</span>
               </li>

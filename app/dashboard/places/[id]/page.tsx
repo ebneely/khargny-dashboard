@@ -966,7 +966,7 @@ function EditPlaceContent() {
 
       {/* The bar saves the place's own fields; Menu, Visibility and Submissions save live or are read-only. */}
       {!['menu', 'visibility', 'submissions'].includes(activeTab) && <>
-      <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />
+      {activeTab === 'details' && <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />}
       </>}
     </div>
   );
