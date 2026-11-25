@@ -16,7 +16,6 @@ import { TrialBadge } from './trial-badge';
 import { PlanChip } from './plan-choices';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
-import { SubscriberPhotosPanel } from './subscriber-photos';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
 import { PlaceMenuEditor } from './place-menu-editor';
 import { useDashboardCopy } from './dashboard-text';
@@ -64,7 +63,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
         </section>}
       </>} />
       <UrlTabsContent value="subscriptions"><SubscriberSubscriptions subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
-      <UrlTabsContent value="account" className="space-y-6"><SubscriberAccountPanel key={subscriber.id} subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /><SubscriberPhotosPanel subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
+      <UrlTabsContent value="account" className="space-y-6"><SubscriberAccountPanel key={subscriber.id} subscriber={subscriber} canWrite={canWrite} refresh={resource.refreshAfterSave} /></UrlTabsContent>
     </UrlTabs>}
   </div></ActionBarNavigation>;
 }
