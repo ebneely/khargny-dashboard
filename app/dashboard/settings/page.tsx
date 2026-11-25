@@ -2,7 +2,6 @@ import { DashboardText } from '@/components/admin/dashboard-text';
 import Link from '@/components/lang-link';
 import { ChevronRight, Globe, HeartPulse, KeyRound, Lock, ScrollText, Users, type LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DangerZone } from '@/components/admin/danger-zone';
 import { getServerSession } from '@/lib/auth-server';
 
 type Row = { href: string; title: string; description: string; icon: LucideIcon; superAdminOnly?: boolean };
@@ -62,15 +61,6 @@ export default async function SettingsPage() {
         })}
       </div>
 
-      {isSuperAdmin && (
-        <Card className="mt-6 border-destructive/30">
-          <CardHeader>
-            <CardTitle className="text-destructive"><DashboardText>Danger zone</DashboardText></CardTitle>
-            <CardDescription><DashboardText>Irreversible actions affecting the entire site. Super admin only.</DashboardText></CardDescription>
-          </CardHeader>
-          <CardContent><DangerZone /></CardContent>
-        </Card>
-      )}
     </div>
   );
 }
