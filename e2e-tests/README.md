@@ -36,13 +36,19 @@ Create the Windows login image on the host with the visual command, inspect it, 
 
 | File | Assertions and locators |
 | --- | --- |
-| `tests/auth.setup.e2e.ts` | Uses radio `EN`, labels `Email` and `Password`, and button `Sign in`. Waits for `/dashboard` and heading `Insights`, then saves session `admin`. |
+| `tests/auth.setup.e2e.ts` | Uses radio `EN`, labels `Email` and `Password`, and button `Sign in`. Waits for `/dashboard`, then the `Dashboard` navigation and the `Super admin` menu button (the signed-in shell itself, not the home page's wording), and saves session `admin`. |
 | `tests/login.e2e.ts` | Uses the same sign-in controls with the declared invalid password. The alert says `Invalid credentials`, the URL remains `/login`, and the sign-in form is usable again. The message comes from the backend through the dashboard login handler. |
-| `tests/places.e2e.ts` | Table links show Giza Pyramids, Egyptian Museum, Abou Tarek, Bibliotheca Alexandrina, and the inactive, pending-media and no-media fixtures. The deleted fixture is absent. A second test uses navigation `Dashboard` / link `Categories`, button `Add Category`, labels `Name (Arabic) *`, `Name (English) *`, `Slug *`, and button `Save changes`; its unique slug row must be visible and `Active`. |
+| `tests/places.e2e.ts` | Table links show Giza Pyramids, Egyptian Museum, Abou Tarek, Bibliotheca Alexandrina, and the inactive, pending-media and no-media fixtures. The deleted fixture is absent. A second test walks the shell (sidebar `Places`, tab `Library`, tab `Categories`), presses button `Add Category`, fills `Name (Arabic) *`, `Name (English) *` and `Slug *`, and presses `Save changes`; its unique slug row must be visible and `Active`. |
 | `tests/places-agent.e2e.ts` | The `admin` persona creates the same category with a `unique()` name param. A locator assertion on its slug row immediately verifies the outcome for replay caching. It skips with an explicit reason when `E2E_MODEL` is unset. |
 | `tests/visual.e2e.ts` | Tagged `visual`. Selects radio `EN`, waits for the English sign-in form, then compares `login.png`. It has no saved session and fills no secret, so screenshots remain available. |
 
-The EN choice is made through the UI in the setup and each unauthenticated test. The app stores it at `khargny.dashboard.lang` in local storage, which the `admin` session preserves. Signed-in tests therefore restore English without changing application code.
+The three parts khargny-dashboard#32 names are the sign-in session (`auth.setup.e2e.ts`), the places flow (`places.e2e.ts`) and the visual comparison (`visual.e2e.ts`). Run just those when the change touches them; the whole suite is for a release:
+
+```powershell
+npm --prefix e2e-tests run test:e2e -- tests/auth.setup.e2e.ts tests/places.e2e.ts tests/visual.e2e.ts
+```
+
+The dashboard's language is the URL, not local storage: `/ar/dashboard/...` is Arabic and a plain address is English. A test that reads Arabic opens the `/ar` address (or taps the `ع` radio, which navigates there); the `admin` session keeps whatever language the URL it visits asks for.
 
 Categories are the smallest no-upload record: only names and a slug are needed. Place creation requires a cover photo; cities also require a governorate. Both category tests generate a fresh UUID name per attempt. Their `afterEach` hook uses the existing `categories-q` list filter, a slug cell to identify just that row, button `More actions: <name>`, menu item `Delete`, dialog `Delete <name>?`, and its `Delete` button. It verifies absence again after reopening the list. If creation failed before saving anything, cleanup waits for the filtered empty state instead. The two `Add Category` buttons are equivalent page-action mirrors, so the deterministic test chooses the first.
 
