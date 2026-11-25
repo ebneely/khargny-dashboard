@@ -40,7 +40,7 @@ function PlaceRow({ place, showDistance }: { place: LocationCheckPlace; showDist
   const copy = useDashboardCopy();
   const { pick } = useDashboardLang();
   return <li className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-2 text-sm">
-    <Link href={`/dashboard/places/${place.placeId}`} className="min-w-0 flex-1 truncate font-medium hover:text-primary" dir="auto">{pick(place.name, place.nameEn)}</Link>
+    <Link href={`/dashboard/places/${place.placeId}`} className="min-w-0 grow basis-48 truncate font-medium hover:text-primary" dir="auto">{pick(place.name, place.nameEn)}</Link>
     <span className="text-muted-foreground">{place.city ? pick(place.city.name, place.city.nameEn) : copy('Unknown')}</span>
     {showDistance && <span className="tabular-nums text-muted-foreground">{place.distanceKm === null ? '—' : `${place.distanceKm.toLocaleString('en-US')} ${copy('km')}`}</span>}
     <span dir="ltr" className="tabular-nums text-xs text-muted-foreground">{coordinates(copy, place.lat, place.lng)}</span>
@@ -78,19 +78,19 @@ function Content() {
       <Legend report={report} />
 
       <Bubble icon={<MapPinOff className="size-4 text-muted-foreground" aria-hidden="true" />} title="More than 40 km from the city centre" sentence="The pin of a place should be where the place really is. This list is how far each pin sits from the centre of its city." count={report.counts.farFromCity}>
-        {report.farFromCity.length === 0 ? <p className="py-2 text-sm text-muted-foreground">{copy('No place is that far from its city centre.')}</p> : <ul className="divide-y divide-border">{report.farFromCity.map((place) => <PlaceRow key={place.placeId} place={place} showDistance />)}</ul>}
+        {report.farFromCity.length === 0 ? <p className="py-2 text-sm text-muted-foreground">{copy('No place is that far from its city centre.')}</p> : <ul aria-label={copy('Far from the centre')} className="divide-y divide-border">{report.farFromCity.map((place) => <PlaceRow key={place.placeId} place={place} showDistance />)}</ul>}
         {report.missingCentres.length > 0 && <p className="mt-3 flex items-start gap-2 rounded-lg bg-muted p-3 text-xs text-muted-foreground"><TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><span>{copy('These cities have no centre on file, so their places cannot be judged by distance')}: <span dir="auto">{report.missingCentres.map((city) => pick(city.name, city.nameEn)).join('، ')}</span></span></p>}
       </Bubble>
 
       <Bubble icon={<Copy className="size-4 text-muted-foreground" aria-hidden="true" />} title="Same pin as another place" sentence="Two places on one point on the map cannot both be right: one of them is wrong." count={report.counts.sharedPins}>
         {report.sharedPins.length === 0 ? <p className="py-2 text-sm text-muted-foreground">{copy('No two places share a pin.')}</p> : <div className="space-y-4">{report.sharedPins.map((group) => <div key={`${group.lat},${group.lng}`}>
           <p className="flex flex-wrap items-baseline gap-x-3 text-xs text-muted-foreground"><span dir="ltr" className="tabular-nums">{coordinates(copy, group.lat, group.lng)}</span><span>{group.count.toLocaleString('en-US')} {copy('places')}</span></p>
-          <ul className="divide-y divide-border">{group.places.map((place) => <PlaceRow key={place.placeId} place={place} showDistance={false} />)}</ul>
+          <ul aria-label={copy('Shared point')} className="divide-y divide-border">{group.places.map((place) => <PlaceRow key={place.placeId} place={place} showDistance={false} />)}</ul>
         </div>)}</div>}
       </Bubble>
 
       <Bubble icon={<Globe2 className="size-4 text-muted-foreground" aria-hidden="true" />} title="Outside Egypt" sentence="A pin outside Egypt is never served to a visitor who shares a position from inside it." count={report.counts.outsideEgypt}>
-        {report.outsideEgypt.length === 0 ? <p className="py-2 text-sm text-muted-foreground">{copy('No pin is outside Egypt.')}</p> : <ul className="divide-y divide-border">{report.outsideEgypt.map((place) => <PlaceRow key={place.placeId} place={place} showDistance={false} />)}</ul>}
+        {report.outsideEgypt.length === 0 ? <p className="py-2 text-sm text-muted-foreground">{copy('No pin is outside Egypt.')}</p> : <ul aria-label={copy('Outside the country')} className="divide-y divide-border">{report.outsideEgypt.map((place) => <PlaceRow key={place.placeId} place={place} showDistance={false} />)}</ul>}
       </Bubble>
 
       <p className="text-xs text-muted-foreground">{copy('Fixed pins stay off these lists.')}</p>

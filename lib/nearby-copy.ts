@@ -3,6 +3,18 @@
  * the reach an ad deal may set, and the location check. English is the key; digits stay 0-9.
  */
 export const nearbyCopy: Record<string, string> = {
+  // The settings-group titles and sentences this change sits beside (visible on the same switch)
+  'Hype and interest': 'الرواج والاهتمام',
+  'Feed and ads': 'الفيد والإعلانات',
+  'Search and quality': 'البحث والجودة',
+  'Evidence and web identity': 'الأدلة وهوية الويب',
+  'Hype is the uncapped 30-day sum. Interest is what a showing earned compared with other places.':
+    'الرواج هو مجموع آخر 30 يوم من غير سقف. الاهتمام هو اللي الظهور كسبه مقارنة بالأماكن التانية.',
+  'How the feed ranks, and the most a paid post may ever take.': 'إزاي الفيد بيرتب، وأقصى حاجة الإعلان المدفوع ياخدها.',
+  'What the search box suggests, and the quality a place needs before a fair trial.':
+    'البحث بيقترح إيه، والجودة اللي المكان محتاجها قبل فرصة عادلة.',
+  'How actions are counted so one person cannot pump a place, and how long the web keeps its anonymous ID.':
+    'إزاي الأفعال بتتحسب عشان شخص ما يرفعش مكان لوحده، وقد إيه الويب بيحفظ هويته المجهولة.',
   // Algorithm settings: the two nearby groups
   'Nearby: the feed': 'القريب: الفيد',
   'Nearby: the ads': 'القريب: الإعلانات',
@@ -10,13 +22,13 @@ export const nearbyCopy: Record<string, string> = {
     'لما الشخص يبعت مكانه، المسافة الحقيقية هي اللي بترتب الفيد. المكان اللي على بعد 3 كم بيتحسب نص قربه زي اللي جنبك.',
   'Ads are served by the nearest region. A place 5 km away counts half as near as one next door, and no ad is shown past the furthest distance.':
     'الإعلانات بتتخدم من أقرب منطقة. المكان اللي على بعد 5 كم بيتحسب نص قربه زي اللي جنبك، ومفيش إعلان بيظهر بعد أقصى مسافة.',
-  'Feed: how strongly nearness counts': 'الفيد: قوة تأثير القرب',
-  'Feed: the half distance (km)': 'الفيد: نصف المسافة (كم)',
-  'Feed: the furthest distance (km)': 'الفيد: أقصى مسافة (كم)',
-  'Feed: the lowest nearness': 'الفيد: أقل قرب',
-  'Ads: how strongly nearness counts': 'الإعلانات: قوة تأثير القرب',
-  'Ads: the half distance (km)': 'الإعلانات: نصف المسافة (كم)',
-  'Ads: the furthest distance (km)': 'الإعلانات: أقصى مسافة (كم)',
+  'Feed: nearness weight': 'الفيد: وزن القرب',
+  'Feed: half distance (km)': 'الفيد: نصف المسافة (كم)',
+  'Feed: max distance (km)': 'الفيد: أقصى مسافة (كم)',
+  'Feed: lowest nearness': 'الفيد: أقل قرب',
+  'Ads: nearness weight': 'الإعلانات: وزن القرب',
+  'Ads: half distance (km)': 'الإعلانات: نصف المسافة (كم)',
+  'Ads: max distance (km)': 'الإعلانات: أقصى مسافة (كم)',
 
   // Ads campaign form: the deal's reach
   'Show within N km of the place': 'يظهر في نطاق كام كم من المكان',
