@@ -12,6 +12,7 @@ export const SECTIONS: Section[] = [
   { href: '/dashboard/inbox', label: 'Inbox', icon: 'inbox', key: 'i', tabs: [] },
   { href: '/dashboard/places', label: 'Places', icon: 'places', key: 'p', tabs: [
     { href: '/dashboard/places', label: 'Places' },
+    { href: '/dashboard/places/seo', label: 'SEO' },
     { href: '/dashboard/places/submissions', label: 'Submissions' },
     { href: '/dashboard/places/library/cities', label: 'Library', also: ['/dashboard/places/library'] },
   ] },
