@@ -51,7 +51,7 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
   const [campaign, setCampaign] = React.useState<AdCampaign | null>(null);
   const [target, setTarget] = React.useState<Target>('area');
   const [cityOnly, setCityOnly] = React.useState(true);
-  const [values, setValues] = React.useState({ amount: '', startDate: today, endDate: shiftCalendarDays(today, 29), advertiserName: '', advertiserPhone: '', notes: '' });
+  const [values, setValues] = React.useState({ amount: '', startDate: today, endDate: shiftCalendarDays(today, 29), advertiserName: '', advertiserPhone: '', notes: '', radius: '' });
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState('');
 
@@ -66,7 +66,7 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
       setCampaign(row); setPlace(await placeDetail(row.placeId));
       setTarget(['featured', 'city', 'area', 'category'].includes(row.placement) ? row.placement as Target : 'featured');
       setCityOnly(Boolean(row.cityId));
-      setValues({ amount: String(row.amountPaid), startDate: row.startDate, endDate: row.endDate ?? shiftCalendarDays(row.startDate, 29), advertiserName: row.advertiserName, advertiserPhone: row.advertiserPhone ?? '', notes: row.notes ?? '' });
+      setValues({ amount: String(row.amountPaid), startDate: row.startDate, endDate: row.endDate ?? shiftCalendarDays(row.startDate, 29), advertiserName: row.advertiserName, advertiserPhone: row.advertiserPhone ?? '', notes: row.notes ?? '', radius: row.radiusKm ? String(row.radiusKm) : '' });
       setStep(1);
     } else if (initialPlaceId) { setPlace(await placeDetail(initialPlaceId)); setStep(1); }
     return { cities, categories };
@@ -98,9 +98,12 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
 
   const days = validAdsRange(values.startDate, values.endDate, 366) ? Math.round((Date.parse(values.endDate) - Date.parse(values.startDate)) / 86_400_000) + 1 : 0;
   const amount = Number(values.amount);
+  // The reach is optional: empty = the targeting already decides; otherwise a whole km from 1 to 200.
+  const radiusKm = values.radius.trim() === '' ? null : Number(values.radius);
+  const radiusBad = radiusKm !== null && (!Number.isInteger(radiusKm) || radiusKm < 1 || radiusKm > 200);
   const stepError = [
     !place ? 'Choose the place to promote.' : '',
-    target === 'area' && !area ? 'This place has no area yet: choose its city or category.' : '',
+    target === 'area' && !area ? 'This place has no area yet: choose its city or category.' : radiusBad ? 'Write a whole number of km from 1 to 200, or leave it empty.' : '',
     !days ? 'Choose a start and an end date, up to a year.' : !values.amount.trim() || !Number.isFinite(amount) || amount < 0 ? 'Write the amount for the whole period.' : '',
     !values.advertiserName.trim() ? 'Write who pays for the ad.' : '',
   ];
@@ -116,10 +119,11 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
       categoryId: target === 'category' ? place.categoryId : null,
       advertiserName: values.advertiserName.trim(), advertiserPhone: values.advertiserPhone.trim() || undefined,
       amountPaid: amount, currency: 'EGP', startDate: values.startDate, endDate: values.endDate, notes: values.notes.trim() || undefined,
+      radiusKm: radiusBad ? null : radiusKm,
     };
     try {
       // The API's `warnings` speak of slots; seats are gone, so they are not shown.
-      if (campaignId) await adminApi.patch(`/v1/admin/ads/campaigns/${encodeURIComponent(campaignId)}`, started ? { amountPaid: body.amountPaid, endDate: body.endDate, advertiserName: body.advertiserName, advertiserPhone: body.advertiserPhone, notes: body.notes } : body);
+      if (campaignId) await adminApi.patch(`/v1/admin/ads/campaigns/${encodeURIComponent(campaignId)}`, started ? { amountPaid: body.amountPaid, endDate: body.endDate, advertiserName: body.advertiserName, advertiserPhone: body.advertiserPhone, notes: body.notes, radiusKm: body.radiusKm } : body);
       else await adminApi.post('/v1/admin/ads/campaigns', { ...body, placeId: place.id });
       toast.success(copy(campaignId ? 'Saved. The ad keeps running with the new terms.' : 'Sold. The ad starts on its first day.'));
       router.push('/dashboard/money/ads');
@@ -141,6 +145,7 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
           <span><span className="block text-sm font-medium">{where[option][0]}</span><span className="block text-sm text-muted-foreground">{where[option][1]}</span></span>
         </button>)}</div>
         {target === 'category' && <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-[var(--primary)]" checked={cityOnly} disabled={locked || started} onChange={(event) => setCityOnly(event.target.checked)} />{copy('Only in')} {cityName}</label>}
+        <div className="grid gap-1.5"><Field label={copy('Show within N km of the place')} optional><Input className="max-w-[140px]" type="number" inputMode="numeric" min="1" max="200" step="1" placeholder={copy('No limit')} value={values.radius} disabled={locked} onChange={(event) => set('radius', event.target.value)} /></Field><p className="text-xs text-muted-foreground">{copy('Leave it empty and the ad reaches everyone the targeting already allows.')}</p></div>
       </>}
       {step === 2 && <>
         <PresetChoices label={copy('How long')} value={null} disabled={locked} options={[7, 14, 30].map((d) => ({ value: String(d), label: `${n(d)} ${copy('days')}` }))} onValueChange={(d) => set('endDate', shiftCalendarDays(values.startDate, Number(d) - 1))} />
@@ -156,6 +161,7 @@ function SellFlow({ campaignId, initialPlaceId, canWrite }: { campaignId?: strin
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 rounded-xl bg-muted p-4 text-sm">
           <dt className="text-muted-foreground">{copy('Place')}</dt><dd dir="auto">{place ? pick(place.name, place.nameEn ?? null) : '—'}</dd>
           <dt className="text-muted-foreground">{copy('Shown to')}</dt><dd>{where[target][0]}{target === 'category' && cityOnly ? `, ${cityName}` : ''}</dd>
+          <dt className="text-muted-foreground">{copy('Reach')}</dt><dd>{radiusKm !== null && !radiusBad ? `${copy('within')} ${n(radiusKm)} ${copy('km of the place')}` : copy('No limit')}</dd>
           <dt className="text-muted-foreground">{copy('Dates')}</dt><dd className="tabular-nums">{values.startDate} — {values.endDate} ({n(days)} {copy('days')})</dd>
           <dt className="text-muted-foreground">{copy('Amount')}</dt><dd className="tabular-nums">{values.amount ? `${n(amount)} EGP` : '—'}</dd>
           <dt className="text-muted-foreground">{copy('Expected reach')}</dt><dd>{target === 'area' || target === 'category' ? reach.loading ? '…' : reach.data != null ? `${copy('Last 30 days, places here were opened')} ${n(reach.data)} ${copy('times')}.` : copy('Too few views here in the last 30 days to say.') : copy('No estimate for this target yet.')}</dd>

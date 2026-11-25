@@ -48,6 +48,8 @@ export interface AdCampaign {
   placement: AdPlacement;
   cityId: string | null;
   city: AdCitySummary | null;
+  /** Nearby: the deal reaches only people within this many km of the place; null = targeting only. */
+  radiusKm?: number | null;
   advertiserName: string;
   advertiserPhone: string | null;
   amountPaid: number;
@@ -67,6 +69,8 @@ export interface AdCampaignInput {
   placeId: string;
   placement: AdPlacement;
   cityId?: string | null;
+  /** Optional reach: only people within this many km of the place see the ad. */
+  radiusKm?: number | null;
   advertiserName: string;
   advertiserPhone?: string;
   amountPaid: number;
