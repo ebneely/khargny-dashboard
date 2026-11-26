@@ -111,11 +111,11 @@ function HypeTable({ rows, loading, error, retry, mode }: { rows: HypeItem[]; lo
   const ordered = React.useMemo(() => [...filtered].sort((a, b) => (b[sort] ?? 0) - (a[sort] ?? 0)), [filtered, sort]);
   const start = Math.min(address.skip, Math.max(0, Math.floor(Math.max(0, ordered.length - 1) / address.limit) * address.limit));
   const visible = ordered.slice(start, start + address.limit);
-  const people = usePeople('30d', visible.map((row) => row.id), mode !== 'all');
+  const people = usePeople('30d', visible.map((row) => row.id));
   const number = (row: HypeItem, key: SortKey, metric: PeopleMetric) => {
     const all = row[key] ?? 0;
     const value = pickMode(all, people.data?.items[row.id]?.[metric], mode);
-    const repeat = mode === 'all' ? null : repeatTimes(all, people.data?.items[row.id]?.[metric]?.people ?? 0);
+    const repeat = repeatTimes(all, people.data?.items[row.id]?.[metric]?.people ?? 0);
     return <>{value === null ? '—' : value.toLocaleString('en-US')}{repeat !== null && <span className="ms-1 text-xs text-muted-foreground">×{repeat}</span>}</>;
   };
   return <Card><CardContent className="space-y-3">

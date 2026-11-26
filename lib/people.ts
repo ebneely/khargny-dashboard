@@ -26,6 +26,11 @@ export function pickMode(all: number, cell: PeopleCell | null | undefined, mode:
   return peopleNumbers(all, cell)[mode];
 }
 
+/** The people window that matches a page window; Live and custom ranges have none (a person count needs a day). */
+export function peopleWindowOf(window: string | null | undefined): '24h' | '7d' | '30d' | 'all' | null {
+  return window === '24h' || window === '7d' || window === '30d' || window === 'all' ? window : null;
+}
+
 export interface HypeRankInfo {
   rank: number;
   total: number;
@@ -38,9 +43,14 @@ export interface HypeRankInfo {
 
 const group = (n: number) => n.toLocaleString('en-US');
 
+/** "#12 of 1,240": where it stands, in Western digits, in both languages. */
+export function rankCount(r: Pick<HypeRankInfo, 'rank' | 'total'>, of: string): string {
+  return `#${group(r.rank)} ${of} ${group(r.total)}`;
+}
+
 /** "#12 of 1,240 · top 1%" in Western digits, in both languages. */
 export function rankText(r: Pick<HypeRankInfo, 'rank' | 'total' | 'topPercent'>, of: string, top: string): string {
-  return `#${group(r.rank)} ${of} ${group(r.total)} · ${top} ${r.topPercent}%`;
+  return `${rankCount(r, of)} · ${top} ${r.topPercent}%`;
 }
 
 /** The week's movement as an arrow and a number: "▲ 4", "▼ 2", or "" when it did not move or is new. */

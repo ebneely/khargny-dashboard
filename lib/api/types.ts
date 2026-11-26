@@ -66,6 +66,9 @@ export interface AdminPlaceList {
   total: number;
   skip: number;
   limit: number;
+  /** The hype/counts window the list was asked for, and the window its People numbers use (Live: null). */
+  window?: 'live' | '24h' | '7d' | '30d' | 'all';
+  countsWindow?: '24h' | '7d' | '30d' | 'all' | null;
 }
 
 export interface AdminPlaceFilters {

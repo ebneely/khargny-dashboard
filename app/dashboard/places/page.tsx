@@ -38,7 +38,7 @@ import { WindowSwitch } from '@/components/admin/analytics/window-switch';
 import { GovIcon } from '@/components/gov-icon';
 import { PeopleSwitch, usePeople } from '@/components/admin/people-switch';
 import { HypeRank } from '@/components/admin/hype-rank';
-import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
+import { pickMode, peopleWindowOf, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric } from '@/lib/api/people';
 
 const HYPE_WINDOWS = ['live', '24h', '7d', '30d', 'all'] as const;
@@ -120,16 +120,18 @@ export default function PlacesPage() {
     return items.filter((p) => p.deletedAt != null);
   })();
 
-  // Decision 0009: the list's counts are 30-day sums (everything for All time), so the people are too.
+  // Decision 0009: the counts follow the window switch, so the people do too (Live has none: "—").
   const [mode, setMode] = useState<PeopleMode>('all');
-  const people = usePeople(hypeWindow === 'all' ? 'all' : '30d', visibleItems.map((p) => p.id), mode !== 'all');
+  const peopleWindow = peopleWindowOf(data?.countsWindow ?? hypeWindow);
+  const people = usePeople(peopleWindow, visibleItems.map((p) => p.id));
   const shown = (place: AdminPlace, metric: 'likes' | 'saves' | 'views' | 'goes') => {
     const all = place.counts?.[metric] ?? 0;
     const value = pickMode(all, people.data?.items[place.id]?.[metric as PeopleMetric], mode);
     return value === null ? '—' : value.toLocaleString('en-US');
   };
+  // Repeat = how many times each person did it, beside the count in every mode.
   const repeatOf = (place: AdminPlace, metric: 'likes' | 'saves' | 'views' | 'goes') =>
-    mode === 'all' ? null : repeatTimes(place.counts?.[metric] ?? 0, people.data?.items[place.id]?.[metric as PeopleMetric]?.people ?? 0);
+    repeatTimes(place.counts?.[metric] ?? 0, people.data?.items[place.id]?.[metric as PeopleMetric]?.people ?? 0);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
   const hasActiveFilters =
@@ -202,6 +204,7 @@ export default function PlacesPage() {
                           <span data-place-detail="owner" title={`${copy('Subscriber')}: ${place.subscriber?.name ?? '—'}`}>{copy('Subscriber')}: {place.subscriber?.name ?? '—'}</span>
                           <span data-place-detail="city" title={`${pickName(place.city?.name, place.city?.nameEn, lang)} ${pickName(place.category?.nameAr, place.category?.nameEn, lang)}`}>{pickName(place.city?.name, place.city?.nameEn, lang)} {pickName(place.category?.nameAr, place.category?.nameEn, lang)}</span>
                           <span data-place-detail="metrics">{copy('Likes')}: {shown(place, 'likes')} {copy('Saves')}: {shown(place, 'saves')} {copy('Views')}: {shown(place, 'views')} {copy('5argny taps')}: {shown(place, 'goes')}</span>
+                          <span data-place-detail="hype">{copy('Hype')}: {place.hype ?? 0} <HypeRank rank={place.hypeRank ? { ...place.hypeRank, areaRank: place.hypeRank.area, categoryRank: place.hypeRank.category } : null} area={place.region ?? undefined} category={pickName(place.category?.nameAr, place.category?.nameEn, lang)} /></span>
                         </p>
                       </TableCell>
                       <TableCell data-place-field="city" className="text-muted-foreground"><p className="flex items-center gap-1.5 leading-4" title={pickName(place.city?.name, place.city?.nameEn, lang)}>{place.city && <GovIcon city={place.city} />}<span className="line-clamp-1 min-w-0">{pickName(place.city?.name, place.city?.nameEn, lang)}</span></p><p className="line-clamp-1 leading-4" title={pickName(place.category?.nameAr, place.category?.nameEn, lang)}>{pickName(place.category?.nameAr, place.category?.nameEn, lang)}</p></TableCell>

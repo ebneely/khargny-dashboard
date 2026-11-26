@@ -62,7 +62,7 @@
 [dir="rtl"] [data-list-table="places"] [data-place-field="owner"] { width: 144px; }
 [data-list-table="places"] [data-place-field="price"] { width: 76px; }
 [data-list-table="places"] [data-place-field="status"] { width: 128px; }
-[data-list-table="places"] [data-place-field="hype"] { width: 72px; }
+[data-list-table="places"] [data-place-field="hype"] { width: 112px; }
 [data-list-table="places"] [data-place-field="likes"] { width: 88px; }
 [data-list-table="places"] [data-place-field="saves"] { width: 64px; }
 [data-list-table="places"] [data-place-field="views"] { width: 96px; }
@@ -97,6 +97,9 @@
 @container (max-width: 940px) {
   [data-list-table="places"] :is([data-place-field="likes"], [data-place-field="saves"], [data-place-field="views"], [data-place-field="directions"]) { display: none; }
   [data-list-table="places"] [data-place-detail="metrics"] { display: inline; }
+  /* The rank needs more room than its column has: it moves under the name with the other details. */
+  [data-list-table="places"] [data-place-field="hype"] [data-slot="hype-rank"] { display: none; }
+  [data-list-table="places"] [data-place-detail="hype"] { display: inline; }
 }
 @container (min-width: 580px) {
   [data-list-table="places"] [data-slot="record-name-text"] { min-inline-size: 180px; }

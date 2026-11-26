@@ -12,7 +12,7 @@ import { SegmentedControl } from '../segmented-control';
 import { useDashboardCopy } from '../dashboard-text';
 import { HypeRank } from '../hype-rank';
 import { PeopleSwitch, usePeople } from '../people-switch';
-import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
+import { pickMode, peopleWindowOf, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric } from '@/lib/api/people';
 import { cn } from '@/lib/utils';
 import { WINDOW_WORDS } from './window-switch';
@@ -86,12 +86,14 @@ function Hype({ window }: { window: NumbersWindow }) {
   const res = useSubscriberResource(load);
   const rows = [...(res.data?.items ?? [])].sort((a: HypeItem, b: HypeItem) => (b[sort] ?? 0) - (a[sort] ?? 0) || b.points - a.points);
   const shown = all ? rows : rows.slice(0, 10);
-  // Decision 0009: the counts are the last 30 days, so the people are too. Areas, categories and collections have none.
-  const people = usePeople('30d', kind === 'place' ? shown.map((r) => r.id) : [], mode !== 'all' && kind === 'place');
+  // Decision 0009: the counts follow the window above, so the people do too. Areas, categories and collections
+  // group places and have no people of their own: the switch is for places only.
+  const peopleWindow = peopleWindowOf(window);
+  const people = usePeople(peopleWindow, kind === 'place' ? shown.map((r) => r.id) : []);
   return <Card data-slot="numbers-hype">
     <CardHeader className="flex flex-wrap items-start justify-between gap-3">
       <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views + loves + saves + shares + 5argny taps + Search points over the last 30 days, one point each, no cap. Team only.')}</p></div>
-      <div className="flex flex-wrap items-center gap-3"><PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} />
+      <div className="flex flex-wrap items-center gap-3">{peopleWindow && kind === 'place' && <PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} />}
       <SegmentedControl label="Hype of" value={kind} onValueChange={(v) => { setKind(v as HypeKind); setAll(false); }} options={[{ value: 'place', label: 'Places' }, { value: 'area', label: 'Areas' }, { value: 'category', label: 'Categories' }, { value: 'collection', label: 'Collections' }]} /></div>
     </CardHeader>
     <CardContent>
@@ -107,7 +109,7 @@ function Hype({ window }: { window: NumbersWindow }) {
             const cell = people.data?.items[r.id]?.[c.key as PeopleMetric];
             const all = r[c.key] ?? 0;
             const value = pickMode(all, cell, mode);
-            const repeat = mode === 'all' ? null : repeatTimes(all, cell?.people ?? 0);
+            const repeat = repeatTimes(all, cell?.people ?? 0);
             return <td key={c.key} className="py-2 text-end tabular-nums text-muted-foreground">{value === null ? '—' : digits(value)}{repeat !== null && <span className="ms-1.5 text-xs" title={copy('Repeat')}>×{repeat}</span>}</td>;
           })}
         </tr>)}</tbody></table>

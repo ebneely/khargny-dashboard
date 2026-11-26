@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { moveText, peopleLine, peopleNumbers, pickMode, rankText, repeatTimes } from './people';
+import { moveText, peopleLine, peopleNumbers, peopleWindowOf, pickMode, rankCount, rankText, repeatTimes } from './people';
 
 describe('people numbers', () => {
   it('should split people into new and returning with the repeat', () => {
@@ -27,9 +27,22 @@ describe('pickMode', () => {
   it.each([['people', 40], ['new', 10], ['returning', 30]] as const)('should show %s', (mode, want) => expect(pickMode(100, cell, mode)).toBe(want));
 });
 
+describe('the people window of a page window', () => {
+  it.each([['24h', '24h'], ['7d', '7d'], ['30d', '30d'], ['all', 'all']] as const)('should %s has people in %s', (page, want) => expect(peopleWindowOf(page)).toBe(want));
+  it('should none for live, a custom range or nothing chosen', () => {
+    expect(peopleWindowOf('live')).toBeNull();
+    expect(peopleWindowOf('custom')).toBeNull();
+    expect(peopleWindowOf(undefined)).toBeNull();
+  });
+});
+
 describe('hype rank words', () => {
   it('should write rank and top percent in Western digits', () => {
     expect(rankText({ rank: 12, total: 1240, topPercent: 1 }, 'of', 'top')).toBe('#12 of 1,240 · top 1%');
+  });
+  it('should write the rank alone, for a column that wraps the top percent to its own line', () => {
+    expect(rankCount({ rank: 12, total: 1240 }, 'of')).toBe('#12 of 1,240');
+    expect(rankCount({ rank: 1, total: 1 }, 'من')).toBe('#1 من 1');
   });
   it('should write the week movement', () => {
     expect(moveText(4)).toBe('▲ 4');
