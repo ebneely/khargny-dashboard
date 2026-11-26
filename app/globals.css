@@ -349,6 +349,15 @@ main:has([data-slot="form-action-bar"]) {
   min-width: 0;
 }
 
+/* Owner tab actions: compact 32px pills, the same calm size as a segmented option. */
+[data-slot="owner-empty"] [data-slot="button"],
+[data-slot="owner-card"] [data-slot="button"],
+[data-slot="owner-card-header"] [data-slot="button"],
+[data-slot="owner-places-tab"] [data-slot="button"] {
+  min-height: 32px;
+  min-width: 0;
+}
+
 a:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;

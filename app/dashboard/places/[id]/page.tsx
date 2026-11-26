@@ -43,6 +43,7 @@ import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { PlaceMenuTab } from '@/components/admin/place-menu-page';
 import { PlaceBadgesTab } from '@/components/admin/place-badges-tab';
 import { PlaceSubmissions } from '@/components/admin/place-submissions';
+import { PlaceOwnerTab } from '@/components/admin/place-owner-tab';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
 import { findCity } from '@/lib/egypt-regions';
@@ -54,7 +55,7 @@ export default function EditPlacePage() {
 }
 
 // Tabs grouped by job (DIRECTION section 1). Older ?tab= links land on the tab that now holds them.
-const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'quality', 'seo', 'submissions'];
+const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'quality', 'seo', 'submissions', 'owner'];
 const RENAMED_PLACE_TABS: Record<string, string> = { amenities: 'features', tags: 'features', ads: 'visibility', badges: 'visibility', media: 'photos', verification: 'quality', merge: 'quality' };
 
 function EditPlaceContent() {
@@ -249,6 +250,7 @@ function EditPlaceContent() {
           <TabsTrigger value="quality">{controlCopy("Quality")}</TabsTrigger>
           <TabsTrigger value="seo">{controlCopy("SEO")}</TabsTrigger>
           <TabsTrigger value="submissions">{controlCopy("Submissions")}</TabsTrigger>
+          <TabsTrigger value="owner">{controlCopy("Owner")}</TabsTrigger>
         </TabsList>
 
         <TabsContent keepMounted value="details">
@@ -940,6 +942,7 @@ function EditPlaceContent() {
         <UrlTabsContent value="quality" lazy><PlaceQualityTab placeId={id} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="seo" lazy><PlaceSeoTab placeId={id} /></UrlTabsContent>
         <UrlTabsContent value="submissions" lazy><PlaceSubmissions placeId={id} canWrite /></UrlTabsContent>
+        <UrlTabsContent value="owner" lazy><PlaceOwnerTab placeId={id} placeName={place?.name ?? ''} placePhone={place?.phone ?? null} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
       </UrlTabs>
 
       {/* Image preview lightbox — click any photo to view it large. */}

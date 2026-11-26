@@ -169,3 +169,55 @@ export function cairoDate(): string {
   const part = (type: string) => parts.find((entry) => entry.type === type)?.value;
   return `${part('year')}-${part('month')}-${part('day')}`;
 }
+
+/** GET /v1/admin/places/:id/owner — the active owner, or null, plus the kept link history. */
+export interface PlaceOwner {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  plan: PlanKey | null;
+  planKind: PlanKind | null;
+  status: 'active' | 'scheduled' | 'expired' | 'cancelled' | null;
+  renewalDate: string | null;
+  monthlyPrice: Money;
+  since: string | null;
+}
+
+export interface PlaceOwnerHistory {
+  id: string;
+  subscriberId: string;
+  subscriberName: string;
+  linkedAt: string;
+  linkedBy: string | null;
+  unlinkedAt: string | null;
+  unlinkedBy: string | null;
+}
+
+export interface PlaceOwnerResponse {
+  owner: PlaceOwner | null;
+  history: PlaceOwnerHistory[];
+}
+
+export interface PlaceOwnerInvite {
+  phone: string | null;
+  temporaryPassword: string;
+}
+
+/** GET /v1/admin/subscribers/:id/places — every linked place with its money and ads. */
+export interface SubscriberPlaceOverview {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  slug: string;
+  cityId: string;
+  city: { id: string; name: string; nameEn: string | null } | null;
+  category: { nameAr: string; nameEn: string | null } | null;
+  coverImage: string | null;
+  plan: PlanKey | null;
+  planKind: PlanKind | null;
+  monthlyPrice: Money;
+  adsRunning: number;
+  status: 'active' | 'scheduled' | 'expired' | 'cancelled' | null;
+  renewalDate: string | null;
+}

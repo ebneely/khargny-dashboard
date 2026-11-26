@@ -13,6 +13,7 @@ import { homeCopy } from '@/lib/home-copy';
 import { nearbyCopy } from '@/lib/nearby-copy';
 import { systemCopy } from '@/lib/system-copy';
 import { placeSeoCopy } from '@/lib/place-seo-copy';
+import { ownerTabCopy } from '@/lib/owner-tab-copy';
 
 const round7RenewalsCopy: Record<string, string> = {
   'Renewals': 'التجديدات',
@@ -768,6 +769,7 @@ Object.assign(dashboardCopy, algorithmCopy);
 Object.assign(dashboardCopy, homeCopy);
 Object.assign(dashboardCopy, nearbyCopy);
 Object.assign(dashboardCopy, placeSeoCopy);
+Object.assign(dashboardCopy, ownerTabCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;
