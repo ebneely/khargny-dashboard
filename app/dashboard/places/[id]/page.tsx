@@ -41,6 +41,7 @@ import { usePlaceTags } from '@/lib/api/hooks/use-place-tags';
 import { usePlaceHours } from '@/lib/api/hooks/use-place-hours';
 import { PlaceMenuTab } from '@/components/admin/place-menu-page';
 import { PlaceBadgesTab } from '@/components/admin/place-badges-tab';
+import { PlaceSearchWords } from '@/components/admin/analytics/place-search-words';
 import { PlaceSubmissions } from '@/components/admin/place-submissions';
 import { HoursEditor } from '@/components/admin/hours-editor';
 import { RegionPicker } from '@/components/region-picker';
@@ -619,6 +620,7 @@ function EditPlaceContent() {
           )}
         </CardContent>
       </Card>
+      <PlaceSearchWords placeId={id} />
         </TabsContent>
 
         <TabsContent keepMounted value="hours">

@@ -33,7 +33,9 @@ export function SearchSuggestionsSettings() {
     if (!row) return;
     setBusy(true);
     try {
-      const next = await adminApi.put<Row>('/v1/admin/algorithm/settings', { values: { ...row.values, search }, note: 'search suggestions' });
+      // the self-learning card saves the same record: read the newest version and change only the search group
+      const latest = await adminApi.get<Row>('/v1/admin/algorithm/settings');
+      const next = await adminApi.put<Row>('/v1/admin/algorithm/settings', { values: { ...latest.values, search }, note: 'search suggestions' });
       setRow(next); toast.success(copy('Search settings saved.'));
     } catch { toast.error(copy('Could not save the search settings (super admin only).')); } finally { setBusy(false); }
   };

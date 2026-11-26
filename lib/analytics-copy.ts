@@ -283,4 +283,11 @@ export const analyticsCopy: Record<string, string> = {
   'Uses a scrambled code of the browser, system, language, time zone and screen, only when exactly one earlier visitor matches.': 'يستخدم كوداً مشفّراً للمتصفح والنظام واللغة والمنطقة الزمنية والشاشة، فقط عندما يطابق زائراً سابقاً واحداً بالضبط.',
   'Keep that scrambled code for': 'الاحتفاظ بهذا الكود المشفّر لمدة',
   'After this it is deleted.': 'بعدها يُحذف.',
+  // decision 0007: the place's own search words
+  'Search words': 'كلمات البحث',
+  'The team’s keywords count fully in search. Learned words count by their weight and fade when the taps stop.': 'كلمات الفريق تُحسب كاملة في البحث. الكلمات المتعلَّمة تُحسب بوزنها وتضعف عندما تتوقف النقرات.',
+  'Could not load the search words of this place.': 'تعذر تحميل كلمات البحث لهذا المكان.',
+  'Team keywords': 'كلمات الفريق',
+  'No team keywords on this place.': 'لا توجد كلمات فريق لهذا المكان.',
+  'No learned words for this place yet. A word appears after several different visitors search it and pick this place.': 'لا توجد كلمات متعلَّمة لهذا المكان بعد. تظهر الكلمة بعد أن يبحث بها عدة زوار مختلفين ويختاروا هذا المكان.',
 };
