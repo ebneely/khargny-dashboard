@@ -37,6 +37,7 @@ export const SECTIONS: Section[] = [
     { href: '/dashboard/settings', label: 'General' },
     { href: '/dashboard/settings/team', label: 'Team', superAdminOnly: true },
     { href: '/dashboard/settings/website', label: 'Website' },
+    { href: '/dashboard/settings/app', label: 'App' },
     { href: '/dashboard/settings/api-keys', label: 'Connection keys' },
     { href: '/dashboard/settings/audit-log', label: 'Audit log', superAdminOnly: true },
     { href: '/dashboard/settings/media-health', label: 'Media health' },

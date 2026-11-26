@@ -12,6 +12,7 @@ import { algorithmCopy } from '@/lib/algorithm-copy';
 import { homeCopy } from '@/lib/home-copy';
 import { nearbyCopy } from '@/lib/nearby-copy';
 import { moodsCopy } from '@/lib/moods-copy';
+import { appSettingsCopy } from '@/lib/app-settings-copy';
 import { systemCopy } from '@/lib/system-copy';
 import { placeSeoCopy } from '@/lib/place-seo-copy';
 
@@ -770,6 +771,7 @@ Object.assign(dashboardCopy, homeCopy);
 Object.assign(dashboardCopy, nearbyCopy);
 Object.assign(dashboardCopy, placeSeoCopy);
 Object.assign(dashboardCopy, moodsCopy);
+Object.assign(dashboardCopy, appSettingsCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;
