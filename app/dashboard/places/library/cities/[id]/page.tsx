@@ -26,6 +26,7 @@ import { adminApi } from '@/lib/api/admin-client';
 import { CityDeleteDialog } from '@/components/admin/city-delete-dialog';
 import { CityRestoreDialog } from '@/components/admin/city-restore-dialog';
 import { CityAreasPicker } from '@/components/admin/city-areas-picker';
+import { CityLiveAreas } from '@/components/admin/city-live-areas';
 import { CityImageUpload } from '@/components/admin/city-image-upload';
 import { StatusBadge } from '@/components/admin/subscriber-ui';
 import type { AdminApiError } from '@/lib/api/admin-client';
@@ -228,6 +229,7 @@ export default function EditCityPage() {
             <div className="space-y-2">
               <Label><DashboardText>Regions / areas in this city</DashboardText></Label>
               <CityAreasPicker governorate={nameEn || undefined} value={areaKeys} onChange={(keys) => edit('areaKeys', keys)} />
+              <CityLiveAreas cityId={id} />
             </div>
 
             <div className="space-y-2">

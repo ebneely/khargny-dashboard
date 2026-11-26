@@ -9,8 +9,11 @@ import { submissionsCopy } from '@/lib/submissions-copy';
 import { shellCopy } from '@/lib/shell-copy';
 import { peopleCopy } from '@/lib/people-copy';
 import { algorithmCopy } from '@/lib/algorithm-copy';
+import { publishCopy } from '@/lib/publish-copy';
 import { homeCopy } from '@/lib/home-copy';
 import { nearbyCopy } from '@/lib/nearby-copy';
+import { moodsCopy } from '@/lib/moods-copy';
+import { appSettingsCopy } from '@/lib/app-settings-copy';
 import { systemCopy } from '@/lib/system-copy';
 import { placeSeoCopy } from '@/lib/place-seo-copy';
 import { ownerTabCopy } from '@/lib/owner-tab-copy';
@@ -766,10 +769,13 @@ Object.assign(dashboardCopy, submissionsCopy);
 Object.assign(dashboardCopy, shellCopy);
 Object.assign(dashboardCopy, peopleCopy);
 Object.assign(dashboardCopy, algorithmCopy);
+Object.assign(dashboardCopy, publishCopy);
 Object.assign(dashboardCopy, homeCopy);
 Object.assign(dashboardCopy, nearbyCopy);
 Object.assign(dashboardCopy, placeSeoCopy);
 Object.assign(dashboardCopy, ownerTabCopy);
+Object.assign(dashboardCopy, moodsCopy);
+Object.assign(dashboardCopy, appSettingsCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {
   if (lang === 'en') return value;

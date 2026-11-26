@@ -1,5 +1,30 @@
 import type { PlacePublicState, PlacePromotion } from '@/lib/place-public-state';
 
+/** PLACES-DIRECTION 13: the stored publish gate for one place. */
+export type PlaceCheckId =
+  | 'names'
+  | 'area'
+  | 'pin'
+  | 'address'
+  | 'phone'
+  | 'hours'
+  | 'photos'
+  | 'amenities'
+  | 'tags'
+  | 'conflicts'
+  | 'quiet'
+  | 'price';
+
+export type PublishLevel = 'required' | 'tracked' | 'off';
+export type PublishCheckLevels = Record<PlaceCheckId, PublishLevel>;
+
+export interface PlacePublish {
+  publishable: boolean;
+  checkedAt: string | null;
+  missing: PlaceCheckId[];
+  counts: { photos: number; amenities: number; tags: number; hours: number };
+}
+
 export interface AdminPlace {
   cover?: string | null;
   coverImage?: string | null;
@@ -45,6 +70,10 @@ export interface AdminPlace {
   region?: string | null;
   status: 'active' | 'draft' | 'inactive';
   publicState?: PlacePublicState;
+  /** §13: publishable + what is missing + the counts the chips show. */
+  publish?: PlacePublish;
+  publishable?: boolean;
+  publishMissing?: PlaceCheckId[];
   capabilities?: { inactiveStatus?: boolean };
   promotions?: PlacePromotion[];
   createdAt: string;
@@ -69,7 +98,7 @@ export interface AdminPlaceList {
 }
 
 export interface AdminPlaceFilters {
-  publicState?: 'live' | 'not_shown' | 'inactive' | 'draft';
+  publicState?: 'live' | 'incomplete' | 'not_shown' | 'inactive' | 'draft';
   region?: string;
   subscriberId?: string;
   search?: string;
@@ -109,6 +138,8 @@ export interface AdminCity {
   // place counts attached by the admin cities list (total incl. draft, and active)
   placeCount?: number;
   activePlaceCount?: number;
+  /** §13 cascade: publishable places (0 = hidden from the public side). */
+  live?: number;
 }
 
 export interface AdminCityList {
@@ -137,6 +168,8 @@ export interface AdminCategory {
   status: 'active' | 'draft';
   createdAt: string;
   updatedAt: string;
+  /** §13 cascade: publishable places (0 = hidden from the public side). */
+  live?: number;
 }
 
 export interface AdminAmenity {

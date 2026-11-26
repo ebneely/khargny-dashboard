@@ -4,7 +4,7 @@
  * Money, Marketplace, Numbers, with Settings). Labels are English; the copy dictionary turns them
  * Arabic on /ar pages. `superAdminOnly` tabs are dropped on the server before they reach the page.
  */
-export type SectionIcon = 'today' | 'inbox' | 'places' | 'money' | 'marketplace' | 'algorithm' | 'settings';
+export type SectionIcon = 'today' | 'inbox' | 'places' | 'moods' | 'money' | 'marketplace' | 'algorithm' | 'settings';
 export interface SectionTab { href: string; label: string; superAdminOnly?: boolean; also?: string[] }
 export interface Section { href: string; label: string; icon: SectionIcon; key: string; tabs: SectionTab[] }
 
@@ -17,6 +17,7 @@ export const SECTIONS: Section[] = [
     { href: '/dashboard/places/location-check', label: 'Location check' },
     { href: '/dashboard/places/library/cities', label: 'Library', also: ['/dashboard/places/library'] },
   ] },
+  { href: '/dashboard/moods', label: 'Moods', icon: 'moods', key: 'o', tabs: [] },
   { href: '/dashboard/money/owners', label: 'Money', icon: 'money', key: 'm', tabs: [
     { href: '/dashboard/money/owners', label: 'Owners' },
     { href: '/dashboard/money/ads', label: 'Ads' },
@@ -36,6 +37,7 @@ export const SECTIONS: Section[] = [
     { href: '/dashboard/settings', label: 'General' },
     { href: '/dashboard/settings/team', label: 'Team', superAdminOnly: true },
     { href: '/dashboard/settings/website', label: 'Website' },
+    { href: '/dashboard/settings/app', label: 'App' },
     { href: '/dashboard/settings/api-keys', label: 'Connection keys' },
     { href: '/dashboard/settings/audit-log', label: 'Audit log', superAdminOnly: true },
     { href: '/dashboard/settings/media-health', label: 'Media health' },

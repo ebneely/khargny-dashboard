@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, ChartLine, CornerDownLeft, Inbox, Keyboard, MapPin, Megaphone, Plus, Search, Settings, Store, Sun, UserPlus, Wallet, Layers, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ChartLine, HeartHandshake, CornerDownLeft, Inbox, Keyboard, MapPin, Megaphone, Plus, Search, Settings, Store, Sun, UserPlus, Wallet, Layers, type LucideIcon } from 'lucide-react';
 import Link from '@/components/lang-link';
 import { ProfileHeader } from '@/components/auth/profile-header';
 import { DashboardLangToggle } from './dashboard-lang-toggle';
@@ -18,7 +18,7 @@ import { RecordThumbnail } from './record-cell';
 import { cn } from '@/lib/utils';
 import type { InboxCounts } from '@/lib/api/inbox';
 
-const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, money: Wallet, marketplace: Store, algorithm: ChartLine, settings: Settings };
+const ICONS: Record<SectionIcon, LucideIcon> = { today: Sun, inbox: Inbox, places: MapPin, moods: HeartHandshake, money: Wallet, marketplace: Store, algorithm: ChartLine, settings: Settings };
 
 /** The Inbox queues, in the order the team works them (one list for the Inbox rail, Today and ⌘K). */
 export const QUEUES = [
@@ -29,6 +29,8 @@ export const QUEUES = [
   { id: 'owner-requests', count: 'owner_requests', label: 'Owner requests', job: 'Answer owner requests' },
   { id: 'lister-documents', count: 'lister_documents', label: 'Host papers', job: 'Check host papers' },
   { id: 'trip-reports', count: 'trip_reports', label: 'Trip reports', job: 'Read trip reports' },
+  { id: 'complete-to-publish', count: 'complete_to_publish', label: 'Complete to publish', job: 'Complete places to publish' },
+  { id: 'missing-price', count: 'missing_price', label: 'Missing price', job: 'Add missing prices' },
   { id: 'no-hours', count: 'no_hours', label: 'Places without hours', job: 'Add missing hours' },
 ] as const satisfies readonly { id: string; count: keyof InboxCounts; label: string; job: string }[];
 

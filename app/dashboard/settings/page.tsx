@@ -1,6 +1,6 @@
 import { DashboardText } from '@/components/admin/dashboard-text';
 import Link from '@/components/lang-link';
-import { ChevronRight, Globe, HeartPulse, KeyRound, Lock, ScrollText, Users, type LucideIcon } from 'lucide-react';
+import { ChevronRight, Globe, HeartPulse, KeyRound, Lock, ScrollText, Smartphone, Users, type LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getServerSession } from '@/lib/auth-server';
 
@@ -18,6 +18,9 @@ const GROUPS: { title: string; rows: Row[] }[] = [
   { title: 'Website', rows: [
     { href: '/dashboard/settings/website', title: 'Website footer and social links', description: 'The footer text and the social links on 5argny.com.', icon: Globe },
     { href: '/dashboard/settings/media-health', title: 'Media health', description: 'Photos and videos that fail to load, and how to fix them.', icon: HeartPulse },
+  ] },
+  { title: 'App', rows: [
+    { href: '/dashboard/settings/app', title: 'App', description: 'Home order, feature switches and the rating prompt in the mobile app.', icon: Smartphone },
   ] },
   { title: 'Connections', rows: [
     { href: '/dashboard/settings/api-keys', title: 'Connection keys', description: 'Give AI assistants scoped access. Create, copy once, and revoke your own keys.', icon: KeyRound },
