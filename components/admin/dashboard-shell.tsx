@@ -29,6 +29,8 @@ export const QUEUES = [
   { id: 'owner-requests', count: 'owner_requests', label: 'Owner requests', job: 'Answer owner requests' },
   { id: 'lister-documents', count: 'lister_documents', label: 'Host papers', job: 'Check host papers' },
   { id: 'trip-reports', count: 'trip_reports', label: 'Trip reports', job: 'Read trip reports' },
+  { id: 'complete-to-publish', count: 'complete_to_publish', label: 'Complete to publish', job: 'Complete places to publish' },
+  { id: 'missing-price', count: 'missing_price', label: 'Missing price', job: 'Add missing prices' },
   { id: 'no-hours', count: 'no_hours', label: 'Places without hours', job: 'Add missing hours' },
 ] as const satisfies readonly { id: string; count: keyof InboxCounts; label: string; job: string }[];
 

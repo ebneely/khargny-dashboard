@@ -1,7 +1,7 @@
 import { adminApi, toList } from '@/lib/api/admin-client';
 
 /** Every Inbox queue's waiting count, from GET /v1/admin/inbox (the nav badge sums them). */
-export type InboxCounts = Partial<Record<'corrections' | 'reports' | 'no_hours' | 'owner_requests' | 'photos' | 'renewals' | 'lister_documents' | 'trip_reports', number>>;
+export type InboxCounts = Partial<Record<'corrections' | 'reports' | 'no_hours' | 'owner_requests' | 'photos' | 'renewals' | 'lister_documents' | 'trip_reports' | 'complete_to_publish' | 'missing_price', number>>;
 import type { PlaceListMedia } from '@/lib/place-list';
 import type { SubmissionMediaRow } from '@/lib/api/submissions';
 

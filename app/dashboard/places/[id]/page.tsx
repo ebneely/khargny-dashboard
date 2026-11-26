@@ -4,6 +4,7 @@ import { PlaceStatusControl } from '@/components/admin/place-status-control';
 import { PlacePromotionReport } from '@/components/admin/place-promotion-report';
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { PageActions } from '@/components/admin/page-actions';
+import { PublishLine } from '@/components/admin/publish-missing';
 
 import { PlaceEngagement } from '@/components/admin/place-engagement';
 import { PlaceQualityTab } from '@/components/admin/place-quality-tab';
@@ -233,7 +234,7 @@ function EditPlaceContent() {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div className="flex min-w-0 flex-wrap items-start gap-4"><h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1><PlaceStatusControl place={place} value={status} onChange={setStatus} onApplied={(updated) => setAppliedStatus(updated.status)} disabled={saving || isSoftDeleted} /></div>
+        <div className="min-w-0 space-y-2"><div className="flex min-w-0 flex-wrap items-start gap-4"><h1 className="font-display text-2xl font-semibold text-foreground"><DashboardText>Edit Place</DashboardText></h1><PlaceStatusControl place={place} value={status} onChange={setStatus} onApplied={(updated) => setAppliedStatus(updated.status)} disabled={saving || isSoftDeleted} /></div>{place && <PublishLine publish={place.publish} />}</div>
         <PageActions form actions={[{ label: "Cancel", href: "/dashboard/places", readOnly: true }]} />
       </div>
 
