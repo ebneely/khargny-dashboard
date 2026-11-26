@@ -17,6 +17,7 @@ import { PlanChip } from './plan-choices';
 import { SubscriberVisits } from './subscriber-visits';
 import { SubscriberAccountPanel } from './subscriber-account';
 import { SubscriberPlaceDetails } from './subscriber-place-details';
+import { SubscriberPlacesOverview } from './subscriber-places-overview';
 import { PlaceMenuEditor } from './place-menu-editor';
 import { useDashboardCopy } from './dashboard-text';
 import { LoadingState, SavedRefreshError, MoneyText, RequestError, StatusBadge, subscriberError, useSubscriberText } from './subscriber-ui';
@@ -51,6 +52,7 @@ export function SubscriberPage({ subscriberId, canWrite: mayWrite }: { subscribe
         <TabsTrigger value="account">{copy('Owner portal')}</TabsTrigger>
       </TabsList>
       <SubscriberProfileForm subscriber={subscriber} canWrite={canWrite} onSaved={resource.refreshAfterSave} placesContent={<>
+        <SubscriberPlacesOverview subscriberId={subscriber.id} canWrite={canWrite} revision={subscriber} />
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">{text('Place details', 'تفاصيل الأماكن')}</h2>
           {!subscriber.places.length && <p className="text-sm text-muted-foreground">{text('Link a place to manage its details and pricing.', 'اربط مكاناً لإدارة تفاصيله وأسعاره.')}</p>}
