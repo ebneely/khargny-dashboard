@@ -34,9 +34,10 @@ import { useCurrentSession } from '@/lib/api/hooks/use-current-session';
 import { PlacePublicStatus } from '@/components/admin/place-public-status';
 import { PlaceDeleteDialog } from '@/components/admin/place-delete-dialog';
 import { PlaceRestoreDialog } from '@/components/admin/place-restore-dialog';
-import { WindowSwitch } from '@/components/admin/analytics/window-switch';
+import { WindowControl, useWindowCaption } from '@/components/admin/analytics/window-switch';
 import { GovIcon } from '@/components/gov-icon';
-import { PeopleSwitch, usePeople } from '@/components/admin/people-switch';
+import { PeopleSwitch, usePeople, usePeopleCaption } from '@/components/admin/people-switch';
+import { Toolbar } from '@/components/admin/toolbar';
 import { HypeRank } from '@/components/admin/hype-rank';
 import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric } from '@/lib/api/people';
@@ -123,6 +124,8 @@ export default function PlacesPage() {
   // Decision 0009: the list's counts are 30-day sums (everything for All time), so the people are too.
   const [mode, setMode] = useState<PeopleMode>('all');
   const people = usePeople(hypeWindow === 'all' ? 'all' : '30d', visibleItems.map((p) => p.id), mode !== 'all');
+  const windowCaption = useWindowCaption(true);
+  const peopleCaption = usePeopleCaption(mode, people.data?.webEstimated);
   const shown = (place: AdminPlace, metric: 'likes' | 'saves' | 'views' | 'goes') => {
     const all = place.counts?.[metric] ?? 0;
     const value = pickMode(all, people.data?.items[place.id]?.[metric as PeopleMetric], mode);
@@ -148,7 +151,7 @@ export default function PlacesPage() {
       {canWrite && <PlaceBulkStatus key={filterKey} selected={selected.map(place => place.id)} records={selected} disabled={isLoading || isError} onBusy={setBulkBusy} refresh={refetch} onSelection={ids => setSelection({ key: filterKey, records: selected.filter(place => ids.includes(place.id)) })} />}
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground"><DashboardText>Hype and counts in</DashboardText></span><WindowSwitch here /><PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} /></div>
+          <Toolbar caption={<>{windowCaption}{peopleCaption ? <> · {peopleCaption}</> : null}</>}><span className="text-sm text-muted-foreground"><DashboardText>Hype and counts in</DashboardText></span><WindowControl here /><PeopleSwitch value={mode} onValueChange={setMode} /></Toolbar>
           <FilterBar filters={6}><FilterSelect label="Sort places" value={sortBy || "default"} onValueChange={value => address.change('sort', value === 'default' ? '' : value)} options={[{ value: 'default', label: 'Default order' }, { value: 'likes', label: 'Most liked first' }, { value: 'hype', label: 'Hype first' }]} />
             <FilterSearch label="Search places..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
             <FilterSelect label="Any status" value={statusFilter} onValueChange={(value) => { setStatusFilter(value); if (value === 'live' || value === 'not-shown') setMediaFilter('all'); setPage(0); }} options={[{ value: 'all', label: 'Any status' }, { value: 'live', label: 'Live' }, { value: 'not-shown', label: 'Active but not shown' }, { value: 'active', label: 'Any active place' }, { value: 'draft', label: 'Draft' }, ...((data?.items ?? []).some(canDeactivatePlace) || statusFilter === 'inactive' ? [{ value: 'inactive', label: 'Deactivated' }] : []), { value: 'deleted', label: 'Deleted' }]} />

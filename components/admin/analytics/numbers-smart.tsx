@@ -11,7 +11,8 @@ import { RequestError } from '../subscriber-ui';
 import { SegmentedControl } from '../segmented-control';
 import { useDashboardCopy } from '../dashboard-text';
 import { HypeRank } from '../hype-rank';
-import { PeopleSwitch, usePeople } from '../people-switch';
+import { PeopleSwitch, usePeople, usePeopleCaption } from '../people-switch';
+import { Toolbar } from '../toolbar';
 import { pickMode, repeatTimes, type PeopleMode } from '@/lib/people';
 import type { PeopleMetric } from '@/lib/api/people';
 import { cn } from '@/lib/utils';
@@ -88,11 +89,12 @@ function Hype({ window }: { window: NumbersWindow }) {
   const shown = all ? rows : rows.slice(0, 10);
   // Decision 0009: the counts are the last 30 days, so the people are too. Areas, categories and collections have none.
   const people = usePeople('30d', kind === 'place' ? shown.map((r) => r.id) : [], mode !== 'all' && kind === 'place');
+  const peopleCaption = usePeopleCaption(mode, people.data?.webEstimated);
   return <Card data-slot="numbers-hype">
     <CardHeader className="flex flex-wrap items-start justify-between gap-3">
       <div><CardTitle>{copy('Hype')}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy('Views + loves + saves + shares + 5argny taps + Search points over the last 30 days, one point each, no cap. Team only.')}</p></div>
-      <div className="flex flex-wrap items-center gap-3"><PeopleSwitch value={mode} onValueChange={setMode} estimated={people.data?.webEstimated} />
-      <SegmentedControl label="Hype of" value={kind} onValueChange={(v) => { setKind(v as HypeKind); setAll(false); }} options={[{ value: 'place', label: 'Places' }, { value: 'area', label: 'Areas' }, { value: 'category', label: 'Categories' }, { value: 'collection', label: 'Collections' }]} /></div>
+      <Toolbar caption={peopleCaption}><PeopleSwitch value={mode} onValueChange={setMode} />
+      <SegmentedControl label="Hype of" value={kind} onValueChange={(v) => { setKind(v as HypeKind); setAll(false); }} options={[{ value: 'place', label: 'Places' }, { value: 'area', label: 'Areas' }, { value: 'category', label: 'Categories' }, { value: 'collection', label: 'Collections' }]} /></Toolbar>
     </CardHeader>
     <CardContent>
       {res.loading ? <Skeleton rows={5} /> : res.error || !res.data ? <RequestError message={copy('Could not load the hype.')} retry={() => { void res.refetch(); }} /> :

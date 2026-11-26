@@ -10,12 +10,14 @@ import type { PeopleMode } from '@/lib/people';
 const OPTIONS = [{ value: 'all', label: 'All' }, { value: 'people', label: 'People' }, { value: 'new', label: 'New' }, { value: 'returning', label: 'Returning' }];
 
 /** The one switch that changes every count beside it: All actions, different People, New or Returning people. */
-export function PeopleSwitch({ value, onValueChange, estimated }: { value: PeopleMode; onValueChange: (mode: PeopleMode) => void; estimated?: boolean }) {
+export function PeopleSwitch({ value, onValueChange }: { value: PeopleMode; onValueChange: (mode: PeopleMode) => void }) {
+  return <SegmentedControl label="Count" value={value} onValueChange={(v) => onValueChange(v as PeopleMode)} options={OPTIONS} />;
+}
+
+/** The note that belongs under the whole toolbar row, beside the window sentence. */
+export function usePeopleCaption(value: PeopleMode, estimated?: boolean) {
   const copy = useDashboardCopy();
-  return <div className="flex flex-wrap items-center gap-2">
-    <SegmentedControl label="Count" value={value} onValueChange={(v) => onValueChange(v as PeopleMode)} options={OPTIONS} />
-    {estimated && value !== 'all' && <span className="text-xs text-muted-foreground" title={copy('Web visitors are told apart by a browser cookie, so web people are estimated.')}>{copy('Web estimated')}</span>}
-  </div>;
+  return value !== 'all' && estimated ? copy('Web visitors are told apart by a browser cookie, so web people are estimated.') : null;
 }
 
 /**

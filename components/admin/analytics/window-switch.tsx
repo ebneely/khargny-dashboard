@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import type { NumbersWindow } from '@/lib/api/numbers';
 import { SegmentedControl } from '../segmented-control';
+import { Toolbar } from '../toolbar';
 import { DateField } from '../date-field';
 import { Button } from '@/components/ui/button';
 import { useDashboardCopy } from '../dashboard-text';
@@ -45,8 +46,7 @@ export function trendRange(chosen: NumbersWindow | 'custom', params: URLSearchPa
   return { from: shiftCalendarDays(today, -(days - 1)), to: today };
 }
 
-/** `here`: the window stays a query value on this page (Places hype), Live included, no custom range. */
-export function WindowSwitch({ here = false }: { here?: boolean }) {
+function useWindowState(here: boolean) {
   const copy = useDashboardCopy();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -66,12 +66,31 @@ export function WindowSwitch({ here = false }: { here?: boolean }) {
     for (const key of Array.from(query.keys())) if (key.endsWith('-skip')) query.delete(key);
     window.history.replaceState(null, '', `${pathname}?${query}`);
   };
-  const { from, to } = customRange(params);
-  return <div className="space-y-3"><div className="flex flex-wrap items-center gap-2">
+  return { copy, params, value, choose, setDate, ...customRange(params) };
+}
+
+/** The sentence under a toolbar row; the caller puts it below every control, never under one. */
+export function useWindowCaption(here = false) {
+  const { copy, value } = useWindowState(here);
+  if (value === 'custom') return null;
+  return value === 'all' ? copy('Every number here is the total since we started counting. The hype score stays the last 30 days.') : <>{copy('Every number here counts back from now:')} {copy(WINDOW_WORDS[value])}.</>;
+}
+
+/** The window control only, for a page that owns its toolbar row and caption. */
+export function WindowControl({ here = false }: { here?: boolean }) {
+  const { copy, value, choose } = useWindowState(here);
+  return <div className="flex flex-wrap items-center gap-2">
     <SegmentedControl label="Numbers window" value={value === 'custom' ? '' : value} onValueChange={choose} options={CHOICES} />
     {!here && <Button data-ro-allow="true" type="button" variant="ghost" size="sm" aria-pressed={value === 'custom'} className={value === 'custom' ? 'bg-muted text-foreground' : 'text-muted-foreground'} onClick={() => choose('custom')}>{copy('Custom range')}</Button>}
-  </div>
-    {value === 'custom' ? <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>
-      : <p className="text-sm text-muted-foreground">{value === 'all' ? copy('Every number here is the total since we started counting. The hype score stays the last 30 days.') : <>{copy('Every number here counts back from now:')} {copy(WINDOW_WORDS[value])}.</>}</p>}
+  </div>;
+}
+
+/** `here`: the window stays a query value on this page (Places hype), Live included, no custom range. */
+export function WindowSwitch({ here = false }: { here?: boolean }) {
+  const caption = useWindowCaption(here);
+  const { copy, value, setDate, from, to } = useWindowState(here);
+  return <div className="space-y-3">
+    <Toolbar caption={caption}><WindowControl here={here} /></Toolbar>
+    {value === 'custom' && <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">{copy('From')}<DateField readOnlyControl value={from} max={to} onChange={(date) => setDate('from', date)} /></label><label className="space-y-1 text-sm">{copy('To')}<DateField readOnlyControl value={to} min={from} onChange={(date) => setDate('to', date)} /></label></div>}
   </div>;
 }
