@@ -13,6 +13,7 @@ export const SECTIONS: Section[] = [
   { href: '/dashboard/places', label: 'Places', icon: 'places', key: 'p', tabs: [
     { href: '/dashboard/places', label: 'Places' },
     { href: '/dashboard/places/submissions', label: 'Submissions' },
+    { href: '/dashboard/places/location-check', label: 'Location check' },
     { href: '/dashboard/places/library/cities', label: 'Library', also: ['/dashboard/places/library'] },
   ] },
   { href: '/dashboard/money/owners', label: 'Money', icon: 'money', key: 'm', tabs: [

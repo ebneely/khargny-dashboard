@@ -14,3 +14,4 @@ node_modules/
 # The screenshots and the audit output are proof for a review, not fixtures.
 shots/**/*.png
 shots/metrics.json
+.e2e/
