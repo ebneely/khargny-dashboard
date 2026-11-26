@@ -67,7 +67,9 @@ export default {
           args: ['scripts/dev-local.mjs', '--e2e'],
           cwd: resolve(suiteDir, process.env.KHARGNY_BACKEND_DIR ?? '../../khargny-backend'),
           reuseExisting: true,
-          startupTimeout: 300_000,
+          // The e2e stack builds the backend, dashboard and frontend before it listens;
+          // the dashboard build alone takes over two minutes on this machine.
+          startupTimeout: 600_000,
           log: '.e2e/logs/stack.log',
           env: stackEnv,
         },

@@ -7,6 +7,7 @@ import { PageActions } from '@/components/admin/page-actions';
 
 import { PlaceEngagement } from '@/components/admin/place-engagement';
 import { PlaceQualityTab } from '@/components/admin/place-quality-tab';
+import { PlaceSeoTab } from '@/components/admin/place-seo-tab';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { Suspense, useState, useEffect } from 'react';
 import { useUrlTab } from '@/lib/use-url-tab';
@@ -53,7 +54,7 @@ export default function EditPlacePage() {
 }
 
 // Tabs grouped by job (DIRECTION section 1). Older ?tab= links land on the tab that now holds them.
-const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'quality', 'submissions'];
+const PLACE_TABS = ['details', 'hours', 'photos', 'menu', 'features', 'visibility', 'quality', 'seo', 'submissions'];
 const RENAMED_PLACE_TABS: Record<string, string> = { amenities: 'features', tags: 'features', ads: 'visibility', badges: 'visibility', media: 'photos', verification: 'quality', merge: 'quality' };
 
 function EditPlaceContent() {
@@ -246,6 +247,7 @@ function EditPlaceContent() {
           <TabsTrigger value="features">{controlCopy("Features")}</TabsTrigger>
           <TabsTrigger value="visibility">{controlCopy("Visibility")}</TabsTrigger>
           <TabsTrigger value="quality">{controlCopy("Quality")}</TabsTrigger>
+          <TabsTrigger value="seo">{controlCopy("SEO")}</TabsTrigger>
           <TabsTrigger value="submissions">{controlCopy("Submissions")}</TabsTrigger>
         </TabsList>
 
@@ -936,6 +938,7 @@ function EditPlaceContent() {
         <UrlTabsContent value="menu" lazy><PlaceMenuTab placeId={id} disabled={isSoftDeleted} /></UrlTabsContent>
         <UrlTabsContent value="visibility" lazy className="space-y-6"><PlacePromotionReport placeId={id} canWrite={!readOnly && !isSoftDeleted} /><PlaceBadgesTab placeId={id} /></UrlTabsContent>
         <UrlTabsContent value="quality" lazy><PlaceQualityTab placeId={id} canWrite={!readOnly && !isSoftDeleted} /></UrlTabsContent>
+        <UrlTabsContent value="seo" lazy><PlaceSeoTab placeId={id} /></UrlTabsContent>
         <UrlTabsContent value="submissions" lazy><PlaceSubmissions placeId={id} canWrite /></UrlTabsContent>
       </UrlTabs>
 
@@ -963,7 +966,7 @@ function EditPlaceContent() {
 
       {/* The bar saves the place's own fields; Menu, Visibility and Submissions save live or are read-only. */}
       {!['menu', 'visibility', 'submissions'].includes(activeTab) && <>
-      <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />
+      {activeTab === 'details' && <FormActionBar form="place-form" dirty={formChanges.dirty || amenities.isDirty || tags.isDirty || hours.isDirty} saving={saving} error={error || amenitiesError || tagsError || hoursError} cancelHref="/dashboard/places" />}
       </>}
     </div>
   );
