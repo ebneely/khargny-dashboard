@@ -1,0 +1,11 @@
+{
+  "pageWidth": 1440,
+  "viewport": 1440,
+  "overflow": [
+    "SPAN.sr-only",
+    "SPAN.sr-only",
+    "SPAN.sr-only",
+    "SPAN.sr-only",
+    "SPAN.sr-only"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "pageWidth": 390,
+  "viewport": 390,
+  "overflow": [
+    "NAV.flex min-w-0 items-center gap-0.5 overfl",
+    "SPAN.sr-only lg:not-sr-only",
+    "SPAN.sr-only lg:not-sr-only",
+    "SPAN.sr-only lg:not-sr-only",
+    "SPAN.sr-only lg:not-sr-only"
+  ]
+}
