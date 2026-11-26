@@ -1,5 +1,6 @@
 'use client';
 
+import { LiveBadge } from '@/components/admin/live-badge';
 import { useListAddress } from '@/components/admin/record-list';
 import { PageActions } from '@/components/admin/page-actions';
 
@@ -89,6 +90,7 @@ export default function CategoriesPage() {
                     <TableHead><DashboardText>Slug</DashboardText></TableHead>
                     <TableHead><DashboardText>Icon</DashboardText></TableHead>
                     <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
+                    <TableHead className="text-end"><DashboardText>Public</DashboardText></TableHead>
                     <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -108,6 +110,7 @@ export default function CategoriesPage() {
                       <TableCell className="text-muted-foreground">{cat.icon || '—'}</TableCell>
                       <TableCell column="status"><StatusBadge status={cat.status} />
                       </TableCell>
+                      <TableCell className="text-end"><LiveBadge live={cat.live} /></TableCell>
                       <TableCell column="actions" className="text-end"><RowActions recordName={cat.nameAr} actions={[
                         { label: readOnly ? 'View' : 'Edit', icon: <Pencil aria-hidden="true" />, href: `/dashboard/places/library/categories/${cat.id}/edit`, traceId: `category-list-edit-${cat.id}` },
                         ...(!readOnly ? [{ label: 'Delete', icon: <Trash2 aria-hidden="true" />, destructive: true, onClick: () => setPendingDelete({ id: cat.id, name: cat.nameAr }), traceId: `category-list-delete-${cat.id}` }] : []),

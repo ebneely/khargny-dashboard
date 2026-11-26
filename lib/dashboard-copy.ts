@@ -9,6 +9,7 @@ import { submissionsCopy } from '@/lib/submissions-copy';
 import { shellCopy } from '@/lib/shell-copy';
 import { peopleCopy } from '@/lib/people-copy';
 import { algorithmCopy } from '@/lib/algorithm-copy';
+import { publishCopy } from '@/lib/publish-copy';
 import { homeCopy } from '@/lib/home-copy';
 import { systemCopy } from '@/lib/system-copy';
 
@@ -763,6 +764,7 @@ Object.assign(dashboardCopy, submissionsCopy);
 Object.assign(dashboardCopy, shellCopy);
 Object.assign(dashboardCopy, peopleCopy);
 Object.assign(dashboardCopy, algorithmCopy);
+Object.assign(dashboardCopy, publishCopy);
 Object.assign(dashboardCopy, homeCopy);
 
 export function translateDashboardCopy(value: string, lang: 'ar' | 'en') {

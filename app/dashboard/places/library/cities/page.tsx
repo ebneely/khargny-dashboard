@@ -6,6 +6,7 @@ import { PageActions } from '@/components/admin/page-actions';
 import { useDashboardReadOnly } from '@/components/auth/read-only-gate';
 import { RowActions } from '@/components/admin/row-actions';
 import { RecordCell } from '@/components/admin/record-cell';
+import { LiveBadge } from '@/components/admin/live-badge';
 import { DashboardText, useDashboardCopy } from '@/components/admin/dashboard-text';
 import { useState } from 'react';
 import Link from '@/components/lang-link';
@@ -69,6 +70,7 @@ export default function CitiesPage() {
                     <TableHead><DashboardText>Slug</DashboardText></TableHead>
                     <TableHead><DashboardText>Region</DashboardText></TableHead>
                     <TableHead className="text-end"><DashboardText>Places</DashboardText></TableHead>
+                    <TableHead className="text-end"><DashboardText>Public</DashboardText></TableHead>
                     <TableHead column="status"><DashboardText>Status</DashboardText></TableHead>
                     <TableHead className="text-center"><DashboardText>Featured</DashboardText></TableHead>
                     <TableHead column="actions" className="text-end"><DashboardText>Actions</DashboardText></TableHead>
@@ -100,6 +102,7 @@ export default function CitiesPage() {
                             <span className="text-muted-foreground">0</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-end"><LiveBadge live={city.live} /></TableCell>
                         <TableCell column="status">{deletedAt ? (
                             <StatusBadge status="deleted" data-trace-id={`city-list-status-deleted-${city.id}`} />
                           ) : (

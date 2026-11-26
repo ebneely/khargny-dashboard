@@ -66,6 +66,7 @@ export function useAdminPlace(id: string) {
         imageCount?: number;
         videoCount?: number;
         publicState?: AdminPlace['publicState'];
+        publish?: AdminPlace['publish'];
         capabilities?: AdminPlace['capabilities'];
         promotions?: AdminPlace['promotions'];
         amenities?: { id: string }[];
@@ -76,6 +77,7 @@ export function useAdminPlace(id: string) {
             ...envelope.place,
             _count: envelope.place._count ?? (envelope.imageCount !== undefined || envelope.videoCount !== undefined ? { images: envelope.imageCount ?? 0, videos: envelope.videoCount ?? 0 } : undefined),
             publicState: envelope.place.publicState ?? envelope.publicState,
+            publish: envelope.place.publish ?? envelope.publish,
             capabilities: envelope.place.capabilities ?? envelope.capabilities,
             promotions: envelope.place.promotions ?? envelope.promotions,
             amenities: envelope.amenities ?? [],
