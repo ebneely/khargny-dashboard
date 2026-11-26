@@ -1,7 +1,7 @@
 import { DashboardText } from '@/components/admin/dashboard-text';
 import Link from '@/components/lang-link';
 import { ChevronRight, Globe, HeartPulse, KeyRound, Lock, ScrollText, Users, type LucideIcon } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getServerSession } from '@/lib/auth-server';
 
 type Row = { href: string; title: string; description: string; icon: LucideIcon; superAdminOnly?: boolean };

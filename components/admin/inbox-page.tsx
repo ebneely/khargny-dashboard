@@ -22,6 +22,7 @@ import { SubmissionValue } from './submission-value';
 import { SubmissionMedia } from './submission-media';
 import { deviceText } from './submissions-page';
 import { PendingPhotos } from './subscriber-photos';
+import { CompleteToPublish, MissingCheck } from './complete-to-publish';
 import { RenewalsPage } from './renewals-page';
 import { AR_LOCALE } from '@/lib/locale';
 
@@ -67,6 +68,8 @@ function InboxContent({ canWrite }: { canWrite: boolean }) {
         {queue === 'corrections' && <Corrections canWrite={canWrite} />}
         {queue === 'reports' && <Reports canWrite={canWrite} />}
         {queue === 'renewals' && <RenewalsPage canWrite={canWrite} />}
+        {queue === 'complete-to-publish' && <Card><CardHeader><CardTitle>{copy('Complete to publish')}</CardTitle></CardHeader><CardContent><CompleteToPublish /></CardContent></Card>}
+        {queue === 'missing-price' && <Card><CardHeader><CardTitle>{copy('Missing price')}</CardTitle></CardHeader><CardContent><MissingCheck check="price" /></CardContent></Card>}
         {queue === 'no-hours' && <PlacesWithoutHours />}
         {queue === 'owner-requests' && <OwnerRequests canWrite={canWrite} />}
         {queue === 'photos' && <Card><CardHeader><CardTitle>{copy('Owner photos')}</CardTitle></CardHeader><CardContent><PendingPhotos canWrite={canWrite} /></CardContent></Card>}
